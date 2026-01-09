@@ -1,0 +1,14 @@
+{
+    "name": "@krs/engine",
+    "version": "0.1.0",
+    "main": "src/index.ts",
+    "types": "src/index.ts",
+    "dependencies": {
+        "krsplan-engine": "workspace:*",
+        "papaparse": "^5.4.1"
+    },
+    "devDependencies": {
+        "@types/papaparse": "^5.3.14",
+        "typescript": "^5.7.2"
+    }
+}

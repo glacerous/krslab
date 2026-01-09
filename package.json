@@ -1,0 +1,13 @@
+{
+    "name": "krsplan",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "npx pnpm --filter krsplan-engine build --watch & npx pnpm --filter web dev",
+        "build": "npx pnpm --filter krsplan-engine build && npx pnpm --filter @krs/engine build && npx pnpm --filter web build",
+        "install:all": "npx pnpm install"
+    },
+    "devDependencies": {
+        "typescript": "^5.7.2"
+    }
+}
