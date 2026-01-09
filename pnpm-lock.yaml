@@ -8,15 +8,6 @@ importers:
 
   .:
     devDependencies:
-      next:
-        specifier: 14.2.3
-        version: 14.2.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      react:
-        specifier: ^18.3.1
-        version: 18.3.1
-      react-dom:
-        specifier: ^18.3.1
-        version: 18.3.1(react@18.3.1)
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
@@ -96,6 +87,10 @@ importers:
       krsplan-engine:
         specifier: workspace:*
         version: link:../krsplan-engine
+    devDependencies:
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
   packages/krsplan-engine:
     devDependencies:
