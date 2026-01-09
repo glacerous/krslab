@@ -1,17 +1,16 @@
 {
     "name": "@krs/engine",
     "version": "0.1.0",
+    "private": true,
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
+    "files": [
+        "dist"
+    ],
     "scripts": {
-        "build": "npx tsc"
+        "build": "tsc -p tsconfig.json"
     },
     "dependencies": {
-        "krsplan-engine": "workspace:*",
-        "papaparse": "^5.4.1"
-    },
-    "devDependencies": {
-        "@types/papaparse": "^5.3.14",
-        "typescript": "^5.7.2"
+        "krsplan-engine": "workspace:*"
     }
 }

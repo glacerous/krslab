@@ -96,16 +96,6 @@ importers:
       krsplan-engine:
         specifier: workspace:*
         version: link:../krsplan-engine
-      papaparse:
-        specifier: ^5.4.1
-        version: 5.5.3
-    devDependencies:
-      '@types/papaparse':
-        specifier: ^5.3.14
-        version: 5.5.2
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
 
   packages/krsplan-engine:
     devDependencies:
@@ -279,9 +269,6 @@ packages:
 
   '@types/node@20.19.27':
     resolution: {integrity: sha512-N2clP5pJhB2YnZJ3PIHFk5RkygRX5WO/5f0WC08tp0wd+sv0rsJk3MqWn3CbNmT2J505a5336jaQj4ph1AdMug==}
-
-  '@types/papaparse@5.5.2':
-    resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
 
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
@@ -2012,10 +1999,6 @@ snapshots:
   '@types/node@20.19.27':
     dependencies:
       undici-types: 6.21.0
-
-  '@types/papaparse@5.5.2':
-    dependencies:
-      '@types/node': 20.19.27
 
   '@types/prop-types@15.7.15': {}
 
