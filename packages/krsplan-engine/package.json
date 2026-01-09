@@ -1,0 +1,17 @@
+{
+  "name": "krsplan-engine",
+  "version": "1.0.2",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx tsc",
+    "jal": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "Farhannivta Ramadhana",
+  "license": "ISC",
+  "description": "Simple engine to plan your krs",
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
