@@ -74,8 +74,8 @@ function ViewContent() {
     };
 
     return (
-        <div className="p-8 h-screen flex flex-col no-scrollbar overflow-hidden animate-in fade-in duration-500 bg-background transition-colors">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-8 shrink-0 pb-6 border-b border-border/50">
+        <div className="p-4 md:p-6 h-screen flex flex-col no-scrollbar overflow-hidden animate-in fade-in duration-500 bg-background transition-colors">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4 shrink-0 pb-4 border-b border-border/50">
                 <div className="flex items-center gap-6">
                     <button
                         onClick={() => router.back()}
@@ -89,7 +89,7 @@ function ViewContent() {
                             <div className="w-1 h-1 bg-muted-foreground/20 rounded-full" />
                             <span className="text-[10px] uppercase font-bold text-muted-foreground/40 tracking-wider transition-colors">{ds.name}</span>
                         </div>
-                        <h2 className="text-2xl font-black tracking-tight text-foreground transition-colors">{plan.name} Architecture</h2>
+                        <h2 className="text-xl font-black tracking-tight text-foreground transition-colors">{plan.name} Architecture</h2>
                     </div>
                 </div>
 

@@ -77,7 +77,7 @@ export default function DatasourcePage() {
                             <input
                                 type="text"
                                 placeholder="Datasource Identity (e.g. 2024 Semester 1)"
-                                className="flex-1 bg-muted/30 border border-border px-4 py-2.5 rounded-lg text-sm font-medium focus:ring-1 focus:ring-primary focus:bg-background outline-none transition-soft"
+                                className="flex-1 bg-muted/30 border border-border px-4 py-2.5 rounded-lg text-sm font-medium focus:ring-1 focus:ring-primary focus:bg-background outline-none transition-soft placeholder:text-muted-foreground/30"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                             />

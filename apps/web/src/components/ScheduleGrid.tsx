@@ -15,7 +15,7 @@ interface ScheduleGridProps {
 }
 
 export function ScheduleGrid({ selectedClasses, conflicts, compact = false }: ScheduleGridProps) {
-    const [rowHeight, setRowHeight] = useState(compact ? 70 : 120);
+    const [rowHeight, setRowHeight] = useState(compact ? 50 : 65);
     const totalHeight = HOURS.length * rowHeight;
 
     const getPosition = (meeting: Meeting) => {
@@ -42,11 +42,11 @@ export function ScheduleGrid({ selectedClasses, conflicts, compact = false }: Sc
         )}>
             {/* Zoom Controls Overlay */}
             {!compact && (
-                <div className="absolute top-6 right-6 z-50 flex flex-col gap-2 transition-soft sm:opacity-0 sm:group-hover/grid:opacity-100">
+                <div className="absolute top-20 right-6 z-50 flex flex-col gap-2 transition-soft sm:opacity-0 sm:group-hover/grid:opacity-100">
                     {[
-                        { h: 70, icon: Minimize2, label: "Compact" },
-                        { h: 120, icon: Maximize2, label: "Default" },
-                        { h: 180, icon: ZoomIn, label: "Expanded" }
+                        { h: 50, icon: Minimize2, label: "Compact" },
+                        { h: 65, icon: Maximize2, label: "Default" },
+                        { h: 100, icon: ZoomIn, label: "Expanded" }
                     ].map(btn => (
                         <button
                             key={btn.h}
@@ -65,19 +65,19 @@ export function ScheduleGrid({ selectedClasses, conflicts, compact = false }: Sc
             )}
 
             {/* Header Days - Sticky */}
-            <div className="flex bg-card shrink-0 z-40 border-b border-border shadow-sm transition-colors">
-                <div className={cn("w-16 border-r border-border flex items-center justify-center p-4", compact && "w-12 p-2")}>
-                    <Zap className="w-3.5 h-3.5 text-primary/40" fill="currentColor" />
+            <div className="flex bg-card shrink-0 z-50 border-b border-border shadow-sm transition-colors sticky top-0">
+                <div className={cn("w-16 border-r border-border flex items-center justify-center p-2 bg-muted/30 sticky left-0 z-50", compact && "w-12")}>
+                    <Zap className="w-3.5 h-3.5 text-primary" fill="currentColor" />
                 </div>
                 {DAYS.map(day => (
                     <div key={day} className={cn(
-                        "flex-1 p-4 text-center transition-colors border-r last:border-r-0 border-border bg-card",
-                        compact && "p-2 font-black text-muted-foreground/20 text-[9px] uppercase tracking-widest"
+                        "flex-1 p-2.5 text-center transition-colors border-r last:border-r-0 border-border bg-card",
+                        compact && "p-1.5"
                     )}>
-                        {!compact && (
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/40">{day}</span>
-                        )}
-                        {compact && day.substring(0, 3)}
+                        <span className={cn(
+                            "font-black uppercase tracking-[0.2em] text-foreground/80",
+                            compact ? "text-[8px] tracking-normal" : "text-[10px]"
+                        )}>{compact ? day.substring(0, 3) : day}</span>
                     </div>
                 ))}
             </div>
@@ -88,20 +88,20 @@ export function ScheduleGrid({ selectedClasses, conflicts, compact = false }: Sc
                     className="relative flex"
                     style={{ height: `${totalHeight}px`, minWidth: "100%" }}
                 >
-                    {/* Time Column */}
-                    <div className={cn("w-16 bg-muted/20 border-r border-border shrink-0 h-full transition-colors", compact && "w-12")}>
+                    {/* Time Column - Sticky */}
+                    <div className={cn("w-16 bg-muted/10 border-r border-border shrink-0 h-full transition-colors sticky left-0 z-30", compact && "w-12")}>
                         {HOURS.map(hour => (
-                            <div key={hour} style={{ height: `${rowHeight}px` }} className="border-b border-border/30 p-2 text-right pr-3 group/hour relative">
-                                <span className="text-[10px] font-black text-muted-foreground/30 transition-soft group-hover/hour:text-primary leading-none">{hour.toString().padStart(2, '0')}:00</span>
+                            <div key={hour} style={{ height: `${rowHeight}px` }} className="border-b border-border/40 p-1.5 text-right pr-3 group/hour relative bg-card/80 backdrop-blur-sm">
+                                <span className="text-[10px] font-bold text-foreground/50 transition-soft group-hover/hour:text-primary leading-none">{hour.toString().padStart(2, '0')}:00</span>
                             </div>
                         ))}
                     </div>
 
                     {/* Columns & Lines */}
                     {DAYS.map((day) => (
-                        <div key={day} className="flex-1 relative border-r last:border-r-0 border-border/30 h-full">
+                        <div key={day} className="flex-1 relative border-r last:border-r-0 border-border/40 h-full">
                             {HOURS.map(hour => (
-                                <div key={hour} style={{ height: `${rowHeight}px` }} className="border-b border-border/30" />
+                                <div key={hour} style={{ height: `${rowHeight}px` }} className="border-b border-border/40" />
                             ))}
                         </div>
                     ))}
@@ -127,50 +127,50 @@ export function ScheduleGrid({ selectedClasses, conflicts, compact = false }: Sc
                                                     <div
                                                         key={`${cls.classId}-${mIdx}`}
                                                         className={cn(
-                                                            "absolute left-[2px] right-[2px] rounded-lg border transition-soft overflow-hidden flex flex-col pointer-events-auto group/block realistic-shadow",
+                                                            "absolute left-[3px] right-[3px] rounded-md border transition-soft overflow-hidden flex flex-col pointer-events-auto group/block realistic-shadow",
                                                             isConflicting
-                                                                ? "bg-destructive/10 border-destructive shadow-lg shadow-destructive/5 z-20"
-                                                                : "bg-card border-border hover:border-primary/50 hover:bg-muted/50 z-10 hover:z-30 hover:-translate-y-0.5",
-                                                            compact ? "p-2" : "p-4"
+                                                                ? "bg-destructive/15 border-destructive shadow-lg shadow-destructive/10 z-20"
+                                                                : "bg-card border-border/80 hover:border-primary/50 hover:bg-muted/30 z-10 hover:z-30 hover:-translate-y-0.5",
+                                                            compact ? "p-1.5" : "p-2.5"
                                                         )}
                                                         style={{ top: `${pos.top + 2}px`, height: `${pos.height - 4}px` }}
                                                     >
                                                         {/* Simple color indicator strip */}
                                                         {!isConflicting && (
-                                                            <div className="absolute top-0 left-0 right-0 h-1 bg-primary/20 group-hover/block:bg-primary transition-colors" />
+                                                            <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/30 group-hover/block:bg-primary transition-colors" />
                                                         )}
                                                         {isConflicting && (
-                                                            <div className="absolute top-0 left-0 right-0 h-1 bg-destructive" />
+                                                            <div className="absolute top-0 left-0 right-0 h-0.5 bg-destructive" />
                                                         )}
 
-                                                        <div className="flex-1 min-w-0 space-y-0.5 mt-1">
+                                                        <div className="flex-1 min-w-0 space-y-0.5 mt-0.5">
                                                             <div className="flex items-center justify-between">
-                                                                <span className={cn("font-black tracking-[0.1em] opacity-40 uppercase truncate", compact ? "text-[7px]" : "text-[9px]")}>
+                                                                <span className={cn("font-black tracking-[0.05em] text-foreground/40 uppercase truncate", compact ? "text-[7px]" : "text-[8px]")}>
                                                                     {cls.subjectCode}
                                                                 </span>
-                                                                {isConflicting && <AlertTriangle className={cn("animate-pulse text-destructive", compact ? "w-2.5 h-2.5" : "w-3.5 h-3.5")} />}
+                                                                {isConflicting && <AlertTriangle className={cn("animate-pulse text-destructive", compact ? "w-2.5 h-2.5" : "w-3 h-3")} />}
                                                             </div>
-                                                            <h4 className={cn("font-bold leading-none truncate transition-soft text-foreground", compact ? "text-[10px]" : "text-[13px]")}>
+                                                            <h4 className={cn("font-extrabold leading-tight transition-soft text-foreground", compact ? "text-[9px]" : "text-[12px]")}>
                                                                 {cls.subjectName}
                                                             </h4>
                                                         </div>
 
-                                                        <div className="mt-auto space-y-1">
+                                                        <div className="mt-1.5 space-y-0.5">
                                                             <div className="flex items-center justify-between gap-2 overflow-hidden">
-                                                                <span className={cn("font-bold text-muted-foreground/60 uppercase", compact ? "text-[8px]" : "text-[10px]")}>Section {cls.className}</span>
-                                                                <div className="flex items-center gap-1 opacity-40 group-hover/block:opacity-100 transition-soft overflow-hidden">
-                                                                    <MapPin className={cn("shrink-0", compact ? "w-2.5 h-2.5" : "w-3 h-3")} />
-                                                                    <span className={cn("font-bold truncate max-w-[60px]", compact ? "text-[8px]" : "text-[10px]")}>{m.room}</span>
+                                                                <span className={cn("font-bold text-foreground/60 uppercase", compact ? "text-[8px]" : "text-[9px]")}>S-{cls.className}</span>
+                                                                <div className="flex items-center gap-1 text-foreground/40 group-hover/block:text-foreground/70 transition-soft overflow-hidden">
+                                                                    <MapPin className={cn("shrink-0", compact ? "w-2 h-2" : "w-2.5 h-2.5")} />
+                                                                    <span className={cn("font-bold truncate max-w-[50px]", compact ? "text-[8px]" : "text-[9px]")}>{m.room}</span>
                                                                 </div>
                                                             </div>
-                                                            {!compact && rowHeight > 100 && (
-                                                                <div className="flex flex-col gap-1 pt-2 border-t border-border/50 animate-in fade-in duration-300">
-                                                                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/30">
-                                                                        <User className="w-2.5 h-2.5" />
-                                                                        <span className="truncate">{cls.lecturers?.join(" / ")}</span>
+                                                            {!compact && rowHeight >= 65 && (
+                                                                <div className="flex flex-col gap-0.5 pt-1 border-t border-border/50 animate-in fade-in duration-300">
+                                                                    <div className="flex items-center gap-1 text-[8px] font-bold text-foreground/30 group-hover/block:text-foreground/50">
+                                                                        <User className="w-2.5 h-2.5 shrink-0" />
+                                                                        <span className="truncate">{cls.lecturers?.[0]}</span>
                                                                     </div>
-                                                                    <div className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/30">
-                                                                        <Clock className="w-2.5 h-2.5" />
+                                                                    <div className="flex items-center gap-1 text-[8px] font-bold text-foreground/30 group-hover/block:text-foreground/50">
+                                                                        <Clock className="w-2.5 h-2.5 shrink-0" />
                                                                         <span>{m.start}—{m.end}</span>
                                                                     </div>
                                                                 </div>
