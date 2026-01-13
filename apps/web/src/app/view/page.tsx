@@ -45,7 +45,20 @@ function ViewContent() {
     const plan = plans.find(p => p.id === planId);
     const ds = datasources.find(d => d.id === plan?.datasourceId);
 
-    const getEffectiveMapping = () => {
+    const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+
+    const variantsCount = plan?.generatedVariants?.length ?? 0;
+    const isGeneratedPreview = useMemo(() => {
+        const idx = plan?.activeVariantIndex;
+        return idx !== null && idx !== undefined &&
+            variantsCount > 0 &&
+            idx >= 0 && idx < variantsCount;
+    }, [plan?.activeVariantIndex, variantsCount]);
+
+    const isSavedPreview = !!plan?.activeSavedVariantId && !!plan?.savedVariants?.find(s => s.id === plan.activeSavedVariantId);
+    const isPreview = isGeneratedPreview || isSavedPreview;
+
+    const effectiveMapping = useMemo(() => {
         if (!plan) return {};
         let mapping = { ...plan.selectedClassBySubjectId };
 
@@ -62,43 +75,12 @@ function ViewContent() {
         }
 
         return mapping;
-    };
-
-    const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
-
-
-    const variantsCount = plan?.generatedVariants?.length ?? 0;
-    const isGeneratedPreview = useMemo(() => {
-        const idx = plan?.activeVariantIndex;
-        return idx !== null && idx !== undefined &&
-            variantsCount > 0 &&
-            idx >= 0 && idx < variantsCount;
-    }, [plan?.activeVariantIndex, variantsCount]);
-
-    const isSavedPreview = !!plan?.activeSavedVariantId && !!plan?.savedVariants?.find(s => s.id === plan.activeSavedVariantId);
-    const isPreview = isGeneratedPreview || isSavedPreview;
+    }, [plan, isSavedPreview, isGeneratedPreview, isPreview]);
 
     const selectedClasses = useMemo(() => {
         if (!plan || !ds) return [];
 
-        let mapping = plan.selectedClassBySubjectId;
-
-        // Priority Logic: Saved Preview > Generated Preview > Base Plan
-        if (isSavedPreview) {
-            mapping = plan.savedVariants?.find(s => s.id === plan.activeSavedVariantId)?.mapping || mapping;
-        } else if (isGeneratedPreview && plan.generatedVariants) {
-            mapping = plan.generatedVariants[plan.activeVariantIndex!];
-        }
-
-        if (!mapping) return [];
-
-        // Apply Preview Overrides
-        if (isPreview && plan.previewOverrides) {
-            mapping = { ...mapping, ...plan.previewOverrides };
-        }
-
-
-        return Object.entries(mapping)
+        return Object.entries(effectiveMapping)
             .map(([subId, classId]) => {
                 const sub = ds.subjects.find(s => s.subjectId === subId);
                 const cls = sub?.classes.find(c => c.classId === classId);
@@ -106,7 +88,7 @@ function ViewContent() {
                 return { ...cls, subjectId: subId, subjectName: sub?.name, subjectCode: sub?.code };
             })
             .filter((c): c is NonNullable<typeof c> => c !== null);
-    }, [plan, ds, isPreview, isGeneratedPreview, isSavedPreview]);
+    }, [effectiveMapping, ds, plan]);
 
     const conflicts = useMemo(() => {
         const res: Record<string, boolean> = {};
@@ -219,7 +201,7 @@ function ViewContent() {
         }
 
         const isDeterministic = e?.shiftKey === true;
-        const effectiveMapping = getEffectiveMapping();
+        const mappingToUse = effectiveMapping;
 
         if (isDeterministic) {
             console.group("%c[REPRO MODE] Running 3x Deterministic Cycles", "background: #700; color: #fff; font-weight: bold; padding: 2px 4px;");
@@ -231,7 +213,7 @@ function ViewContent() {
                     target: 10,
                     maxAttempts: 10000,
                     seed: fixedSeed,
-                    freezeSeedMapping: effectiveMapping
+                    freezeSeedMapping: mappingToUse
                 });
                 results.push(count);
                 console.log(`Cycle ${i} Result: ${count} variants`);
@@ -255,7 +237,7 @@ function ViewContent() {
             target: 10,
             maxAttempts: 10000,
             seed: Date.now(),
-            freezeSeedMapping: effectiveMapping
+            freezeSeedMapping: mappingToUse
         });
 
         if (count > 0) {
@@ -496,7 +478,7 @@ function ViewContent() {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Select Section</label>
                                 <div className="grid grid-cols-1 gap-2">
                                     {selectedSubject.classes.map((cls) => {
-                                        const isSelected = (isPreview ? (plan.previewOverrides?.[selectedSubjectId] || plan.selectedClassBySubjectId[selectedSubjectId]) : plan.selectedClassBySubjectId[selectedSubjectId]) === cls.classId;
+                                        const isSelected = effectiveMapping[selectedSubjectId] === cls.classId;
                                         return (
                                             <button
                                                 key={cls.classId}
