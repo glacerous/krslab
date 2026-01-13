@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
 
@@ -34,6 +35,7 @@ export default function RootLayout({
                     </div>
                     <Toaster position="bottom-right" richColors closeButton visibleToasts={2} />
                 </ThemeProvider>
+                <Analytics />
             </body>
         </html>
     );
