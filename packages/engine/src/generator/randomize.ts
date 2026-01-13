@@ -165,10 +165,10 @@ export function generateRandomValidSchedules(
         }
     }
 
-    while (validVariants.length < target && totalAttempts < maxAttempts) {
+    let rootRuns = 0;
+    while (validVariants.length < target && rootRuns < maxAttempts) {
+        rootRuns++;
         backtrack(0, {});
-        if (totalAttempts === 0) break;
-        if (validVariants.length === 0 && totalAttempts > 100) break;
     }
 
     const result: GeneratorResult = { variants: validVariants };

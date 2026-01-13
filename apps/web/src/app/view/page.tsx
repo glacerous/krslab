@@ -37,7 +37,8 @@ function ViewContent() {
         plans, datasources, activePlanId,
         generateVariantsForPlan, setActiveVariantIndex, applyActiveVariantToPlan,
         setRulesForPlan, toggleFreezeSubject,
-        saveActiveVariant, setActiveSavedVariant, updatePlan, setPreviewOverride
+        saveActiveVariant, setActiveSavedVariant, updatePlan, setPreviewOverride,
+        isGenerating
     } = useAppStore();
 
     const planId = searchParams.get("planId") || activePlanId;
@@ -206,7 +207,7 @@ function ViewContent() {
     };
 
     const handleGenerate = () => {
-        if (!plan) return;
+        if (!plan || isGenerating) return;
         const inGridCount = Object.keys(plan.selectedClassBySubjectId).length;
         if (inGridCount === 0) {
             toast.error("Empty Grid", { description: "Select subjects into the grid first." });
@@ -303,10 +304,16 @@ function ViewContent() {
 
                         <button
                             onClick={handleGenerate}
-                            className="bg-primary hover:bg-primary/95 text-primary-foreground px-5 py-2.5 rounded-lg flex items-center gap-3 transition-soft active:scale-95 shadow-lg shadow-primary/20"
+                            disabled={isGenerating}
+                            className={cn(
+                                "bg-primary hover:bg-primary/95 text-primary-foreground px-5 py-2.5 rounded-lg flex items-center gap-3 transition-soft active:scale-95 shadow-lg shadow-primary/20",
+                                isGenerating && "opacity-50 cursor-not-allowed"
+                            )}
                         >
-                            <Zap className="w-4 h-4 fill-primary-foreground" />
-                            <span className="text-[10px] font-black uppercase tracking-widest">Generate</span>
+                            <Zap className={cn("w-4 h-4 fill-primary-foreground", isGenerating && "animate-pulse")} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">
+                                {isGenerating ? "Processing..." : "Generate"}
+                            </span>
                         </button>
 
                         <SavedVariants
