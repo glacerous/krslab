@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Bookmark } from "lucide-react";
 import { createPortal } from "react-dom";
-import * as htmlToImage from "html-to-image";
+
 
 const dayShort = (day: string) => {
     const map: Record<string, string> = {
@@ -179,32 +179,33 @@ function ViewContent() {
         </div>
     );
 
-    const handleExportImage = () => {
+    const handleExportImage = async () => {
         const node = document.getElementById("krs-grid-capture");
         if (!node) return;
 
         toast.loading("Capturing Grid...", { id: "export-image" });
 
-        htmlToImage.toPng(node, {
-            pixelRatio: 2,
-            backgroundColor: "#050505", // Matches theme
-            filter: (node: Node) => {
-                // Filter out zoom controls if they appear in capture
-                const el = node as HTMLElement;
-                return !el.classList?.contains('zoom-controls');
-            }
-        })
-            .then((dataUrl: string) => {
-                const link = document.createElement("a");
-                link.download = `KRSlab-${plan?.name || "Schedule"}.png`;
-                link.href = dataUrl;
-                link.click();
-                toast.success("Image Exported", { id: "export-image" });
-            })
-            .catch((err: Error) => {
-                console.error("Export failed", err);
-                toast.error("Export Failed", { id: "export-image" });
+        try {
+            const htmlToImage = await import("html-to-image");
+            const dataUrl = await htmlToImage.toPng(node, {
+                pixelRatio: 2,
+                backgroundColor: "#050505", // Matches theme
+                filter: (node: Node) => {
+                    // Filter out zoom controls if they appear in capture
+                    const el = node as HTMLElement;
+                    return !el.classList?.contains('zoom-controls');
+                }
             });
+
+            const link = document.createElement("a");
+            link.download = `KRSlab-${plan?.name || "Schedule"}.png`;
+            link.href = dataUrl;
+            link.click();
+            toast.success("Image Exported", { id: "export-image" });
+        } catch (err) {
+            console.error("Export failed", err);
+            toast.error("Export Failed", { id: "export-image" });
+        }
     };
 
     const handleGenerate = () => {
