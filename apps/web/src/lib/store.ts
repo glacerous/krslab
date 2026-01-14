@@ -332,8 +332,8 @@ export const useAppStore = create<AppStore>()(
                             seed: generationSeed
                         });
                         console.log("Frozen Subjects:", Object.keys(initialPicks).map(id => datasource.subjects.find(s => s.subjectId === id)?.name));
-                        if (genResult.stats) {
-                            console.log("Engine Stats:", genResult.stats);
+                        if ((genResult as any).stats) {
+                            console.log("Engine Stats:", (genResult as any).stats);
                         }
                         console.log("Results:", {
                             variants: count,
