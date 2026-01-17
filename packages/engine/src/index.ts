@@ -42,34 +42,43 @@ export function parseBimaMasterWithDebug(text: string): BimaParseResult {
     // Strategy 1: Tab or multi-space (Robust Format A)
     let columns = line.split(/\t|\s{2,}/);
 
-    // Strategy 2: If brittle space-delimited (Format B)
-    if (columns.length < 7 && line.startsWith("SISTEM INFORMASI")) {
+    // Strategy 2: If brittle space-delimited
+    // This happens when copy-pasting from a source that collapses tabs to single spaces
+    if (columns.length < 7) {
       const parts = line.split(/\s+/);
-      if (parts.length >= 9) {
-        let classIndex = -1;
-        for (let j = 3; j < parts.length; j++) {
-          if (/^SI-[A-Z0-9]+$/.test(parts[j])) {
-            classIndex = j;
-            break;
-          }
+      // Heuristic: Identify code (usually numeric) and a class name (e.g., SI-A, DTK-B)
+      // and reconstruct from there.
+      const classPattern = /^[A-Z0-9]+-[A-Z0-9]+$/;
+      let classIndex = -1;
+      for (let j = 2; j < parts.length; j++) {
+        if (classPattern.test(parts[j])) {
+          classIndex = j;
+          break;
         }
-        if (classIndex !== -1) {
+      }
+
+      if (classIndex !== -1 && parts.length >= classIndex + 3) {
+        // Attempt to guess columns based on common patterns
+        const possibleSks = parts[classIndex + 1];
+        const possibleCapacity = parts[classIndex + 2];
+
+        if (/^\d+$/.test(possibleSks) && /^\d+$/.test(possibleCapacity)) {
           columns = [
-            "SISTEM INFORMASI",
-            parts[2], // CODE
-            parts.slice(3, classIndex).join(" "), // NAME
+            parts.slice(0, 1).join(" "), // PRODI
+            parts[1], // CODE
+            parts.slice(2, classIndex).join(" "), // NAME
             parts[classIndex], // CLASS
-            parts[classIndex + 1], // SKS
-            parts[classIndex + 2], // CAPACITY
-            parts[classIndex + 3] + " " + parts[classIndex + 4], // DAY TIME
-            parts[classIndex + 5] // ROOM
+            possibleSks, // SKS
+            possibleCapacity, // CAPACITY
+            parts.slice(classIndex + 3, classIndex + 5).join(" "), // DAY TIME
+            parts.slice(classIndex + 5).join(" ") // ROOM
           ];
         }
       }
     }
 
     // Schema detection
-    // Format A: [0]PRODI [1]CODE [2]NAME [3]SKS [4]CLASS [5]... [6]DAY TIME [7]ROOM
+    // Format A: [0]PRODI [1]CODE [2]NAME [3]SKS [4]CLASS [5]CAPACITY [6]DAY TIME [7]ROOM
     // Format B: [0]PRODI [1]CODE [2]NAME [3]CLASS [4]SKS [5]CAPACITY [6]DAY TIME [7]ROOM
 
     if (columns.length >= 7) {
@@ -81,20 +90,21 @@ export function parseBimaMasterWithDebug(text: string): BimaParseResult {
       let scheduleStr = "";
       let room = "";
 
-      const col3IsNumeric = !isNaN(parseInt(columns[3]));
-      const col4IsNumeric = !isNaN(parseInt(columns[4]));
-      const col3MatchesClass = /^SI-[A-Z0-9]+$/.test(columns[3] || "");
+      const col3IsSks = /^\d+$/.test(columns[3]?.trim() || "");
+      const col4IsSks = /^\d+$/.test(columns[4]?.trim() || "");
+      const looksLikeClass = (str: string) => /^[A-Z0-9-]+$/.test(str || "");
 
-      if (col3IsNumeric) {
+      if (col3IsSks && looksLikeClass(columns[4])) {
         // Format A
         debug.formatA++;
         code = columns[1]?.trim();
         name = columns[2]?.trim();
         sks = parseInt(columns[3]) || 0;
         className = columns[4]?.trim();
+        capacity = parseInt(columns[5]) || undefined;
         scheduleStr = columns[6]?.trim();
         room = columns[7]?.trim() || "";
-      } else if (col4IsNumeric && col3MatchesClass) {
+      } else if (col4IsSks && looksLikeClass(columns[3])) {
         // Format B
         debug.formatB++;
         code = columns[1]?.trim();
@@ -108,15 +118,18 @@ export function parseBimaMasterWithDebug(text: string): BimaParseResult {
         // Try to find a line that looks like a main record even if it doesn't match the strict schema
         if (columns[1] && /^\d+$/.test(columns[1])) {
           debug.unknown++;
-          // Fallback to Format A if it looks like a code
           code = columns[1].trim();
           name = columns[2]?.trim();
-          sks = parseInt(columns[3]) || 0;
-          className = columns[4]?.trim();
+          // Heuristic fallback
+          if (col3IsSks) {
+            sks = parseInt(columns[3]) || 0;
+            className = columns[4]?.trim();
+          } else if (col4IsSks) {
+            className = columns[3]?.trim();
+            sks = parseInt(columns[4]) || 0;
+          }
           scheduleStr = columns[6]?.trim();
           room = columns[7]?.trim() || "";
-        } else {
-          // Might be a lecturer line handled below
         }
       }
 
