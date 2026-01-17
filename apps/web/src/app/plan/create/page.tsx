@@ -18,6 +18,7 @@ export default function CreatePlanPage() {
     const [selectedDsId, setSelectedDsId] = useState("");
     const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
+    const [breakLimit, setBreakLimit] = useState(false);
 
     const nameValidation = useMemo(() => validateBlueprint({ name }), [name]);
 
@@ -61,6 +62,11 @@ export default function CreatePlanPage() {
 
         if (!selectedDsId || selectedSubjectIds.length === 0) {
             toast.error("Process Aborted", { description: "Source and subjects are required." });
+            return;
+        }
+
+        if (totalSks > 24 && !breakLimit) {
+            toast.error("Limit Exceeded", { description: "You must enable 'Break Limit' to exceed 24 SKS." });
             return;
         }
 
@@ -140,13 +146,35 @@ export default function CreatePlanPage() {
                                 <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 pointer-events-none rotate-90" />
                             </div>
                         </div>
+
+                        <div className="flex items-center justify-between px-1 pt-2">
+                            <div className="space-y-0.5">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground block">Break Limit</label>
+                                <p className="text-[8px] text-muted-foreground/40 font-medium leading-none uppercase tracking-tighter italic">Ignore 24 SKS safety cap</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setBreakLimit(!breakLimit)}
+                                className={cn(
+                                    "w-9 h-5 rounded-full transition-all duration-300 relative border shrink-0",
+                                    breakLimit
+                                        ? "bg-primary border-primary shadow-[0_0_10px_rgba(132,204,22,0.2)]"
+                                        : "bg-muted border-border/50"
+                                )}
+                            >
+                                <div className={cn(
+                                    "absolute top-1 w-3 h-3 rounded-full bg-white transition-all duration-300 shadow-sm",
+                                    breakLimit ? "left-5" : "left-1"
+                                )} />
+                            </button>
+                        </div>
                     </section>
 
                     <section className="p-6 bg-muted/30 border border-border/50 rounded-xl space-y-5">
                         <div className="text-center space-y-1">
                             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">Total Weight</p>
                             <div className="flex items-center justify-center gap-1.5">
-                                <p className={cn("text-3xl font-black tabular-nums transition-colors", totalSks > 26 ? "text-destructive" : "text-primary")}>{totalSks}</p>
+                                <p className={cn("text-3xl font-black tabular-nums transition-colors", totalSks > 24 && !breakLimit ? "text-destructive" : "text-primary")}>{totalSks}</p>
                                 <span className="text-[10px] font-black text-muted-foreground opacity-30 uppercase">SKS</span>
                             </div>
                         </div>
@@ -157,14 +185,14 @@ export default function CreatePlanPage() {
                             </div>
                             <div className="bg-background/50 border border-border/40 p-3 rounded-lg text-center">
                                 <p className="text-[8px] font-bold text-muted-foreground/60 uppercase">Safe Limit</p>
-                                <p className="text-xs font-black text-foreground">26</p>
+                                <p className="text-xs font-black text-foreground">24</p>
                             </div>
                         </div>
                     </section>
 
                     <button
                         onClick={handleCreate}
-                        disabled={!selectedDsId || selectedSubjectIds.length === 0 || totalSks > 26}
+                        disabled={!selectedDsId || selectedSubjectIds.length === 0 || (totalSks > 24 && !breakLimit)}
                         className="w-full bg-primary hover:bg-primary/90 disabled:opacity-20 text-primary-foreground p-4 rounded-xl font-black text-[11px] uppercase tracking-widest transition-soft shadow-lg shadow-primary/10 flex items-center justify-center gap-2 active:scale-95 group overflow-hidden"
                     >
                         Initialize
