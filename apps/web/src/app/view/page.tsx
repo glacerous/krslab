@@ -339,6 +339,19 @@ function ViewContent() {
                             onOpenChange={setIsArchiveOpen}
                         />
 
+                        <button
+                            onClick={() => {
+                                saveActiveVariant(plan.id);
+                                toast.success("Variant Archived", { id: "save-variant" });
+                            }}
+                            className={cn(
+                                "flex items-center gap-2.5 px-4 py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-soft border shadow-sm",
+                                "bg-background text-foreground border-border hover:bg-muted"
+                            )}
+                        >
+                            <Bookmark className="w-3.5 h-3.5" /> Save
+                        </button>
+
                         {variantsCount > 0 && (
                             <div className="ml-2 px-3 py-1.5 bg-muted/50 rounded-lg border border-border/50">
                                 <span className="text-[9px] font-black text-muted-foreground uppercase tracking-widest opacity-60">
@@ -393,24 +406,6 @@ function ViewContent() {
                                     className="w-8 h-8 flex items-center justify-center hover:bg-primary/10 text-primary rounded-md transition-soft bg-background border border-primary/20"
                                 >
                                     <ChevronRight className="w-4 h-4" />
-                                </button>
-
-                                {/* Save Button */}
-                                <button
-                                    onClick={() => {
-                                        if (!isPreview) {
-                                            toast.error("Enter preview to save.", { id: "save-variant" });
-                                            return;
-                                        }
-                                        saveActiveVariant(plan.id);
-                                        toast.success("Variant Archived", { id: "save-variant" });
-                                    }}
-                                    className={cn(
-                                        "flex items-center gap-2 px-3 py-1.5 rounded-md font-black text-[9px] uppercase tracking-widest transition-soft border shadow-sm",
-                                        "bg-background text-foreground border-border hover:bg-muted"
-                                    )}
-                                >
-                                    <Bookmark className="w-3 h-3" /> Save Archive
                                 </button>
                             </div>
                         )}

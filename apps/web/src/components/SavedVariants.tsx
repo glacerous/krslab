@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { Bookmark, Trash2, Check, Eye, X, ChevronRight, Clock, History } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
+import { MiniGrid } from "./MiniGrid";
 
 interface SavedVariantsProps {
     plan: Plan;
@@ -122,6 +123,11 @@ export function SavedVariants({ plan, datasource, isOpen, onOpenChange }: SavedV
                                                     >
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
+                                                </div>
+
+                                                {/* Mini Grid Preview */}
+                                                <div className="mb-6">
+                                                    <MiniGrid mapping={sv.mapping} datasource={datasource} />
                                                 </div>
 
                                                 <div className="flex gap-3">

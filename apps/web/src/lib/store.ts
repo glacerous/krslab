@@ -438,15 +438,27 @@ export const useAppStore = create<AppStore>()(
                     const plan = state.plans.find((p) => p.id === planId);
                     if (!plan) return state;
 
-                    // Source mapping: generated preview OR saved preview
-                    let mapping: Record<string, string> | undefined;
+                    // 1. Start with the base mapping (what's currently in the grid)
+                    let mapping: Record<string, string> = { ...plan.selectedClassBySubjectId };
+
+                    // 2. If a generated variant is being previewed, use its mapping instead
                     if (plan.activeVariantIndex !== null && plan.activeVariantIndex !== undefined && plan.generatedVariants) {
-                        mapping = plan.generatedVariants[plan.activeVariantIndex];
-                    } else if (plan.activeSavedVariantId && plan.savedVariants) {
-                        mapping = plan.savedVariants.find(sv => sv.id === plan.activeSavedVariantId)?.mapping;
+                        const variantMapping = plan.generatedVariants[plan.activeVariantIndex];
+                        if (variantMapping) mapping = { ...variantMapping };
                     }
 
-                    if (!mapping) return state;
+                    // 3. If a saved variant is being previewed, use its mapping instead
+                    else if (plan.activeSavedVariantId && plan.savedVariants) {
+                        const savedMapping = plan.savedVariants.find(sv => sv.id === plan.activeSavedVariantId)?.mapping;
+                        if (savedMapping) mapping = { ...savedMapping };
+                    }
+
+                    // 4. Always apply preview overrides (manual adjustments during preview)
+                    if (plan.previewOverrides) {
+                        mapping = { ...mapping, ...plan.previewOverrides };
+                    }
+
+                    if (Object.keys(mapping).length === 0) return state;
 
                     // Stable deduplication key
                     const getStableKey = (m: Record<string, string>) =>
