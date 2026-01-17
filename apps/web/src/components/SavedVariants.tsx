@@ -2,7 +2,7 @@
 
 import { useAppStore, Plan, Datasource } from "@/lib/store";
 import { useState, useRef, useEffect } from "react";
-import { Bookmark, Trash2, Check, Eye, X, ChevronRight, Clock, History } from "lucide-react";
+import { Bookmark, Trash2, Check, Eye, X, ChevronRight, Clock, History, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 import { MiniGrid } from "./MiniGrid";
@@ -110,10 +110,13 @@ export function SavedVariants({ plan, datasource, isOpen, onOpenChange }: SavedV
                                                                 {new Date(sv.createdAt).toLocaleDateString()} at {new Date(sv.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                             </span>
                                                         </div>
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            <span className="text-[9px] bg-primary/10 text-primary px-2 py-0.5 rounded font-black uppercase tracking-widest">
-                                                                {Object.keys(sv.mapping).length} Subjects
-                                                            </span>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <div className="bg-primary hover:bg-primary/[0.04] text-primary-foreground px-3 py-1 rounded-md text-[9px] font-black uppercase tracking-widest shadow-sm transition-colors border border-primary/20 flex items-center gap-1.5"
+                                                                style={{ backgroundColor: 'rgba(var(--primary), 0.1)', color: 'rgb(var(--primary))' }}
+                                                            >
+                                                                <Layers className="w-3 h-3 opacity-60" />
+                                                                {Object.keys(sv.mapping).length} SUBJECTS
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <button
@@ -137,14 +140,14 @@ export function SavedVariants({ plan, datasource, isOpen, onOpenChange }: SavedV
                                                             if (!isActive) onOpenChange(false); // Close on preview
                                                         }}
                                                         className={cn(
-                                                            "flex-1 flex items-center justify-center gap-3 px-4 py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-soft border shadow-sm",
+                                                            "flex-1 flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-soft border shadow-sm group/btn",
                                                             isActive
                                                                 ? "bg-destructive/10 text-destructive hover:bg-destructive/20 border-destructive/20"
-                                                                : "bg-muted text-foreground hover:bg-muted-foreground/10 border-border/50"
+                                                                : "bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 border-white/5 hover:border-white/10"
                                                         )}
                                                     >
-                                                        {isActive ? <X className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                                        {isActive ? "Close Preview" : "Preview Archive"}
+                                                        {isActive ? <X className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5 transition-transform group-hover/btn:scale-110" />}
+                                                        {isActive ? "Close Preview" : "Preview"}
                                                     </button>
                                                     <button
                                                         onClick={() => {
@@ -152,9 +155,9 @@ export function SavedVariants({ plan, datasource, isOpen, onOpenChange }: SavedV
                                                             onOpenChange(false);
                                                             setActiveSavedVariant(plan.id, null); // Clear preview after apply
                                                         }}
-                                                        className="flex-1 flex items-center justify-center gap-3 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-soft active:scale-95 shadow-md"
+                                                        className="flex-1 flex items-center justify-center gap-3 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary/90 transition-soft active:scale-95 shadow-lg shadow-primary/20 border border-white/10"
                                                     >
-                                                        <Check className="w-3.5 h-3.5" /> Apply to Plan
+                                                        <Check className="w-3.5 h-3.5" strokeWidth={3} /> Apply Plan
                                                     </button>
                                                 </div>
                                             </div>

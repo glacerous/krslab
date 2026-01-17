@@ -287,7 +287,12 @@ function ViewContent() {
     return (
         <div className="flex flex-col h-screen bg-background overflow-hidden font-sans selection:bg-primary/20">
             {/* ABSOLUTE STABLE HEADER */}
-            <header className="h-20 shrink-0 flex items-center justify-between px-8 border-b border-border bg-card/50 backdrop-blur-md z-[60] shadow-sm">
+            <header className={cn(
+                "h-20 shrink-0 flex items-center justify-between px-8 border-b z-[60] shadow-sm transition-all duration-700",
+                isPreview
+                    ? "bg-card/50 backdrop-blur-xl border-white/10"
+                    : "bg-card/50 backdrop-blur-md border-border"
+            )}>
                 <div className="flex items-center gap-8">
                     <div className="flex flex-col">
                         <h1 className="text-[20px] font-black tracking-tighter text-foreground flex items-center gap-2">
@@ -382,16 +387,19 @@ function ViewContent() {
             {/* CONTEXT BAR - SECONDARY ROW BELOW HEADER */}
             {isPreview && (
                 <div className={cn(
-                    "h-14 shrink-0 border-b flex items-center justify-between px-8 z-50 animate-in slide-in-from-top duration-300",
-                    isSavedPreview ? "bg-amber-500/5 border-amber-500/20" : "bg-primary/5 border-primary/20"
+                    "h-14 shrink-0 border-b flex items-center justify-between px-8 z-50 animate-in slide-in-from-top duration-500 relative overflow-hidden",
+                    isSavedPreview ? "bg-amber-500/10 border-amber-500/30" : "bg-primary/10 border-primary/30 shadow-[0_4px_20px_rgba(var(--primary),0.1)]"
                 )}>
-                    <div className="flex items-center gap-4">
+                    {/* Animated scanning line for preview bar */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.05] to-transparent -translate-x-full animate-progress-buffer pointer-events-none" />
+
+                    <div className="flex items-center gap-4 relative z-10">
                         <div className={cn(
-                            "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter flex items-center gap-2 shadow-sm",
+                            "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter flex items-center gap-2.5 shadow-lg shadow-black/20 border border-white/10",
                             isSavedPreview ? "bg-amber-500 text-white" : "bg-primary text-primary-foreground"
                         )}>
-                            <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                            {isSavedPreview ? "Previewing Saved Archive" : `Previewing Variant ${plan.activeVariantIndex! + 1} / ${variantsCount}`}
+                            <div className="w-2 h-2 rounded-full bg-white animate-ping shrink-0" />
+                            {isSavedPreview ? "DRAFT PREVIEW FROM ARCHIVE" : `LAB PREVIEW: VARIANT ${plan.activeVariantIndex! + 1} / ${variantsCount}`}
                         </div>
 
                         {/* Navigation only for generated variants */}
@@ -440,9 +448,48 @@ function ViewContent() {
             {/* Main Content Area with Dynamic Padding */}
             <div className={cn(
                 "flex-1 overflow-hidden animate-in slide-in-from-bottom-5 duration-700 relative transition-[padding] duration-500 ease-in-out",
-                (selectedSubjectId || isRulesOpen || isArchiveOpen) ? "pr-[400px]" : "pr-0"
+                (selectedSubjectId || isRulesOpen || isArchiveOpen) ? "pr-[400px]" : "pr-0",
+                isPreview && "bg-gradient-to-br from-primary/[0.02] to-amber-500/[0.02]"
             )}>
-                <div id="krs-grid-capture" className="h-full rounded-xl border border-border overflow-hidden realistic-shadow transition-colors bg-card">
+                <div
+                    id="krs-grid-capture"
+                    className={cn(
+                        "h-full rounded-xl border overflow-hidden realistic-shadow transition-all duration-500 bg-card relative",
+                        isPreview
+                            ? isSavedPreview
+                                ? "border-amber-500/30 ring-2 ring-amber-500/5 shadow-[0_0_40px_rgba(245,158,11,0.05)] animate-simulation-flicker"
+                                : "border-primary/30 ring-2 ring-primary/5 shadow-[0_0_40px_rgba(var(--primary),0.05)] animate-simulation-flicker"
+                            : "border-border"
+                    )}
+                >
+                    {/* Static Glow Pulse - top edge */}
+                    {isPreview && (
+                        <div className="absolute inset-0 z-[68] pointer-events-none overflow-hidden animate-simulation-pulse">
+                            <div className={cn(
+                                "absolute top-0 left-0 right-0 h-[4px] blur-[1px] z-[69]",
+                                isSavedPreview
+                                    ? "bg-amber-400 shadow-[0_0_20px_rgba(245,158,11,1),0_0_40px_rgba(245,158,11,0.6)]"
+                                    : "bg-primary shadow-[0_0_20px_rgba(var(--primary),1),0_0_40px_rgba(var(--primary),0.6)]"
+                            )} />
+                            <div className={cn(
+                                "absolute top-0 left-0 right-0 h-[100px] opacity-50",
+                                isSavedPreview ? "bg-gradient-to-b from-amber-500/80 to-transparent" : "bg-gradient-to-b from-primary/80 to-transparent"
+                            )} />
+                        </div>
+                    )}
+
+                    {/* Holographic Border Effect */}
+                    {isPreview && (
+                        <div className={cn(
+                            "absolute inset-0 z-[60] pointer-events-none border-[2px] border-transparent opacity-30",
+                            isSavedPreview ? "animate-amber-hologram" : "animate-primary-hologram"
+                        )}
+                            style={{
+                                maskImage: 'linear-gradient(white, white) content-box, linear-gradient(white, white)',
+                                maskComposite: 'exclude',
+                            }} />
+                    )}
+
                     <ScheduleGrid
                         selectedClasses={selectedClasses}
                         conflicts={conflicts}
@@ -454,142 +501,144 @@ function ViewContent() {
             </div>
 
             {/* Quick Adjust Sheet - Portalled to avoid clipping */}
-            {selectedSubjectId && selectedSubject && typeof document !== 'undefined' && createPortal(
-                <div
-                    className="fixed inset-0 z-[100] animate-in fade-in duration-300 pointer-events-none"
-                >
-                    <div className="absolute inset-0 bg-black/5 transition-opacity pointer-events-none" />
+            {
+                selectedSubjectId && selectedSubject && typeof document !== 'undefined' && createPortal(
                     <div
-                        className="absolute top-0 right-0 h-full w-[400px] max-w-[90vw] bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 z-[110] pointer-events-auto"
-                        onClick={(e) => e.stopPropagation()}
+                        className="fixed inset-0 z-[100] animate-in fade-in duration-300 pointer-events-none"
                     >
-                        <div className="p-6 border-b border-border bg-muted/30 flex items-center justify-between shrink-0">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black text-primary uppercase tracking-widest">{selectedSubject.code}</span>
-                                <h3 className="font-black text-[14px] uppercase tracking-tight text-foreground truncate max-w-[200px]">{selectedSubject.name}</h3>
-                            </div>
-                            <button onClick={() => setSelectedSubjectId(null)} className="p-2 hover:bg-muted rounded-lg transition-soft">
-                                <X className="w-5 h-5 text-muted-foreground" />
-                            </button>
-                        </div>
-
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
-                            {/* Section Selector */}
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Select Section</label>
-                                <div className="grid grid-cols-1 gap-2">
-                                    {selectedSubject.classes.map((cls) => {
-                                        const isSelected = effectiveMapping[selectedSubjectId] === cls.classId;
-                                        return (
-                                            <button
-                                                key={cls.classId}
-                                                onClick={() => {
-                                                    const isFrozen = (plan.frozenSubjectIds ?? []).includes(selectedSubjectId);
-                                                    if (isFrozen) {
-                                                        toast.error("Subject is frozen", { description: "Unfreeze to change class.", id: "quick-adjust-toast" });
-                                                        return;
-                                                    }
-
-                                                    if (isPreview) {
-                                                        setPreviewOverride(plan.id, selectedSubjectId, cls.classId);
-                                                        toast.success("Preview Override Set", { id: "quick-adjust-toast" });
-                                                    } else {
-                                                        updatePlan(plan.id, {
-                                                            selectedClassBySubjectId: {
-                                                                ...plan.selectedClassBySubjectId,
-                                                                [selectedSubjectId]: cls.classId
-                                                            }
-                                                        });
-                                                        toast.success("Section Updated", { id: "quick-adjust-toast" });
-                                                    }
-                                                }}
-                                                className={cn(
-                                                    "w-full text-left p-4 rounded-xl border transition-soft flex items-start justify-between group",
-                                                    isSelected
-                                                        ? "bg-primary/5 border-primary shadow-sm"
-                                                        : "bg-card border-border hover:border-primary/30 hover:bg-muted/30"
-                                                )}
-                                            >
-                                                <div className="flex flex-col flex-1 min-w-0">
-                                                    <span className={cn("text-[11px] font-black uppercase tracking-tight", isSelected ? "text-primary" : "text-foreground")}>
-                                                        Kelas {cls.className}
-                                                    </span>
-                                                    <span className="text-[9px] font-bold text-muted-foreground/60 mb-2.5">{cls.lecturers?.[0] || "No Lecturer"}</span>
-
-                                                    {/* Schedule Info */}
-                                                    <div className="space-y-1.5 pt-2.5 border-t border-border/5">
-                                                        {cls.meetings && cls.meetings.length > 0 ? (
-                                                            <>
-                                                                {cls.meetings.slice(0, 2).map((m, idx) => (
-                                                                    <div key={idx} className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/50">
-                                                                        <Clock className="w-3 h-3 opacity-40 shrink-0" />
-                                                                        <span className="shrink-0">{dayShort(m.day)} {m.start}—{m.end}</span>
-                                                                        {m.room && (
-                                                                            <div className="flex items-center gap-1.5 min-w-0">
-                                                                                <span className="opacity-20">•</span>
-                                                                                <MapPin className="w-3 h-3 opacity-40 shrink-0" />
-                                                                                <span className="truncate">{m.room}</span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                ))}
-                                                                {cls.meetings.length > 2 && (
-                                                                    <p className="text-[9px] font-black text-muted-foreground/25 uppercase tracking-widest pl-5 mt-1">
-                                                                        +{cls.meetings.length - 2} more meetings
-                                                                    </p>
-                                                                )}
-                                                            </>
-                                                        ) : (
-                                                            <p className="text-[10px] font-medium text-muted-foreground/30 italic">Schedule unavailable</p>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                                {isSelected && <Check className="w-4 h-4 text-primary shrink-0 ml-3" />}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-
-
-                            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/50">
+                        <div className="absolute inset-0 bg-black/5 transition-opacity pointer-events-none" />
+                        <div
+                            className="absolute top-0 right-0 h-full w-[400px] max-w-[90vw] bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 z-[110] pointer-events-auto"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="p-6 border-b border-border bg-muted/30 flex items-center justify-between shrink-0">
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Freeze subject</span>
-                                    <span className="text-[9px] font-bold text-muted-foreground/60">Lock this choice in all generations</span>
+                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{selectedSubject.code}</span>
+                                    <h3 className="font-black text-[14px] uppercase tracking-tight text-foreground truncate max-w-[200px]">{selectedSubject.name}</h3>
                                 </div>
+                                <button onClick={() => setSelectedSubjectId(null)} className="p-2 hover:bg-muted rounded-lg transition-soft">
+                                    <X className="w-5 h-5 text-muted-foreground" />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+                                {/* Section Selector */}
+                                <div className="space-y-3">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Select Section</label>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {selectedSubject.classes.map((cls) => {
+                                            const isSelected = effectiveMapping[selectedSubjectId] === cls.classId;
+                                            return (
+                                                <button
+                                                    key={cls.classId}
+                                                    onClick={() => {
+                                                        const isFrozen = (plan.frozenSubjectIds ?? []).includes(selectedSubjectId);
+                                                        if (isFrozen) {
+                                                            toast.error("Subject is frozen", { description: "Unfreeze to change class.", id: "quick-adjust-toast" });
+                                                            return;
+                                                        }
+
+                                                        if (isPreview) {
+                                                            setPreviewOverride(plan.id, selectedSubjectId, cls.classId);
+                                                            toast.success("Preview Override Set", { id: "quick-adjust-toast" });
+                                                        } else {
+                                                            updatePlan(plan.id, {
+                                                                selectedClassBySubjectId: {
+                                                                    ...plan.selectedClassBySubjectId,
+                                                                    [selectedSubjectId]: cls.classId
+                                                                }
+                                                            });
+                                                            toast.success("Section Updated", { id: "quick-adjust-toast" });
+                                                        }
+                                                    }}
+                                                    className={cn(
+                                                        "w-full text-left p-4 rounded-xl border transition-soft flex items-start justify-between group",
+                                                        isSelected
+                                                            ? "bg-primary/5 border-primary shadow-sm"
+                                                            : "bg-card border-border hover:border-primary/30 hover:bg-muted/30"
+                                                    )}
+                                                >
+                                                    <div className="flex flex-col flex-1 min-w-0">
+                                                        <span className={cn("text-[11px] font-black uppercase tracking-tight", isSelected ? "text-primary" : "text-foreground")}>
+                                                            Kelas {cls.className}
+                                                        </span>
+                                                        <span className="text-[9px] font-bold text-muted-foreground/60 mb-2.5">{cls.lecturers?.[0] || "No Lecturer"}</span>
+
+                                                        {/* Schedule Info */}
+                                                        <div className="space-y-1.5 pt-2.5 border-t border-border/5">
+                                                            {cls.meetings && cls.meetings.length > 0 ? (
+                                                                <>
+                                                                    {cls.meetings.slice(0, 2).map((m, idx) => (
+                                                                        <div key={idx} className="flex items-center gap-2 text-[10px] font-bold text-muted-foreground/50">
+                                                                            <Clock className="w-3 h-3 opacity-40 shrink-0" />
+                                                                            <span className="shrink-0">{dayShort(m.day)} {m.start}—{m.end}</span>
+                                                                            {m.room && (
+                                                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                                                    <span className="opacity-20">•</span>
+                                                                                    <MapPin className="w-3 h-3 opacity-40 shrink-0" />
+                                                                                    <span className="truncate">{m.room}</span>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                    {cls.meetings.length > 2 && (
+                                                                        <p className="text-[9px] font-black text-muted-foreground/25 uppercase tracking-widest pl-5 mt-1">
+                                                                            +{cls.meetings.length - 2} more meetings
+                                                                        </p>
+                                                                    )}
+                                                                </>
+                                                            ) : (
+                                                                <p className="text-[10px] font-medium text-muted-foreground/30 italic">Schedule unavailable</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    {isSelected && <Check className="w-4 h-4 text-primary shrink-0 ml-3" />}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+
+
+                                <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/50">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Freeze subject</span>
+                                        <span className="text-[9px] font-bold text-muted-foreground/60">Lock this choice in all generations</span>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            toggleFreezeSubject(plan.id, selectedSubjectId);
+                                            const isFrozen = (plan.frozenSubjectIds ?? []).includes(selectedSubjectId);
+                                            toast.success(isFrozen ? "Unfrozen" : "Frozen", { id: "quick-adjust-toast" });
+                                        }}
+                                        className={cn(
+                                            "w-10 h-6 rounded-full transition-colors relative",
+                                            (plan.frozenSubjectIds ?? []).includes(selectedSubjectId) ? "bg-cyan-500" : "bg-muted-foreground/20"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
+                                            (plan.frozenSubjectIds ?? []).includes(selectedSubjectId) ? "left-5" : "left-1"
+                                        )} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* BOTTOM CLOSE BUTTON */}
+                            <div className="p-4 border-t border-border bg-muted/10 shrink-0">
                                 <button
-                                    onClick={() => {
-                                        toggleFreezeSubject(plan.id, selectedSubjectId);
-                                        const isFrozen = (plan.frozenSubjectIds ?? []).includes(selectedSubjectId);
-                                        toast.success(isFrozen ? "Unfrozen" : "Frozen", { id: "quick-adjust-toast" });
-                                    }}
-                                    className={cn(
-                                        "w-10 h-6 rounded-full transition-colors relative",
-                                        (plan.frozenSubjectIds ?? []).includes(selectedSubjectId) ? "bg-cyan-500" : "bg-muted-foreground/20"
-                                    )}
+                                    onClick={() => setSelectedSubjectId(null)}
+                                    className="w-full py-3 bg-muted hover:bg-muted-foreground/10 text-foreground border border-border/50 rounded-xl font-black text-[10px] uppercase tracking-widest transition-soft"
                                 >
-                                    <div className={cn(
-                                        "absolute top-1 w-4 h-4 bg-white rounded-full transition-transform",
-                                        (plan.frozenSubjectIds ?? []).includes(selectedSubjectId) ? "left-5" : "left-1"
-                                    )} />
+                                    Close Adjustments
                                 </button>
                             </div>
                         </div>
-
-                        {/* BOTTOM CLOSE BUTTON */}
-                        <div className="p-4 border-t border-border bg-muted/10 shrink-0">
-                            <button
-                                onClick={() => setSelectedSubjectId(null)}
-                                className="w-full py-3 bg-muted hover:bg-muted-foreground/10 text-foreground border border-border/50 rounded-xl font-black text-[10px] uppercase tracking-widest transition-soft"
-                            >
-                                Close Adjustments
-                            </button>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
+                    </div>,
+                    document.body
+                )
+            }
 
             <RulesLab
                 isOpen={isRulesOpen}
@@ -598,7 +647,7 @@ function ViewContent() {
                 onUpdateRules={(rules) => plan && setRulesForPlan(plan.id, rules)}
                 onGenerate={handleGenerate}
             />
-        </div>
+        </div >
     );
 }
 

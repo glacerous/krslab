@@ -145,6 +145,108 @@
   .animate-pulse-subtle {
     animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
+
+  @keyframes progress-buffer {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(200%);
+    }
+  }
+
+  .animate-progress-buffer {
+    animation: progress-buffer 2s ease-in-out infinite;
+  }
+
+  @keyframes primary-hologram {
+
+    0%,
+    100% {
+      border-color: hsla(var(--primary), 0.1);
+      box-shadow: inset 0 0 5px hsla(var(--primary), 0.05);
+    }
+
+    50% {
+      border-color: hsla(var(--primary), 0.3);
+      box-shadow: inset 0 0 15px hsla(var(--primary), 0.15);
+    }
+  }
+
+  @keyframes amber-hologram {
+
+    0%,
+    100% {
+      border-color: rgba(245, 158, 11, 0.1);
+      box-shadow: inset 0 0 5px rgba(245, 158, 11, 0.05);
+    }
+
+    50% {
+      border-color: rgba(245, 158, 11, 0.3);
+      box-shadow: inset 0 0 15px rgba(245, 158, 11, 0.15);
+    }
+  }
+
+  .animate-primary-hologram {
+    animation: primary-hologram 2s ease-in-out infinite;
+  }
+
+  .animate-amber-hologram {
+    animation: amber-hologram 2s ease-in-out infinite;
+  }
+
+  @keyframes simulation-pulse {
+
+    0%,
+    100% {
+      opacity: 0.65;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes simulation-flicker {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    94% {
+      opacity: 1;
+    }
+
+    95% {
+      opacity: 0.95;
+    }
+
+    96% {
+      opacity: 1;
+    }
+
+    98% {
+      opacity: 0.9;
+    }
+
+    99% {
+      opacity: 1;
+    }
+  }
+
+  .animate-simulation-pulse {
+    animation: simulation-pulse 4s ease-in-out infinite;
+  }
+
+  .animate-simulation-flicker {
+    animation: simulation-flicker 10s linear infinite;
+  }
+
+  .bg-vignette {
+    background: radial-gradient(circle, transparent 40%, rgba(0, 0, 0, 0.15) 100%);
+  }
 }
 
 @keyframes glow-pulse {
