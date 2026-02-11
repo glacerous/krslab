@@ -1,8 +1,8 @@
-# KRSlab — Smart KRS Planner
+# KRSlab
 
-A straightforward tool to help you plan your **KRS (Study Plan Card)** without the usual headache. KRSlab takes your BIMA CSV file, analyzes it with a scheduling engine, flags clashes, and suggests workable timetable options so you don’t have to brute-force your semester by hand.
+A straightforward tool to help you plan your **KRS** without the usual headache. KRSlab takes your BIMA CSV file, analyzes it with a scheduling engine, flags clashes, and suggests workable timetable options so you don’t have to brute-force your semester by hand
 
-If you’ve ever stared at overlapping classes wondering “how is this even possible,” this exists for that exact moment.
+If you’ve ever stared at overlapping classes wondering “how is this even possible,” this exists for that exact moment
 
 ---
 
@@ -10,11 +10,11 @@ If you’ve ever stared at overlapping classes wondering “how is this even pos
 
 KRSlab is a monorepo web application built around three main pieces:
 
-* A **scheduling engine** that reasons about conflicts and valid course combinations
-* A thin **wrapper layer** that translates BIMA CSV data into something the engine understands
-* A clean **Next.js interface** where you can browse courses, visualize schedules, and export results
+* A scheduling engine that reasons about conflicts and valid course combinations
+* A thin wrapper layer that translates BIMA CSV data into something the engine understands
+* A clean interface where you can browse courses, visualize schedules, and export results
 
-The goal is simple: turn messy raw data into a usable plan as quickly as possible.
+The goal is simple: turn messy raw data into a usable plan as quickly as possible
 
 ---
 
@@ -41,7 +41,7 @@ npx pnpm install
 
 ### 2) Build the engine
 
-The web app relies on the engine’s build artifacts, so this step is required.
+The web app relies on the engine’s build artifacts, so this step is required
 
 ```bash
 npx pnpm build
@@ -83,10 +83,10 @@ apps/
 
 ## Why KRSlab?
 
-Because juggling dozens of courses in a spreadsheet isn’t fun, and doing it manually is a waste of time. KRSlab tries to make that part a little easier.
+Because juggling dozens of courses in a spreadsheet isn’t fun, and doing it manually is a waste of time. KRSlab tries to make that part a little easier
 
 ---
 
 ## Contributing
 
-Issues and pull requests are welcome. If you found a bug, have a feature idea, or just want to improve something, feel free to open a discussion or submit a PR.
+Issues and pull requests are welcome. If you found a bug, have a feature idea, or just want to improve something, feel free to open a discussion or submit a PR
