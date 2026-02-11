@@ -27,6 +27,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 lab
                             </span>
                         </span>
+                        <span className="text-[8px] font-bold text-muted-foreground/40 uppercase tracking-widest ml-2 border-l border-border/50 pl-2 hidden sm:inline-block">
+                            Desktop Recommended
+                        </span>
                     </Link>
                     <button
                         onClick={() => setIsSidebarOpen(true)}

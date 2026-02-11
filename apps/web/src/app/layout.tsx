@@ -11,8 +11,8 @@ import { Analytics } from "@vercel/analytics/react";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
 
 export const metadata: Metadata = {
-    title: "KRSlab — Academic Schedule Optimizer",
-    description: "A professional tool for optimizing your academic schedule.",
+    title: "KRSlab",
+    description: "A tool for optimizing your academic schedule.",
 };
 
 import { AppLayout } from "@/components/AppLayout";

@@ -117,9 +117,9 @@ function CreatePlanContent() {
     };
 
     return (
-        <div className="h-screen flex flex-col no-scrollbar overflow-hidden animate-in fade-in duration-500">
-            <header className="p-8 border-b border-border/50 shrink-0 bg-background/80 backdrop-blur-md z-20 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
+        <div className="h-[100dvh] flex flex-col no-scrollbar overflow-hidden animate-in fade-in duration-500">
+            <header className="p-6 md:p-8 border-b border-border/50 shrink-0 bg-background/80 backdrop-blur-md z-20 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-4 md:gap-6">
                     {editingPlan && (
                         <button
                             onClick={() => router.back()}
@@ -129,7 +129,7 @@ function CreatePlanContent() {
                         </button>
                     )}
                     <div className="space-y-1">
-                        <h1 className="text-2xl font-black tracking-tight text-foreground">
+                        <h1 className="text-xl md:text-2xl font-black tracking-tight text-foreground">
                             {editingPlan ? "Modify Subjects" : "Design Plan"}
                         </h1>
                         <div className="flex items-center gap-2">
@@ -142,9 +142,9 @@ function CreatePlanContent() {
                 </div>
             </header>
 
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                 {/* Left: Settings Sidebar */}
-                <div className="w-80 border-r border-border bg-card/10 p-8 overflow-y-auto no-scrollbar space-y-10 transition-colors">
+                <div className="w-full md:w-80 border-b md:border-b-0 md:border-r border-border bg-card/10 p-6 md:p-8 overflow-y-auto no-scrollbar space-y-8 md:space-y-10 transition-colors shrink-0 max-h-[35vh] md:max-h-none">
                     <section className="space-y-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground ml-1">Identity</label>
@@ -250,7 +250,7 @@ function CreatePlanContent() {
                 </div>
 
                 {/* Right: Operations Feed */}
-                <div className="flex-1 flex flex-col bg-muted/10 p-8 overflow-hidden transition-colors">
+                <div className="flex-1 flex flex-col bg-muted/10 p-4 md:p-8 overflow-hidden transition-colors">
                     <div className="shrink-0 flex items-center justify-between gap-6 mb-8">
                         <div className="relative flex-1 group">
                             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 group-focus-within:text-primary transition-colors" />
@@ -268,7 +268,7 @@ function CreatePlanContent() {
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto space-y-2 no-scrollbar pr-2 pb-10">
+                    <div className="flex-1 overflow-y-auto space-y-2 no-scrollbar pr-2 pb-32 md:pb-20">
                         {selectedDs ? (
                             filteredSubjects.length > 0 ? (
                                 filteredSubjects.map(s => {
@@ -324,7 +324,7 @@ function CreatePlanContent() {
 
 export default function CreatePlanPage() {
     return (
-        <Suspense fallback={<div className="h-screen flex items-center justify-center font-bold text-muted-foreground/20 uppercase tracking-widest">Loading Pipeline...</div>}>
+        <Suspense fallback={<div className="h-[100dvh] flex items-center justify-center font-bold text-muted-foreground/20 uppercase tracking-widest">Loading Pipeline...</div>}>
             <CreatePlanContent />
         </Suspense>
     );

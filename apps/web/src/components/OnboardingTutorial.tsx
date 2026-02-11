@@ -65,7 +65,7 @@ export function OnboardingTutorial({ currentStep, onStepChange, onDismiss, onCom
     const isLast = currentStep === STEPS.length - 1;
 
     return (
-        <div className="bg-card border border-primary/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500 max-w-md w-full relative z-[60]">
+        <div className="bg-card border border-primary/20 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500 max-w-[calc(100vw-2rem)] md:max-w-md w-full relative z-[60]">
             {/* Progress Bar */}
             <div className="absolute top-0 left-0 h-1 bg-muted w-full">
                 <div
@@ -74,31 +74,31 @@ export function OnboardingTutorial({ currentStep, onStepChange, onDismiss, onCom
                 />
             </div>
 
-            <div className="p-6 pt-8 space-y-6">
+            <div className="p-5 md:p-6 pt-7 md:pt-8 space-y-5 md:space-y-6">
                 <div className="flex justify-between items-start">
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-black">
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-black shrink-0">
                                 {currentStep + 1}
                             </span>
-                            <h3 className="text-sm font-black uppercase tracking-widest text-foreground">
+                            <h3 className="text-[13px] md:text-sm font-black uppercase tracking-widest text-foreground">
                                 {step.title}
                             </h3>
                         </div>
-                        <p className="text-[12px] text-muted-foreground font-medium leading-relaxed">
+                        <p className="text-[11px] md:text-[12px] text-muted-foreground font-medium leading-relaxed">
                             {step.description}
                         </p>
                     </div>
                     <button
                         onClick={onDismiss}
-                        className="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground/40 hover:text-foreground"
+                        className="p-1.5 hover:bg-muted rounded-lg transition-colors text-muted-foreground/40 hover:text-foreground shrink-0"
                     >
                         <X className="w-4 h-4" />
                     </button>
                 </div>
 
                 {step.image && (
-                    <div className="rounded-xl overflow-hidden border border-border bg-muted/30 aspect-video relative group">
+                    <div className="hidden sm:block rounded-xl overflow-hidden border border-border bg-muted/30 aspect-video relative group">
                         <Image
                             src={step.image}
                             alt="BIMA Reference"
@@ -113,19 +113,19 @@ export function OnboardingTutorial({ currentStep, onStepChange, onDismiss, onCom
                     </div>
                 )}
 
-                <div className="flex items-center justify-between gap-4 pt-2">
-                    <div className="flex gap-2">
+                <div className="flex items-center justify-between gap-3 md:gap-4 pt-1 md:pt-2">
+                    <div className="flex gap-1.5 md:gap-2">
                         <button
                             disabled={isFirst}
                             onClick={() => onStepChange(currentStep - 1)}
-                            className="p-2.5 rounded-xl border border-border bg-card hover:bg-muted disabled:opacity-20 transition-soft"
+                            className="p-2 md:p-2.5 rounded-xl border border-border bg-card hover:bg-muted disabled:opacity-20 transition-soft shrink-0"
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </button>
                         <button
                             disabled={isLast}
                             onClick={() => onStepChange(currentStep + 1)}
-                            className="p-2.5 rounded-xl border border-border bg-card hover:bg-muted disabled:opacity-20 transition-soft"
+                            className="p-2 md:p-2.5 rounded-xl border border-border bg-card hover:bg-muted disabled:opacity-20 transition-soft shrink-0"
                         >
                             <ChevronRight className="w-4 h-4" />
                         </button>
@@ -134,7 +134,7 @@ export function OnboardingTutorial({ currentStep, onStepChange, onDismiss, onCom
                     {isLast ? (
                         <button
                             onClick={onComplete}
-                            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-soft flex items-center justify-center gap-2"
+                            className="flex-1 bg-primary text-primary-foreground py-2 md:py-2.5 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-soft flex items-center justify-center gap-2"
                         >
                             Start Planning <ArrowRight className="w-3.5 h-3.5" />
                         </button>
@@ -149,14 +149,14 @@ export function OnboardingTutorial({ currentStep, onStepChange, onDismiss, onCom
                                     onStepChange(currentStep + 1);
                                 }
                             }}
-                            className="flex-1 bg-primary text-primary-foreground py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-soft flex items-center justify-center gap-2"
+                            className="flex-1 bg-primary text-primary-foreground py-2 md:py-2.5 rounded-xl font-black text-[10px] md:text-[11px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-soft flex items-center justify-center gap-2"
                         >
                             {step.cta} <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                     ) : (
                         <button
                             onClick={() => onStepChange(currentStep + 1)}
-                            className="flex-1 bg-muted text-foreground py-2.5 rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-muted-foreground/10 transition-soft"
+                            className="flex-1 bg-muted text-foreground py-2 md:py-2.5 rounded-xl font-bold text-[10px] md:text-[11px] uppercase tracking-widest hover:bg-muted-foreground/10 transition-soft"
                         >
                             Next Step
                         </button>
