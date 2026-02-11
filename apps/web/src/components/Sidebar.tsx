@@ -192,9 +192,20 @@ export function Sidebar() {
 
                             <div className="space-y-4">
                                 {/* App Ownership - Floating Style */}
-                                <div className="px-5 py-6 rounded-2xl bg-muted/20 border border-border/10 transition-soft hover:bg-primary/[0.03] hover:border-primary/10 text-center">
+                                <div className="px-5 py-6 rounded-2xl bg-muted/20 border border-border/10 transition-soft hover:bg-primary/[0.03] hover:border-primary/10 text-center flex flex-col items-center">
                                     <h4 className="text-[16px] font-black text-foreground tracking-tight mb-1">KRSlab</h4>
-                                    <p className="text-[13px] font-medium text-muted-foreground/80">built by <span className="text-foreground font-bold">Azzaky Raihan</span></p>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <p className="text-[13px] font-medium text-muted-foreground/80">built by <span className="text-foreground font-bold">Azzaky Raihan</span></p>
+                                        <a
+                                            href="https://github.com/glacerous"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/50 hover:bg-primary/10 text-[10px] font-bold text-muted-foreground hover:text-primary transition-soft group/az"
+                                        >
+                                            <Github className="w-3 h-3 opacity-30 group-hover/az:opacity-100 transition-opacity" />
+                                            @glacerous
+                                        </a>
+                                    </div>
                                 </div>
 
                                 {/* Engine Credit - Integrated Look */}
