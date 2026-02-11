@@ -293,15 +293,15 @@ function ViewContent() {
         <div className="flex flex-col h-screen bg-background overflow-hidden font-sans selection:bg-primary/20">
             {/* ABSOLUTE STABLE HEADER */}
             <header className={cn(
-                "h-20 shrink-0 flex items-center justify-between px-8 border-b z-[60] shadow-sm transition-all duration-700",
+                "h-20 shrink-0 flex items-center justify-between px-4 md:px-8 border-b z-[60] shadow-sm transition-all duration-700",
                 isPreview
                     ? "bg-card/50 backdrop-blur-xl border-white/10"
                     : "bg-card/50 backdrop-blur-md border-border"
             )}>
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-3 md:gap-8">
                     <div className="flex flex-col">
-                        <h1 className="text-[20px] font-black tracking-tighter text-foreground flex items-center gap-2">
-                            KRSLAB <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">Master Grid</span>
+                        <h1 className="text-[18px] md:text-[20px] font-black tracking-tighter text-foreground flex items-center gap-2">
+                            KRSLAB <span className="hidden sm:inline-block text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">Master Grid</span>
                         </h1>
                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60 flex items-center gap-1.5 mb-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> {plan.selectedSubjectIds.length} Matakuliah Terpilih
@@ -314,10 +314,10 @@ function ViewContent() {
                         </Link>
                     </div>
 
-                    <div className="h-10 w-[1px] bg-border/50 mx-2" />
+                    <div className="hidden md:block h-10 w-[1px] bg-border/50 mx-2" />
 
                     {/* CORE ACTIONS CLUSTER */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 md:gap-2">
                         <button
                             onClick={() => setIsRulesOpen(true)}
                             className={cn(
@@ -331,7 +331,7 @@ function ViewContent() {
                                     {plan.rules?.filter(r => r.enabled).length || 0}
                                 </span>
                             </div>
-                            <span className="text-[10px] font-black uppercase tracking-widest">Rules</span>
+                            <span className="hidden sm:inline-block text-[10px] font-black uppercase tracking-widest">Rules</span>
                         </button>
 
                         <button
@@ -343,7 +343,7 @@ function ViewContent() {
                             )}
                         >
                             <Zap className={cn("w-4 h-4 fill-primary-foreground", isGenerating && "animate-pulse")} />
-                            <span className="text-[10px] font-black uppercase tracking-widest">
+                            <span className="hidden sm:inline-block text-[10px] font-black uppercase tracking-widest">
                                 {isGenerating ? "Processing..." : "Generate"}
                             </span>
                         </button>
@@ -365,7 +365,7 @@ function ViewContent() {
                                 "bg-background text-foreground border-border hover:bg-muted"
                             )}
                         >
-                            <Bookmark className="w-3.5 h-3.5" /> Save
+                            <Bookmark className="w-3.5 h-3.5" /> <span className="hidden sm:inline-block">Save</span>
                         </button>
 
                         {variantsCount > 0 && (
@@ -379,12 +379,12 @@ function ViewContent() {
                 </div>
 
                 {/* EXPORT / SECONDARY CLUSTER */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 md:gap-3">
                     <button
                         onClick={handleExportImage}
-                        className="bg-muted hover:bg-muted-foreground/10 text-foreground px-5 py-2.5 rounded-lg flex items-center gap-3 transition-soft active:scale-95 border border-border/50 font-black text-[10px] uppercase tracking-widest"
+                        className="bg-muted hover:bg-muted-foreground/10 text-foreground px-3 md:px-5 py-2.5 rounded-lg flex items-center gap-2 md:gap-3 transition-soft active:scale-95 border border-border/50 font-black text-[10px] uppercase tracking-widest"
                     >
-                        <Download className="w-4 h-4 opacity-50" /> Export PNG
+                        <Download className="w-4 h-4 opacity-50" /> <span className="hidden sm:inline-block">Export PNG</span>
                     </button>
                 </div>
             </header>
@@ -392,7 +392,7 @@ function ViewContent() {
             {/* CONTEXT BAR - SECONDARY ROW BELOW HEADER */}
             {isPreview && (
                 <div className={cn(
-                    "h-14 shrink-0 border-b flex items-center justify-between px-8 z-50 animate-in slide-in-from-top duration-500 relative overflow-hidden",
+                    "h-14 shrink-0 border-b flex items-center justify-between px-4 md:px-8 z-50 animate-in slide-in-from-top duration-500 relative overflow-hidden",
                     isSavedPreview ? "bg-amber-500/10 border-amber-500/30" : "bg-primary/10 border-primary/30 shadow-[0_4px_20px_rgba(var(--primary),0.1)]"
                 )}>
                     {/* Animated scanning line for preview bar */}
@@ -400,11 +400,12 @@ function ViewContent() {
 
                     <div className="flex items-center gap-4 relative z-10">
                         <div className={cn(
-                            "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter flex items-center gap-2.5 shadow-lg shadow-black/20 border border-white/10",
+                            "px-3 md:px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter flex items-center gap-2.5 shadow-lg shadow-black/20 border border-white/10",
                             isSavedPreview ? "bg-amber-500 text-white" : "bg-primary text-primary-foreground"
                         )}>
                             <div className="w-2 h-2 rounded-full bg-white animate-ping shrink-0" />
-                            {isSavedPreview ? "DRAFT PREVIEW FROM ARCHIVE" : `LAB PREVIEW: VARIANT ${plan.activeVariantIndex! + 1} / ${variantsCount}`}
+                            <span className="hidden sm:inline">{isSavedPreview ? "DRAFT PREVIEW FROM ARCHIVE" : "LAB PREVIEW: "}</span>
+                            {!isSavedPreview ? `VARIANT ${plan.activeVariantIndex! + 1} / ${variantsCount}` : <span className="sm:hidden">DRAFT PREVIEW</span>}
                         </div>
 
                         {/* Navigation only for generated variants */}
@@ -430,21 +431,22 @@ function ViewContent() {
                         )}
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 md:gap-3">
                         <button
                             onClick={handleExitPreview}
-                            className="bg-background hover:bg-muted text-foreground px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-soft border border-border shadow-sm active:scale-95"
+                            className="bg-background hover:bg-muted text-foreground px-3 md:px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-soft border border-border shadow-sm active:scale-95"
                         >
-                            Exit Preview
+                            <X className="w-4 h-4 sm:hidden" />
+                            <span className="hidden sm:inline">Exit Preview</span>
                         </button>
                         <button
                             onClick={handleApply}
                             className={cn(
-                                "text-white px-5 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-soft shadow-md active:scale-95 flex items-center gap-2",
+                                "text-white px-3 md:px-5 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest transition-soft shadow-md active:scale-95 flex items-center gap-2",
                                 isSavedPreview ? "bg-amber-600 hover:bg-amber-700" : "bg-primary hover:bg-primary/90"
                             )}
                         >
-                            <Check className="w-4 h-4" /> Apply to Plan
+                            <Check className="w-4 h-4" /> <span className="hidden sm:inline">Apply to Plan</span>
                         </button>
                     </div>
                 </div>
@@ -453,7 +455,7 @@ function ViewContent() {
             {/* Main Content Area with Dynamic Padding */}
             <div className={cn(
                 "flex-1 overflow-hidden animate-in slide-in-from-bottom-5 duration-700 relative transition-[padding] duration-500 ease-in-out",
-                (selectedSubjectId || isRulesOpen || isArchiveOpen) ? "pr-[400px]" : "pr-0",
+                (selectedSubjectId || isRulesOpen || isArchiveOpen) ? "2xl:pr-[400px]" : "pr-0",
                 isPreview && "bg-gradient-to-br from-primary/[0.02] to-amber-500/[0.02]"
             )}>
                 <div

@@ -141,9 +141,9 @@ export default function PlanDetailPage() {
                 </div>
             </header>
 
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col xl:flex-row overflow-hidden">
                 {/* Left: Component List */}
-                <div className="w-[420px] border-r border-border overflow-y-auto p-6 space-y-4 no-scrollbar bg-card/10 transition-colors">
+                <div className="w-full xl:w-[420px] flex-1 xl:flex-none border-b xl:border-b-0 xl:border-r border-border overflow-y-auto p-4 md:p-6 space-y-4 no-scrollbar bg-card/10 transition-colors">
                     {selectedSubjects.map(subject => {
                         const selectedClassId = plan.selectedClassBySubjectId[subject.subjectId];
                         return (
@@ -159,7 +159,7 @@ export default function PlanDetailPage() {
                 </div>
 
                 {/* Right: Live Frame */}
-                <div className="flex-1 bg-muted/10 p-10 flex flex-col min-w-0 overflow-hidden relative transition-colors">
+                <div className="flex-1 bg-muted/10 p-4 md:p-8 xl:p-10 flex flex-col min-w-0 overflow-hidden relative transition-colors">
                     <div className="mb-6 flex items-center justify-between shrink-0">
                         <div className="flex items-center gap-2">
                             <Zap className="w-3.5 h-3.5 text-primary" fill="currentColor" />
