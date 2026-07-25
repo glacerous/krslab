@@ -7,7 +7,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 // @ts-ignore
 import { Analytics } from "@vercel/analytics/react";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
 
@@ -86,7 +86,13 @@ export default function RootLayout({
                     <Toaster position="bottom-right" richColors closeButton visibleToasts={2} />
                 </ThemeProvider>
                 <Analytics />
-                {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
+                {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
+                    <Script
+                        defer
+                        src="https://cloud.umami.is/script.js"
+                        data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
+                    />
+                )}
             </body>
         </html>
     );
