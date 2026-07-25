@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 // @ts-ignore
 import { Analytics } from "@vercel/analytics/react";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
 
@@ -85,6 +86,7 @@ export default function RootLayout({
                     <Toaster position="bottom-right" richColors closeButton visibleToasts={2} />
                 </ThemeProvider>
                 <Analytics />
+                {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
             </body>
         </html>
     );
