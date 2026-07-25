@@ -11,8 +11,56 @@ import { Analytics } from "@vercel/analytics/react";
 const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
 
 export const metadata: Metadata = {
-    title: "KRSlab",
-    description: "A tool for optimizing your academic schedule.",
+    title: {
+        default: "KRSlab - UPNYK Academic Schedule Optimizer & KRS Planner",
+        template: "%s | KRSlab"
+    },
+    description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes. Supports BIMA UPNYK table imports.",
+    keywords: [
+        "KRS", "KRS UPNYK", "BIMA UPNYK", "KRSlab", "Kartu Rencana Studi", "academic schedule",
+        "schedule optimizer", "class conflict resolver", "jadwal kuliah", "UPN Veteran Yogyakarta",
+        "BIMA schedule planner", "university planner", "mahasiswa", "automatic schedule generator"
+    ],
+    authors: [{ name: "Azzaky Raihan", url: "https://github.com/glacerous" }],
+    creator: "Azzaky Raihan",
+    metadataBase: new URL("https://krslab.vercel.app"),
+    alternates: {
+        canonical: "/",
+    },
+    openGraph: {
+        type: "website",
+        locale: "en_US",
+        url: "https://krslab.vercel.app",
+        title: "KRSlab - UPNYK Academic Schedule Optimizer & KRS Planner",
+        description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes.",
+        siteName: "KRSlab",
+        images: [
+            {
+                url: "/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "KRSlab - Academic Schedule Optimizer",
+            }
+        ]
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "KRSlab - UPNYK Academic Schedule Optimizer & KRS Planner",
+        description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes.",
+        images: ["/og-image.png"],
+        creator: "@glacerous",
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            'max-video-preview': -1,
+            'max-image-preview': 'large',
+            'max-snippet': -1,
+        },
+    },
 };
 
 import { AppLayout } from "@/components/AppLayout";
