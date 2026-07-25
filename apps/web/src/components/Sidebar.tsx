@@ -39,7 +39,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         const dismissed = localStorage.getItem("krs_onboard_ds_dismissed") === "1";
         setIsDismissed(dismissed);
 
-        if (_hasHydrated && !dismissed && datasources.length === 0 && window.location.pathname !== "/datasource") {
+        if (_hasHydrated && !dismissed && datasources.length === 0 && window.location.pathname !== "/datasource" && window.location.pathname !== "/") {
             router.push("/datasource");
         }
     }, [datasources.length, router, _hasHydrated]);
