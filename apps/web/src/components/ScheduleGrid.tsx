@@ -121,7 +121,7 @@ export function ScheduleGrid({
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [setFocusedSubjectId]);
 
-    const getPosition = (meeting: Meeting) => {
+    const getPosition = useCallback((meeting: Meeting) => {
         const dayIndex = DAYS.indexOf(meeting.day);
         if (dayIndex === -1) return null;
 
@@ -135,7 +135,7 @@ export function ScheduleGrid({
         const height = ((endInMinutes - startInMinutes) / 60) * rowHeight;
 
         return { dayIndex, top, height };
-    };
+    }, [rowHeight]);
 
     // Effective focused subject: either explicitly clicked/dragged on grid, or hovered in sidebar
     const activeGhostSubjectId = focusedSubjectId || hoveredSubjectId;
@@ -185,6 +185,154 @@ export function ScheduleGrid({
 
         return map;
     }, [ghostSections, selectedClasses, activeGhostSubjectId]);
+
+    // Calculate active meeting slots with day overlap clustering for side-by-side positioning
+    interface ActiveMeetingSlot {
+        cls: any;
+        clsIndex: number;
+        subject: Subject | undefined;
+        meeting: Meeting;
+        mIdx: number;
+        day: string;
+        dayIdx: number;
+        startMin: number;
+        endMin: number;
+        durationMin: number;
+        pos: { dayIndex: number; top: number; height: number };
+        subColIndex: number;
+        clusterSize: number;
+        hasDayConflict: boolean;
+    }
+
+    const activeMeetingSlots = useMemo(() => {
+        const slotsByDay: Record<string, ActiveMeetingSlot[]> = {};
+        DAYS.forEach((d) => {
+            slotsByDay[d] = [];
+        });
+
+        selectedClasses.forEach((propCls, clsIndex) => {
+            if (!propCls) return;
+            const subject = allSubjects.find((s) => s.subjectId === propCls.subjectId);
+            const optimisticClassId = droppedOptimisticPicks[propCls.subjectId];
+            const optimisticClass = optimisticClassId && subject
+                ? subject.classes.find((c) => c.classId === optimisticClassId)
+                : null;
+            const cls = optimisticClass
+                ? {
+                      ...propCls,
+                      classId: optimisticClass.classId,
+                      className: optimisticClass.className,
+                      meetings: optimisticClass.meetings,
+                      lecturers: optimisticClass.lecturers
+                  }
+                : propCls;
+
+            (cls.meetings || []).forEach((m: Meeting, mIdx: number) => {
+                const dayIdx = DAYS.indexOf(m.day);
+                if (dayIdx === -1) return;
+                const pos = getPosition(m);
+                if (!pos) return;
+
+                const [startH, startM] = m.start.split(":").map(Number);
+                const [endH, endM] = m.end.split(":").map(Number);
+                const startMin = startH * 60 + startM;
+                const endMin = endH * 60 + endM;
+                const durationMin = endMin - startMin;
+
+                const slotItem: ActiveMeetingSlot = {
+                    cls,
+                    clsIndex,
+                    subject,
+                    meeting: m,
+                    mIdx,
+                    day: m.day,
+                    dayIdx,
+                    startMin,
+                    endMin,
+                    durationMin,
+                    pos,
+                    subColIndex: 0,
+                    clusterSize: 1,
+                    hasDayConflict: false
+                };
+
+                if (!slotsByDay[m.day]) {
+                    slotsByDay[m.day] = [];
+                }
+                slotsByDay[m.day].push(slotItem);
+            });
+        });
+
+        const allSlots: ActiveMeetingSlot[] = [];
+
+        // Process each day to detect overlapping clusters and assign sub-columns
+        DAYS.forEach((day) => {
+            const daySlots = slotsByDay[day] || [];
+            if (daySlots.length === 0) return;
+
+            // Sort by startMin ASC, then endMin DESC
+            daySlots.sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin);
+
+            // Group into clusters of overlapping intervals
+            const clusters: ActiveMeetingSlot[][] = [];
+            let currentCluster: ActiveMeetingSlot[] = [];
+            let clusterEnd = -1;
+
+            for (const slot of daySlots) {
+                if (currentCluster.length === 0) {
+                    currentCluster.push(slot);
+                    clusterEnd = slot.endMin;
+                } else if (slot.startMin < clusterEnd) {
+                    currentCluster.push(slot);
+                    clusterEnd = Math.max(clusterEnd, slot.endMin);
+                } else {
+                    clusters.push(currentCluster);
+                    currentCluster = [slot];
+                    clusterEnd = slot.endMin;
+                }
+            }
+            if (currentCluster.length > 0) {
+                clusters.push(currentCluster);
+            }
+
+            // Within each cluster, assign subColIndex greedily
+            for (const cluster of clusters) {
+                if (cluster.length === 1) {
+                    cluster[0].subColIndex = 0;
+                    cluster[0].clusterSize = 1;
+                    cluster[0].hasDayConflict = false;
+                    allSlots.push(cluster[0]);
+                    continue;
+                }
+
+                const columnEndTimes: number[] = [];
+                for (const slot of cluster) {
+                    let assignedCol = -1;
+                    for (let c = 0; c < columnEndTimes.length; c++) {
+                        if (columnEndTimes[c] <= slot.startMin) {
+                            assignedCol = c;
+                            columnEndTimes[c] = slot.endMin;
+                            break;
+                        }
+                    }
+                    if (assignedCol === -1) {
+                        assignedCol = columnEndTimes.length;
+                        columnEndTimes.push(slot.endMin);
+                    }
+                    slot.subColIndex = assignedCol;
+                    slot.hasDayConflict = true;
+                }
+
+                const numCols = Math.max(1, columnEndTimes.length);
+                for (const slot of cluster) {
+                    slot.clusterSize = numCols;
+                    allSlots.push(slot);
+                }
+            }
+        });
+
+        return allSlots;
+    }, [selectedClasses, allSubjects, droppedOptimisticPicks, getPosition]);
 
     // =========================================================
     // POINTER DRAG HANDLERS (Butter-smooth, 60fps, no browser ghost)
@@ -329,8 +477,10 @@ export function ScheduleGrid({
             {/* Horizontal Scroll Wrapper */}
             <div className="flex-1 flex flex-col overflow-x-auto no-scrollbar">
                 <div
-                    className="flex-1 flex flex-col min-w-full h-full"
-                    style={{ minWidth: compact ? "600px" : "900px" }}
+                    className={cn(
+                        "flex-1 flex flex-col min-w-full h-full",
+                        compact ? "min-w-[600px]" : "min-w-[680px] lg:min-w-[860px]"
+                    )}
                 >
                     {/* Header Days - Gaegu Doodle Font text-[20px] (Z-Index 20 so header popovers float above) */}
                     <div className="flex bg-white shrink-0 z-20 border-b border-[#e6e6e3] sticky top-0">
@@ -423,7 +573,7 @@ export function ScheduleGrid({
                                 className="absolute inset-0 pointer-events-none"
                                 style={{ left: compact ? "48px" : "56px" }}
                             >
-                                {/* Ghost Drop Zones (per day columns) */}
+                    {/* Ghost Drop Zones (per day columns) */}
                                 <div className="relative h-full flex pointer-events-none">
                                     {DAYS.map((day) => (
                                         <div key={day} className="flex-1 relative">
@@ -445,6 +595,11 @@ export function ScheduleGrid({
                                                             const pos = getPosition(m);
                                                             if (!pos) return null;
 
+                                                            const [startH, startM] = m.start.split(":").map(Number);
+                                                            const [endH, endM] = m.end.split(":").map(Number);
+                                                            const ghostDurationMin = (endH * 60 + endM) - (startH * 60 + startM);
+                                                            const isGhostCompact = ghostDurationMin <= 75;
+
                                                             return (
                                                                 <div
                                                                     key={`ghost-${sec.classId}-${mIdx}`}
@@ -455,7 +610,8 @@ export function ScheduleGrid({
                                                                         setFocusedSubjectId(null);
                                                                     }}
                                                                     className={cn(
-                                                                        "absolute left-[4px] right-[4px] rounded-xl border-[1.5px] border-dashed transition-all duration-300 overflow-hidden flex flex-col justify-between pointer-events-auto cursor-pointer p-2.5 z-40 select-none animate-in fade-in zoom-in-95 duration-200",
+                                                                        "absolute left-[4px] right-[4px] rounded-xl border-[1.5px] border-dashed transition-all duration-300 overflow-hidden flex flex-col justify-between pointer-events-auto cursor-pointer z-40 select-none animate-in fade-in zoom-in-95 duration-200",
+                                                                        isGhostCompact ? "px-2 py-1.5" : "p-2.5",
                                                                         conflictInfo.hasConflict
                                                                             ? "border-rose-400 bg-rose-50/90 text-rose-800 shadow-sm"
                                                                             : "border-amber-500 bg-amber-50/90 text-amber-900 shadow-sm",
@@ -471,27 +627,49 @@ export function ScheduleGrid({
                                                                             : `Switch to Kelas ${sec.className}`
                                                                     }
                                                                 >
-                                                                    <div>
-                                                                        <div className="font-semibold text-[12px] text-[#141413] leading-tight">
-                                                                            Kelas {sec.className}
+                                                                    {isGhostCompact ? (
+                                                                        <div className="flex flex-col h-full justify-between">
+                                                                            <div className="flex items-center justify-between gap-1 text-[11px] leading-tight">
+                                                                                <span className="font-semibold text-[#141413] truncate">Kelas {sec.className}</span>
+                                                                                <span className="font-mono text-[9.5px] text-[#6e6e77] tabular-nums shrink-0">{m.start}–{m.end}</span>
+                                                                            </div>
+                                                                            <div className="truncate">
+                                                                                {conflictInfo.hasConflict ? (
+                                                                                    <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
+                                                                                        <AlertTriangle className="w-2.5 h-2.5 shrink-0" /> Clashes
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <span className="font-doodle font-bold text-[13px] text-[#5b82a6] select-none">
+                                                                                        ← drop here
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
-                                                                        <div className="text-[11px] text-[#6e6e77] mt-0.5 font-medium">
-                                                                            <span className="font-mono">{m.start}–{m.end}</span>
-                                                                            {m.room && <span> · {m.room}</span>}
-                                                                        </div>
-                                                                    </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div>
+                                                                                <div className="font-semibold text-[12px] text-[#141413] leading-tight">
+                                                                                    Kelas {sec.className}
+                                                                                </div>
+                                                                                <div className="text-[11px] text-[#6e6e77] mt-0.5 font-medium">
+                                                                                    <span className="font-mono">{m.start}–{m.end}</span>
+                                                                                    {m.room && <span> · {m.room}</span>}
+                                                                                </div>
+                                                                            </div>
 
-                                                                    <div className="mt-auto pt-1">
-                                                                        {conflictInfo.hasConflict ? (
-                                                                            <span className="text-[11px] font-medium text-rose-600 flex items-center gap-1">
-                                                                                <AlertTriangle className="w-3 h-3" /> clashes with {conflictInfo.clashingName || "class"}
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span className="font-doodle font-bold text-[15px] text-[#5b82a6] select-none">
-                                                                                ← click or drop here
-                                                                            </span>
-                                                                        )}
-                                                                    </div>
+                                                                            <div className="mt-auto pt-1">
+                                                                                {conflictInfo.hasConflict ? (
+                                                                                    <span className="text-[11px] font-medium text-rose-600 flex items-center gap-1">
+                                                                                        <AlertTriangle className="w-3 h-3" /> clashes with {conflictInfo.clashingName || "class"}
+                                                                                    </span>
+                                                                                ) : (
+                                                                                    <span className="font-doodle font-bold text-[15px] text-[#5b82a6] select-none">
+                                                                                        ← click or drop here
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+                                                                        </>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         });
@@ -500,146 +678,241 @@ export function ScheduleGrid({
                                     ))}
                                 </div>
 
-                                {/* ACTIVE COURSE NODES (Positioned by day percentage + top offset, with smooth CSS gliding transition) */}
+                                {/* ACTIVE COURSE NODES (Positioned by day percentage + sub-column offsets for side-by-side overlaps) */}
                                 <div className="absolute inset-0 pointer-events-none">
-                                    {selectedClasses.map((propCls, clsIndex) => {
-                                        if (!propCls) return null;
-                                        const subject = allSubjects.find((s) => s.subjectId === propCls.subjectId);
-                                        const optimisticClassId = droppedOptimisticPicks[propCls.subjectId];
-                                        const optimisticClass = optimisticClassId && subject
-                                            ? subject.classes.find((c) => c.classId === optimisticClassId)
-                                            : null;
-                                        const cls = optimisticClass
-                                            ? {
-                                                  ...propCls,
-                                                  classId: optimisticClass.classId,
-                                                  className: optimisticClass.className,
-                                                  meetings: optimisticClass.meetings,
-                                                  lecturers: optimisticClass.lecturers
-                                              }
-                                            : propCls;
-
-                                        const isConflicting = conflicts[cls.classId];
+                                    {activeMeetingSlots.map((slot, slotIdx) => {
+                                        const { cls, meeting: m, mIdx, dayIdx, pos, durationMin } = slot;
+                                        const isConflicting = conflicts[cls.classId] || slot.hasDayConflict;
                                         const isFrozen = frozenSubjectIds.includes(cls.subjectId);
                                         const isFocused = focusedSubjectId === cls.subjectId;
-                                        const subjectColor = getSubjectColor(cls.subjectId, clsIndex);
-                                        const sks = subject?.sks || 3;
-                                        const classOptionsCount = subject?.classes?.length || 1;
 
-                                        return (cls.meetings || []).map((m: Meeting, mIdx: number) => {
-                                            const dayIdx = DAYS.indexOf(m.day);
-                                            if (dayIdx === -1) return null;
-                                            const pos = getPosition(m);
-                                            if (!pos) return null;
+                                        const isThisCardDragging =
+                                            activeDraggingCard?.subjectId === cls.subjectId &&
+                                            activeDraggingCard?.classId === cls.classId &&
+                                            activeDraggingCard?.meetingIdx === mIdx &&
+                                            isDragging;
 
-                                            const isThisCardDragging =
-                                                activeDraggingCard?.subjectId === cls.subjectId &&
-                                                activeDraggingCard?.classId === cls.classId &&
-                                                activeDraggingCard?.meetingIdx === mIdx &&
-                                                isDragging;
+                                        const isThisCardJustDropped = justDroppedSubjectId === cls.subjectId;
 
-                                            const leftPercent = (dayIdx * 100) / DAYS.length;
-                                            const widthPercent = 100 / DAYS.length;
+                                        // Sub-column layout for side-by-side display of overlapping classes
+                                        const dayLeftPercent = (dayIdx * 100) / DAYS.length;
+                                        const dayWidthPercent = 100 / DAYS.length;
+                                        const subWidthPercent = dayWidthPercent / slot.clusterSize;
+                                        const subLeftPercent = dayLeftPercent + slot.subColIndex * subWidthPercent;
 
-                                            const isThisCardJustDropped = justDroppedSubjectId === cls.subjectId;
+                                        const isCompact = durationMin <= 75;
+                                        const isMedium = durationMin > 75 && durationMin <= 110;
 
-                                            return (
-                                                <div
-                                                    key={`${cls.subjectId}-${mIdx}`}
-                                                    id={clsIndex === 0 && mIdx === 0 ? "tour-first-node" : undefined}
-                                                    data-subject-id={cls.subjectId}
-                                                    data-class-id={cls.classId}
-                                                    onPointerDown={(e) => handlePointerDown(e, cls, mIdx)}
-                                                    onPointerMove={handlePointerMove}
-                                                    onPointerUp={handlePointerUp}
-                                                    onPointerCancel={handlePointerCancel}
-                                                    className={cn(
-                                                        // Clean solid white card, flowing naturally from top
-                                                        "group absolute rounded-xl p-3 flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
-                                                        "bg-white border border-[#dcdcd6] border-b-[2px] border-b-[#c6c6be] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0]",
-                                                        isFocused && "border-[#141413] ring-1 ring-[#141413] shadow-md -translate-y-[1px] z-30",
-                                                        isThisCardDragging
-                                                            ? "z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
-                                                            : "cursor-grab active:cursor-grabbing hover:shadow-md",
-                                                        isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70"
-                                                    )}
-                                                    style={{
-                                                        top: `${pos.top + 2}px`,
-                                                        height: `${pos.height - 4}px`,
-                                                        left: `calc(${leftPercent}% + 4px)`,
-                                                        width: `calc(${widthPercent}% - 8px)`,
-                                                        opacity: 1, // ALWAYS 100% OPAQUE
-                                                        willChange: isThisCardDragging ? "transform" : "left, top, height",
-                                                        transition: isThisCardDragging || isThisCardJustDropped
-                                                            ? (isSpringingBack ? "transform 200ms ease-out" : "none")
-                                                            : "left 340ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
-                                                        ...(isThisCardDragging
-                                                            ? {
-                                                                  transform: `translate3d(${dragDelta.dx}px, ${dragDelta.dy}px, 0) scale(1.02)`,
-                                                                  transition: isSpringingBack
-                                                                      ? "transform 200ms ease-out"
-                                                                      : "none"
-                                                              }
-                                                            : {})
-                                                    }}
-                                                >
-                                                    {/* Row 1: Section & Time + Lock Icon */}
-                                                    <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
-                                                        <div className="flex items-center gap-1.5 min-w-0">
-                                                            <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
-                                                                {cls.className}
-                                                            </span>
-                                                            <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
-                                                                {m.start}–{m.end}
-                                                            </span>
+                                        return (
+                                            <div
+                                                key={`${cls.subjectId}-${mIdx}`}
+                                                id={slotIdx === 0 ? "tour-first-node" : undefined}
+                                                data-subject-id={cls.subjectId}
+                                                data-class-id={cls.classId}
+                                                onPointerDown={(e) => handlePointerDown(e, cls, mIdx)}
+                                                onPointerMove={handlePointerMove}
+                                                onPointerUp={handlePointerUp}
+                                                onPointerCancel={handlePointerCancel}
+                                                className={cn(
+                                                    // Clean solid white card, flowing naturally from top
+                                                    "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
+                                                    "bg-white border border-[#dcdcd6] border-b-[2px] border-b-[#c6c6be] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0]",
+                                                    isCompact ? "px-2.5 py-1.5" : isMedium ? "p-2" : "p-3",
+                                                    isFocused && "border-[#141413] ring-1 ring-[#141413] shadow-md -translate-y-[1px] z-30",
+                                                    isThisCardDragging
+                                                        ? "z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
+                                                        : "cursor-grab active:cursor-grabbing hover:shadow-md",
+                                                    isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70",
+                                                    // Hover-to-expand for short duration nodes
+                                                    !isThisCardDragging && durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40"
+                                                )}
+                                                style={{
+                                                    top: `${pos.top + 2}px`,
+                                                    height: `${pos.height - 4}px`,
+                                                    minHeight: `${pos.height - 4}px`,
+                                                    left: slot.clusterSize > 1 ? `calc(${subLeftPercent}% + 2px)` : `calc(${subLeftPercent}% + 4px)`,
+                                                    width: slot.clusterSize > 1 ? `calc(${subWidthPercent}% - 4px)` : `calc(${subWidthPercent}% - 8px)`,
+                                                    opacity: 1, // ALWAYS 100% OPAQUE
+                                                    willChange: isThisCardDragging ? "transform" : "left, top, height, width",
+                                                    transition: isThisCardDragging || isThisCardJustDropped
+                                                        ? (isSpringingBack ? "transform 200ms ease-out" : "none")
+                                                        : "left 340ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), width 340ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
+                                                    ...(isThisCardDragging
+                                                        ? {
+                                                              transform: `translate3d(${dragDelta.dx}px, ${dragDelta.dy}px, 0) scale(1.02)`,
+                                                              transition: isSpringingBack
+                                                                  ? "transform 200ms ease-out"
+                                                                  : "none"
+                                                          }
+                                                        : {})
+                                                }}
+                                            >
+                                                {/* 1. Compact Mode (durationMin <= 75, e.g. 1 SKS) */}
+                                                {isCompact ? (
+                                                    <div className="flex flex-col h-full justify-between">
+                                                        {/* Row 1: Course Name on left + [Badge] + Lock on right */}
+                                                        <div className="flex items-center justify-between gap-1.5 min-w-0">
+                                                            <h4 className="text-[12px] font-semibold text-[#141413] truncate group-hover:whitespace-normal group-hover:line-clamp-none leading-tight min-w-0 flex-1">
+                                                                {cls.subjectName}
+                                                            </h4>
+                                                            <div className="flex items-center gap-1 shrink-0">
+                                                                <span className="px-1 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[9.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                    {cls.className}
+                                                                </span>
+                                                                {onToggleFreeze && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onPointerDown={(e) => e.stopPropagation()}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            onToggleFreeze(cls.subjectId);
+                                                                        }}
+                                                                        className={cn(
+                                                                            "w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 transition-colors",
+                                                                            isFrozen
+                                                                                ? "text-[#141413] bg-neutral-100"
+                                                                                : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                        )}
+                                                                        title={isFrozen ? "Click to unlock" : "Click to lock"}
+                                                                    >
+                                                                        {isFrozen ? (
+                                                                            <Lock className="w-2.5 h-2.5 text-[#141413]" />
+                                                                        ) : (
+                                                                            <Unlock className="w-2.5 h-2.5" />
+                                                                        )}
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         </div>
 
-                                                        {onToggleFreeze && (
-                                                            <button
-                                                                type="button"
-                                                                onPointerDown={(e) => e.stopPropagation()}
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    onToggleFreeze(cls.subjectId);
-                                                                }}
-                                                                className={cn(
-                                                                    "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
-                                                                    isFrozen
-                                                                        ? "text-[#141413] bg-neutral-100"
-                                                                        : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
-                                                                )}
-                                                                title={isFrozen ? "Click to unlock class in solver" : "Click to lock this class"}
-                                                            >
-                                                                {isFrozen ? (
-                                                                    <Lock className="w-3 h-3 text-[#141413]" />
-                                                                ) : (
-                                                                    <Unlock className="w-3 h-3" />
-                                                                )}
-                                                            </button>
+                                                        {/* Row 2: Time + Room */}
+                                                        <div className="text-[10px] text-[#6e6e77] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight">
+                                                            <span>{m.start}–{m.end}</span>
+                                                            {m.room && <span className="font-sans">· {m.room}</span>}
+                                                        </div>
+
+                                                        {/* Hidden expandable details on hover (reveals full room & lecturer) */}
+                                                        {cls.lecturers?.[0] && (
+                                                            <div className="hidden group-hover:block text-[10px] text-[#71717a] truncate mt-1 pt-1 border-t border-[#e6e6e3] font-sans">
+                                                                {cls.lecturers[0]}
+                                                            </div>
                                                         )}
                                                     </div>
-
-                                                    {/* Row 2: Course Name (mt-1.5) */}
-                                                    <h4 className="text-[13.5px] font-semibold text-[#141413] leading-snug line-clamp-2 mt-1.5">
-                                                        {cls.subjectName}
-                                                    </h4>
-
-                                                    {/* Row 3: Room (mt-1 directly below Course Name) */}
-                                                    {m.room && (
-                                                        <div className="text-[11.5px] font-medium text-[#4a4a52] leading-tight truncate mt-1">
-                                                            {m.room}
+                                                ) : isMedium ? (
+                                                    /* 2. Medium Mode (75 < durationMin <= 110, e.g. 2 SKS) */
+                                                    <div className="flex flex-col h-full justify-start">
+                                                        {/* Row 1: Section + Time + Lock */}
+                                                        <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
+                                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                                <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                    {cls.className}
+                                                                </span>
+                                                                <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
+                                                                    {m.start}–{m.end}
+                                                                </span>
+                                                            </div>
+                                                            {onToggleFreeze && (
+                                                                <button
+                                                                    type="button"
+                                                                    onPointerDown={(e) => e.stopPropagation()}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        onToggleFreeze(cls.subjectId);
+                                                                    }}
+                                                                    className={cn(
+                                                                        "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
+                                                                        isFrozen
+                                                                            ? "text-[#141413] bg-neutral-100"
+                                                                            : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                    )}
+                                                                    title={isFrozen ? "Click to unlock" : "Click to lock"}
+                                                                >
+                                                                    {isFrozen ? (
+                                                                        <Lock className="w-3 h-3 text-[#141413]" />
+                                                                    ) : (
+                                                                        <Unlock className="w-3 h-3" />
+                                                                    )}
+                                                                </button>
+                                                            )}
                                                         </div>
-                                                    )}
 
-                                                    {/* Row 4: Lecturer (mt-0.5 directly below Room) */}
-                                                    {cls.lecturers?.[0] && (
-                                                        <div className="text-[11px] text-[#71717a] leading-tight truncate mt-0.5">
-                                                            {cls.lecturers[0]}
+                                                        {/* Row 2: Course Name */}
+                                                        <h4 className="text-[12.5px] font-semibold text-[#141413] line-clamp-1 group-hover:line-clamp-none mt-0.5 leading-snug">
+                                                            {cls.subjectName}
+                                                        </h4>
+
+                                                        {/* Row 3: Room and Lecturer */}
+                                                        <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-[#4a4a52] truncate mt-0.5 leading-tight">
+                                                            {m.room && <span>{m.room}</span>}
+                                                            {m.room && cls.lecturers?.[0] && <span className="text-[#a1a1aa]">·</span>}
+                                                            {cls.lecturers?.[0] && (
+                                                                <span className="text-[10px] text-[#71717a] font-normal truncate">
+                                                                    {cls.lecturers[0]}
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                    )}
-                                                </div>
-                                            );
-                                        });
+                                                    </div>
+                                                ) : (
+                                                    /* 3. Full Mode (> 110 min, e.g. 3+ SKS) */
+                                                    <div className="flex flex-col h-full justify-start">
+                                                        {/* Row 1: Section & Time + Lock Icon */}
+                                                        <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
+                                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                                <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                    {cls.className}
+                                                                </span>
+                                                                <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
+                                                                    {m.start}–{m.end}
+                                                                </span>
+                                                            </div>
+
+                                                            {onToggleFreeze && (
+                                                                <button
+                                                                    type="button"
+                                                                    onPointerDown={(e) => e.stopPropagation()}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        onToggleFreeze(cls.subjectId);
+                                                                    }}
+                                                                    className={cn(
+                                                                        "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
+                                                                        isFrozen
+                                                                            ? "text-[#141413] bg-neutral-100"
+                                                                            : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                    )}
+                                                                    title={isFrozen ? "Click to unlock class in solver" : "Click to lock this class"}
+                                                                >
+                                                                    {isFrozen ? (
+                                                                        <Lock className="w-3 h-3 text-[#141413]" />
+                                                                    ) : (
+                                                                        <Unlock className="w-3 h-3" />
+                                                                    )}
+                                                                </button>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Row 2: Course Name (mt-1.5) */}
+                                                        <h4 className="text-[13.5px] font-semibold text-[#141413] leading-snug line-clamp-2 mt-1.5">
+                                                            {cls.subjectName}
+                                                        </h4>
+
+                                                        {/* Row 3: Room (mt-1 directly below Course Name) */}
+                                                        {m.room && (
+                                                            <div className="text-[11.5px] font-medium text-[#4a4a52] leading-tight truncate mt-1">
+                                                                {m.room}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Row 4: Lecturer (mt-0.5 directly below Room) */}
+                                                        {cls.lecturers?.[0] && (
+                                                            <div className="text-[11px] text-[#71717a] leading-tight truncate mt-0.5">
+                                                                {cls.lecturers[0]}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
                                     })}
                                 </div>
                             </div>
