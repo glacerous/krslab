@@ -814,7 +814,7 @@ function WorkspaceContent() {
                         type="button"
                         onClick={() => openOverlay("tour")}
                         className="font-doodle text-[17.5px] font-bold text-[#5b82a6] hover:text-[#141413] px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 transition-colors flex items-center gap-1 shrink-0 select-none"
-                        title="Restart 5-step interactive tutorial"
+                        title="Restart 4-step interactive tutorial"
                     >
                         <span>↻ tutorial</span>
                     </button>
