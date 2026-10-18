@@ -558,7 +558,8 @@ export const useAppStore = create<AppStore>()(
                         {
                             target: 35,
                             maxAttempts: 3500,
-                            seed: freshSeed
+                            seed: freshSeed,
+                            avoidMapping: currentDisplayedMapping
                         },
                         {
                             sectionsConflict: checkClassConflict,

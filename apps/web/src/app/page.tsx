@@ -279,14 +279,22 @@ function WorkspaceContent() {
             return diff;
         };
 
-        // 1. Cycle through unseen cached candidates in the pool, picking the one with MAXIMUM displacement
+        // Calculate maximum possible displacement (all unfrozen courses with > 1 class)
+        const mutableWithAlternatives = (activePlan.selectedSubjectIds ?? []).filter(sId => {
+            if (activePlan.frozenSubjectIds?.includes(sId)) return false;
+            const sub = activeDatasource?.subjects.find(s => s.subjectId === sId);
+            return (sub?.classes.length ?? 0) > 1;
+        });
+        const maxTargetDiff = mutableWithAlternatives.length;
+
+        // 1. Cycle through cached candidates ONLY if they move ALL mutable courses
         if (candidatePoolRef.current.length > 0) {
             candidatePoolRef.current.sort((a, b) => countDiff(b, currentlyDisplayed) - countDiff(a, currentlyDisplayed));
 
             const bestCand = candidatePoolRef.current[0];
             const maxDiff = countDiff(bestCand, currentlyDisplayed);
 
-            if (maxDiff > 0) {
+            if (maxDiff >= maxTargetDiff && maxDiff > 0) {
                 candidatePoolRef.current.shift();
                 setPreviewMapping(bestCand);
                 toast.success("Schedule Candidate Shuffled", {
@@ -297,7 +305,7 @@ function WorkspaceContent() {
             }
         }
 
-        // 2. Pool empty or exhausted: generate a fresh batch of candidates
+        // 2. Pool empty or candidate left a course behind: generate a fresh batch of candidates avoiding currentlyDisplayed
         setSolverDiagnostics(null);
         toast.loading("Finding conflict-free schedule...", { id: "solver-toast" });
 
@@ -307,7 +315,7 @@ function WorkspaceContent() {
             // Populate pool with remaining distinct candidates, sorted descending by displacement
             if (result.allCandidates && result.allCandidates.length > 0) {
                 const remaining = result.allCandidates
-                    .filter(c => countDiff(c, result.candidate!) > 0)
+                    .filter(c => c !== result.candidate && countDiff(c, result.candidate!) > 0)
                     .sort((a, b) => countDiff(b, result.candidate!) - countDiff(a, result.candidate!));
                 candidatePoolRef.current = remaining;
             } else {
@@ -332,7 +340,7 @@ function WorkspaceContent() {
                     : "Try adjusting or relaxing your active rules."
             });
         }
-    }, [activePlan, isGenerating, generateCandidateSchedule, previewMapping]);
+    }, [activePlan, isGenerating, generateCandidateSchedule, previewMapping, activeDatasource]);
 
     // Handler: Explicitly Accept Candidate Preview
     const handleAcceptPreview = useCallback(() => {

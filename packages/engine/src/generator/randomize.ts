@@ -1,10 +1,11 @@
 import { Course, Section, Rule, ScheduleVariant } from "../rules/types";
 import { evaluateAllRules } from "../rules/evaluate";
 
-interface GeneratorOptions {
+export interface GeneratorOptions {
     target: number;
     maxAttempts: number;
     seed?: number;
+    avoidMapping?: Record<string, string>;
 }
 
 export interface GeneratorResult {
@@ -142,12 +143,20 @@ export function generateRandomValidSchedules(
             return;
         }
 
-        const shuffledSections = shuffle(course.classes);
+        const avoidClassId = opts.avoidMapping?.[course.subjectId];
+        let sectionsToTry: Section[];
+        if (avoidClassId && course.classes.length > 1) {
+            const others = course.classes.filter(c => c.classId !== avoidClassId);
+            const current = course.classes.filter(c => c.classId === avoidClassId);
+            sectionsToTry = [...shuffle(others), ...current];
+        } else {
+            sectionsToTry = shuffle(course.classes);
+        }
 
         let fitSections = 0;
         let attemptedInThisCourse = 0;
 
-        for (const section of shuffledSections) {
+        for (const section of sectionsToTry) {
             if (validVariants.length >= target || totalAttempts >= maxAttempts) break;
             if (currentRestartAttempts >= attemptsPerRestart) break;
             attemptedInThisCourse++;
@@ -219,6 +228,21 @@ export function generateRandomValidSchedules(
 
         // Advance RNG so next restart explores different region
         currentSeed = (currentSeed * 1664525 + 1013904223) % 4294967296;
+    }
+
+    if (opts.avoidMapping && validVariants.length > 1) {
+        const avoidMap = opts.avoidMapping;
+        validVariants.sort((a, b) => {
+            let diffA = 0;
+            let diffB = 0;
+            for (const [subId, sec] of Object.entries(a.picks)) {
+                if (avoidMap[subId] && avoidMap[subId] !== sec.classId) diffA++;
+            }
+            for (const [subId, sec] of Object.entries(b.picks)) {
+                if (avoidMap[subId] && avoidMap[subId] !== sec.classId) diffB++;
+            }
+            return diffB - diffA;
+        });
     }
 
     const result: GeneratorResult = {
