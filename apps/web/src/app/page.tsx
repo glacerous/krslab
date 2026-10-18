@@ -75,7 +75,6 @@ function WorkspaceContent() {
 
     // Single-Candidate Preview State (do not overwrite plan until explicitly accepted)
     const [previewMapping, setPreviewMapping] = useState<Record<string, string> | null>(null);
-    const candidatePoolRef = useRef<Record<string, string>[]>([]);
 
     // Grid focused subject (for interactive tour & direct manipulation)
     const [gridFocusedSubjectId, setGridFocusedSubjectId] = useState<string | null>(null);
@@ -164,7 +163,6 @@ function WorkspaceContent() {
     // Reset preview candidate whenever active plan changes
     useEffect(() => {
         setPreviewMapping(null);
-        candidatePoolRef.current = [];
     }, [activePlanId]);
 
     // Active Plan and Datasource
@@ -268,40 +266,13 @@ function WorkspaceContent() {
 
         const currentlyDisplayed = previewMapping ?? activePlan.selectedClassBySubjectId;
 
-        // 1. Cycle through unseen cached candidates in the pool to guarantee distinct movement
-        if (candidatePoolRef.current.length > 0) {
-            const differingIdx = candidatePoolRef.current.findIndex(cand =>
-                Object.entries(cand).some(([sId, cId]) => currentlyDisplayed[sId] !== cId)
-            );
-
-            if (differingIdx !== -1) {
-                const [nextCandidate] = candidatePoolRef.current.splice(differingIdx, 1);
-                setPreviewMapping(nextCandidate);
-                toast.success("Schedule Candidate Shuffled", {
-                    id: "solver-toast",
-                    description: "Accept to apply or Shuffle to try another."
-                });
-                return;
-            }
-        }
-
-        // 2. Pool empty or exhausted: generate a fresh batch of random candidates
+        // Generate a fresh random conflict-free candidate directly
         setSolverDiagnostics(null);
         toast.loading("Finding conflict-free schedule...", { id: "solver-toast" });
 
         const result = generateCandidateSchedule(activePlan.id, currentlyDisplayed);
 
         if (result.success && result.candidate) {
-            // Populate pool with remaining distinct candidates
-            if (result.allCandidates && result.allCandidates.length > 0) {
-                const remaining = result.allCandidates.filter(c =>
-                    Object.entries(c).some(([sId, cId]) => result.candidate![sId] !== cId)
-                );
-                candidatePoolRef.current = remaining;
-            } else {
-                candidatePoolRef.current = [];
-            }
-
             setPreviewMapping(result.candidate);
             toast.success(previewMapping ? "Schedule Candidate Shuffled" : "Schedule Candidate Ready", {
                 id: "solver-toast",
@@ -327,14 +298,12 @@ function WorkspaceContent() {
         if (!activePlan || !previewMapping) return;
         updatePlan(activePlan.id, { selectedClassBySubjectId: previewMapping });
         setPreviewMapping(null);
-        candidatePoolRef.current = [];
         toast.success("Schedule applied", { id: "preview-action" });
     }, [activePlan, previewMapping, updatePlan]);
 
     // Handler: Explicitly Discard/Cancel Candidate Preview
     const handleCancelPreview = useCallback(() => {
         setPreviewMapping(null);
-        candidatePoolRef.current = [];
         toast.info("Preview discarded", { id: "preview-action" });
     }, []);
 

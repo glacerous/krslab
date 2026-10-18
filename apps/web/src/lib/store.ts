@@ -611,12 +611,14 @@ export const useAppStore = create<AppStore>()(
                         }
                     }
 
-                    // Pick one that differs from current displayed mapping if possible
+                    // Pick a random variant that differs from current displayed mapping
                     const currentMapping = currentDisplayedMapping ?? plan.selectedClassBySubjectId;
                     const differingVariants = uniqueVariants.filter((m) =>
                         Object.entries(m).some(([sId, cId]) => currentMapping[sId] !== cId)
                     );
-                    const chosen = differingVariants[0] || uniqueVariants[0] || null;
+                    const chosen = differingVariants.length > 0
+                        ? differingVariants[Math.floor(Math.random() * differingVariants.length)]
+                        : uniqueVariants[0] || null;
 
                     return {
                         success: true,
