@@ -75,7 +75,43 @@ function WorkspaceContent() {
     const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
     const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
     const [dataModalEditSourceId, setDataModalEditSourceId] = useState<string | null>(null);
-    const sourceMenuRef = useRef<HTMLDivElement>(null);
+    const sourceTriggerRef = useRef<HTMLButtonElement>(null);
+    const [sourceMenuCoords, setSourceMenuCoords] = useState<{ top: number; left: number } | null>(null);
+
+    const updateSourceMenuCoords = useCallback(() => {
+        if (sourceTriggerRef.current) {
+            const rect = sourceTriggerRef.current.getBoundingClientRect();
+            const menuWidth = 340;
+            const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+            setSourceMenuCoords({
+                top: rect.bottom + 6,
+                left,
+            });
+        }
+    }, []);
+
+    const handleToggleSourceMenu = () => {
+        if (!isSourceMenuOpen) {
+            updateSourceMenuCoords();
+            setIsSourceMenuOpen(true);
+        } else {
+            setIsSourceMenuOpen(false);
+        }
+    };
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        if (!isSourceMenuOpen) return;
+        window.addEventListener("resize", updateSourceMenuCoords);
+        window.addEventListener("scroll", updateSourceMenuCoords, true);
+        return () => {
+            window.removeEventListener("resize", updateSourceMenuCoords);
+            window.removeEventListener("scroll", updateSourceMenuCoords, true);
+        };
+    }, [isSourceMenuOpen, updateSourceMenuCoords]);
 
     const [activeTab, setActiveTab] = useState<"selected" | "catalog">("selected");
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
@@ -94,19 +130,6 @@ function WorkspaceContent() {
     useEffect(() => {
         deduplicateDatasources();
     }, [deduplicateDatasources]);
-
-    // Close source menu on outside click
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (sourceMenuRef.current && !sourceMenuRef.current.contains(e.target as Node)) {
-                setIsSourceMenuOpen(false);
-            }
-        };
-        if (isSourceMenuOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
-        }
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [isSourceMenuOpen]);
 
     // Single source of overlay close logic
     const closeOverlay = useCallback(() => {
@@ -625,7 +648,7 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 1. TOP WORKSPACE HEADER & TOOLBAR                         */}
             {/* ========================================================= */}
-            <header className="h-14 border-b border-[#e6e6e3] bg-white/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0 overflow-x-auto no-scrollbar">
+            <header className="h-14 border-b border-[#e6e6e3] bg-white/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
                 <div className="flex items-center gap-2.5 min-w-0">
                     {/* Minimal Dark Squircle Mark + Brand Wordmark */}
@@ -638,135 +661,19 @@ function WorkspaceContent() {
 
                     <span className="text-[#d8d8d4] text-sm shrink-0 font-light">/</span>
 
-                    {/* Source Switcher Dropdown Popover */}
-                    <div className="relative shrink-0" ref={sourceMenuRef}>
+                    {/* Source Switcher Dropdown Trigger */}
+                    <div className="relative shrink-0">
                         <button
                             id="tour-datasource-btn"
+                            ref={sourceTriggerRef}
                             type="button"
-                            onClick={() => setIsSourceMenuOpen((prev) => !prev)}
+                            onClick={handleToggleSourceMenu}
                             className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 text-[13.5px] font-medium text-[#141413] flex items-center gap-1.5 transition-colors select-none"
                             title="Click to switch, edit, copy, or import schedule sources"
                         >
                             <span className="max-w-[150px] sm:max-w-[220px] truncate">{activeDatasource.name}</span>
                             <ChevronDown className={cn("w-3 h-3 text-[#a1a1aa] shrink-0 transition-transform duration-150", isSourceMenuOpen && "rotate-180")} />
                         </button>
-
-                        {/* Popover Menu */}
-                        {isSourceMenuOpen && (
-                            <div className="absolute top-full left-0 mt-1.5 w-[300px] sm:w-[340px] bg-white border border-[#e2e2de] rounded-xl shadow-xl p-1.5 z-[100] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left">
-                                <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] select-none">
-                                    schedule sources
-                                </div>
-
-                                <div className="max-h-[260px] overflow-y-auto custom-scrollbar space-y-0.5 my-1">
-                                    {datasources.map((ds) => {
-                                        const isActive = ds.id === activeDatasource.id;
-                                        const totalClasses = ds.subjects.reduce((sum, s) => sum + s.classes.length, 0);
-
-                                        return (
-                                            <div
-                                                key={ds.id}
-                                                onClick={() => handleSwitchDatasource(ds.id)}
-                                                className={cn(
-                                                    "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
-                                                    isActive ? "bg-neutral-100/80 font-medium" : "hover:bg-neutral-50"
-                                                )}
-                                            >
-                                                <div className="flex items-center gap-2 min-w-0 flex-1">
-                                                    <div className="min-w-0 flex-1">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="text-[13px] text-[#141413] truncate font-medium">
-                                                                {ds.name}
-                                                            </span>
-                                                            {isActive && (
-                                                                <Check className="w-3.5 h-3.5 text-[#141413] shrink-0" />
-                                                            )}
-                                                        </div>
-                                                        <div className="text-[11px] text-[#6e6e77] truncate">
-                                                            {ds.subjects.length} courses · {totalClasses} classes
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Inline management actions on each row */}
-                                                <div
-                                                    className="flex items-center gap-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                >
-                                                    {/* Edit */}
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setIsSourceMenuOpen(false);
-                                                            setDataModalEditSourceId(ds.id);
-                                                            openOverlay("bima-import");
-                                                        }}
-                                                        className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
-                                                        title="Edit source or rename"
-                                                    >
-                                                        <Pencil className="w-3.5 h-3.5" />
-                                                    </button>
-
-                                                    {/* Duplicate */}
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDuplicateDatasource(ds.id);
-                                                        }}
-                                                        className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
-                                                        title="Duplicate source"
-                                                    >
-                                                        <Copy className="w-3.5 h-3.5" />
-                                                    </button>
-
-                                                    {/* Delete */}
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleDeleteDatasource(ds);
-                                                        }}
-                                                        className="p-1 rounded hover:bg-rose-100 text-[#a1a1aa] hover:text-rose-600 transition-colors"
-                                                        title="Delete source"
-                                                    >
-                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-
-                                {/* Popover Footer Actions */}
-                                <div className="border-t border-[#e6e6e3] mt-1 pt-1.5 space-y-0.5">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsSourceMenuOpen(false);
-                                            setDataModalEditSourceId(null);
-                                            openOverlay("bima-import");
-                                        }}
-                                        className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
-                                    >
-                                        <Plus className="w-3.5 h-3.5 text-[#5b82a6]" />
-                                        <span>+ Import new BIMA source...</span>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsSourceMenuOpen(false);
-                                            handleLoadSample();
-                                        }}
-                                        className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-50 flex items-center gap-2 transition-colors select-none"
-                                    >
-                                        <span>Load sample Informatics data</span>
-                                    </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
 
                     <span className="text-[#d8d8d4] text-xs shrink-0 select-none">|</span>
@@ -1032,7 +939,7 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 4. MAIN WORKSPACE STAGE: (Left Panel + Center Grid)       */}
             {/* ========================================================= */}
-            <div className="flex-1 flex overflow-hidden relative bg-[#f9f9f8] bg-dot-matrix">
+            <div className="flex-1 flex overflow-hidden relative z-10 bg-[#f9f9f8] bg-dot-matrix">
                 {/* Left Panel: Desktop 320px Clean Split (Untouched on lg screens) */}
                 <div
                     id="tour-course-panel"
@@ -1171,6 +1078,141 @@ function WorkspaceContent() {
                     setGridFocusedSubjectId(null);
                 }}
             />
+
+            {/* Portaled Source Switcher Dropdown (z-[9999] in document.body) */}
+            {mounted && isSourceMenuOpen && sourceMenuCoords && createPortal(
+                <div className="fixed inset-0 z-[9998] pointer-events-auto">
+                    {/* Full-screen invisible click-away backdrop */}
+                    <div
+                        className="fixed inset-0 z-[9998] bg-transparent"
+                        onClick={() => setIsSourceMenuOpen(false)}
+                    />
+
+                    {/* Popover Card */}
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: `${sourceMenuCoords.top}px`,
+                            left: `${sourceMenuCoords.left}px`,
+                        }}
+                        className="w-[300px] sm:w-[340px] bg-white border border-[#e2e2de] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] select-none">
+                            schedule sources
+                        </div>
+
+                        <div className="max-h-[260px] overflow-y-auto custom-scrollbar space-y-0.5 my-1">
+                            {datasources.map((ds) => {
+                                const isActive = ds.id === activeDatasource.id;
+                                const totalClasses = ds.subjects.reduce((sum, s) => sum + s.classes.length, 0);
+
+                                return (
+                                    <div
+                                        key={ds.id}
+                                        onClick={() => handleSwitchDatasource(ds.id)}
+                                        className={cn(
+                                            "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
+                                            isActive ? "bg-neutral-100/80 font-medium" : "hover:bg-neutral-50"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className="text-[13px] text-[#141413] truncate font-medium">
+                                                        {ds.name}
+                                                    </span>
+                                                    {isActive && (
+                                                        <Check className="w-3.5 h-3.5 text-[#141413] shrink-0" />
+                                                    )}
+                                                </div>
+                                                <div className="text-[11px] text-[#6e6e77] truncate">
+                                                    {ds.subjects.length} courses · {totalClasses} classes
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Inline management actions on each row */}
+                                        <div
+                                            className="flex items-center gap-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {/* Edit */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsSourceMenuOpen(false);
+                                                    setDataModalEditSourceId(ds.id);
+                                                    openOverlay("bima-import");
+                                                }}
+                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                title="Edit source or rename"
+                                            >
+                                                <Pencil className="w-3.5 h-3.5" />
+                                            </button>
+
+                                            {/* Duplicate */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDuplicateDatasource(ds.id);
+                                                }}
+                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                title="Duplicate source"
+                                            >
+                                                <Copy className="w-3.5 h-3.5" />
+                                            </button>
+
+                                            {/* Delete */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteDatasource(ds);
+                                                }}
+                                                className="p-1 rounded hover:bg-rose-100 text-[#a1a1aa] hover:text-rose-600 transition-colors"
+                                                title="Delete source"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Popover Footer Actions */}
+                        <div className="border-t border-[#e6e6e3] mt-1 pt-1.5 space-y-0.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsSourceMenuOpen(false);
+                                    setDataModalEditSourceId(null);
+                                    openOverlay("bima-import");
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
+                            >
+                                <Plus className="w-3.5 h-3.5 text-[#5b82a6]" />
+                                <span>+ Import new BIMA source...</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsSourceMenuOpen(false);
+                                    handleLoadSample();
+                                }}
+                                className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-50 flex items-center gap-2 transition-colors select-none"
+                            >
+                                <span>Load sample Informatics data</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
