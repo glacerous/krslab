@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { checkClassConflict, Rule, Section, Course, generateRandomValidSchedules, validateRules, GeneratorResult } from "@krs/engine";
+import { checkClassConflict, Rule, Section, Course, generateRandomValidSchedules, validateRules, GeneratorResult, parseBimaMasterWithDebug } from "@krs/engine";
+import { SAMPLE_BIMA_TEXT } from "./sample-data";
 
 export interface Meeting {
     day: string;
@@ -72,7 +73,10 @@ interface AppStore {
 
     // Datasource Actions
     addDatasource: (name: string, subjects: Subject[]) => string;
+    updateDatasource: (id: string, updates: { name?: string; subjects?: Subject[] }) => void;
     deleteDatasource: (id: string) => void;
+    duplicateDatasource: (id: string) => string;
+    deduplicateDatasources: () => void;
     importDatasourceAndCreatePlan: (name: string, subjects: Subject[]) => { datasourceId: string; planId: string };
 
     // Plan Actions
@@ -151,12 +155,140 @@ export const useAppStore = create<AppStore>()(
                 return id;
             },
 
-            deleteDatasource: (id) => {
+            updateDatasource: (id, updates) => {
                 set((state) => ({
-                    datasources: state.datasources.filter((d) => d.id !== id),
-                    plans: state.plans.filter((p) => p.datasourceId !== id), // Cascading delete
-                    activeDatasourceId: state.activeDatasourceId === id ? null : state.activeDatasourceId,
+                    datasources: state.datasources.map((ds) => {
+                        if (ds.id !== id) return ds;
+                        return {
+                            ...ds,
+                            name: updates.name !== undefined && updates.name.trim() ? updates.name.trim() : ds.name,
+                            subjects: updates.subjects !== undefined ? updates.subjects : ds.subjects,
+                        };
+                    }),
                 }));
+            },
+
+            duplicateDatasource: (id) => {
+                const source = get().datasources.find((d) => d.id === id);
+                if (!source) return id;
+
+                const newId = crypto.randomUUID();
+                const newName = `${source.name} (Copy)`;
+                const newDs: Datasource = {
+                    id: newId,
+                    name: newName,
+                    createdAt: new Date().toISOString(),
+                    subjects: JSON.parse(JSON.stringify(source.subjects)),
+                };
+
+                const planId = crypto.randomUUID();
+                const sourcePlan = get().plans.find((p) => p.datasourceId === id && p.id === get().activePlanId)
+                    || get().plans.find((p) => p.datasourceId === id);
+
+                const newPlan: Plan = {
+                    id: planId,
+                    name: sourcePlan ? `${sourcePlan.name} (Copy)` : "Plan 1",
+                    createdAt: new Date().toISOString(),
+                    datasourceId: newId,
+                    selectedSubjectIds: sourcePlan ? [...sourcePlan.selectedSubjectIds] : newDs.subjects.slice(0, 5).map((s) => s.subjectId),
+                    selectedClassBySubjectId: sourcePlan ? { ...sourcePlan.selectedClassBySubjectId } : {},
+                    rules: sourcePlan ? JSON.parse(JSON.stringify(sourcePlan.rules)) : [],
+                    savedVariants: [],
+                    frozenSubjectIds: sourcePlan ? [...(sourcePlan.frozenSubjectIds || [])] : [],
+                    previewOverrides: {},
+                };
+
+                set((state: AppStore) => ({
+                    datasources: [newDs, ...state.datasources],
+                    plans: [newPlan, ...state.plans],
+                    activeDatasourceId: newId,
+                    activePlanId: planId,
+                }));
+
+                return newId;
+            },
+
+            deduplicateDatasources: () => {
+                set((state) => {
+                    const sampleSources = state.datasources.filter(
+                        (d) => d.id.startsWith("sample") || d.name.toLowerCase().includes("sample")
+                    );
+                    if (sampleSources.length <= 1) return state;
+
+                    // Keep the first sample source
+                    const primarySample = sampleSources[0];
+                    const duplicateIds = new Set(sampleSources.slice(1).map((d) => d.id));
+
+                    const cleanedDatasources = state.datasources.filter((d) => !duplicateIds.has(d.id));
+                    const cleanedPlans = state.plans.map((p) => {
+                        if (duplicateIds.has(p.datasourceId)) {
+                            return { ...p, datasourceId: primarySample.id };
+                        }
+                        return p;
+                    });
+
+                    let nextActiveDsId = state.activeDatasourceId;
+                    if (nextActiveDsId && duplicateIds.has(nextActiveDsId)) {
+                        nextActiveDsId = primarySample.id;
+                    }
+
+                    return {
+                        datasources: cleanedDatasources,
+                        plans: cleanedPlans,
+                        activeDatasourceId: nextActiveDsId,
+                    };
+                });
+            },
+
+            deleteDatasource: (id) => {
+                const remaining = get().datasources.filter((d) => d.id !== id);
+                if (remaining.length === 0) {
+                    // Reset to single clean Sample Data source so the app is never broken
+                    const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
+                    const dsId = crypto.randomUUID();
+                    const sampleDs: Datasource = {
+                        id: dsId,
+                        name: "Sample UPNYK Informatics",
+                        createdAt: new Date().toISOString(),
+                        subjects: parsed.subjects,
+                    };
+                    const planId = crypto.randomUUID();
+                    const samplePlan: Plan = {
+                        id: planId,
+                        name: "Semester 4",
+                        createdAt: new Date().toISOString(),
+                        datasourceId: dsId,
+                        selectedSubjectIds: parsed.subjects.slice(0, 5).map((s: any) => s.subjectId),
+                        selectedClassBySubjectId: {},
+                        rules: [],
+                        savedVariants: [],
+                        frozenSubjectIds: [],
+                        previewOverrides: {},
+                    };
+                    set({
+                        datasources: [sampleDs],
+                        plans: [samplePlan],
+                        activeDatasourceId: dsId,
+                        activePlanId: planId,
+                    });
+                    return;
+                }
+
+                let nextActiveDsId = get().activeDatasourceId;
+                if (nextActiveDsId === id) {
+                    nextActiveDsId = remaining[0].id;
+                }
+                const remainingPlans = get().plans.filter((p) => p.datasourceId !== id);
+                let nextActivePlanId = get().activePlanId;
+                if (!remainingPlans.some((p) => p.id === nextActivePlanId)) {
+                    nextActivePlanId = remainingPlans.find((p) => p.datasourceId === nextActiveDsId)?.id ?? null;
+                }
+                set({
+                    datasources: remaining,
+                    plans: remainingPlans,
+                    activeDatasourceId: nextActiveDsId,
+                    activePlanId: nextActivePlanId,
+                });
             },
 
             importDatasourceAndCreatePlan: (name, subjects) => {
@@ -172,6 +304,26 @@ export const useAppStore = create<AppStore>()(
                         if (existingPlan) {
                             set({ activeDatasourceId: existingSample.id, activePlanId: existingPlan.id });
                             return { datasourceId: existingSample.id, planId: existingPlan.id };
+                        } else {
+                            const planId = crypto.randomUUID();
+                            const newPlan: Plan = {
+                                id: planId,
+                                name: "Semester 4",
+                                createdAt: new Date().toISOString(),
+                                datasourceId: existingSample.id,
+                                selectedSubjectIds: existingSample.subjects.slice(0, 5).map((s: any) => s.subjectId),
+                                selectedClassBySubjectId: {},
+                                rules: [],
+                                savedVariants: [],
+                                frozenSubjectIds: [],
+                                previewOverrides: {},
+                            };
+                            set((state: AppStore) => ({
+                                plans: [newPlan, ...state.plans],
+                                activeDatasourceId: existingSample.id,
+                                activePlanId: planId,
+                            }));
+                            return { datasourceId: existingSample.id, planId };
                         }
                     }
                 }
@@ -1019,6 +1171,7 @@ export const useAppStore = create<AppStore>()(
             name: "krs-plan-next-gen",
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
+                state?.deduplicateDatasources();
             },
         }
     )

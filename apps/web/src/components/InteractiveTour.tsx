@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { X, ArrowRight, ArrowLeft, Check, Database, Sparkles } from "lucide-react";
+import { X, ArrowRight, ArrowLeft, Check, FileText, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createPortal } from "react-dom";
 
@@ -237,7 +237,7 @@ export function InteractiveTour({
                         }}
                         className="w-full tactile-btn py-1.5 px-3 rounded-lg text-xs font-medium text-[#141413] flex items-center justify-center gap-1.5 bg-neutral-50 hover:bg-neutral-100 border border-[#e2e2de]"
                     >
-                        <Database className="w-3.5 h-3.5 text-[#5b82a6]" />
+                        <FileText className="w-3.5 h-3.5 text-[#5b82a6]" />
                         <span>Open BIMA Importer</span>
                     </button>
                 )}

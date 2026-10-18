@@ -22,7 +22,6 @@ import {
     ChevronDown,
     Check,
     AlertTriangle,
-    Database,
     Trash2,
     Calendar,
     ArrowRight,
@@ -30,7 +29,10 @@ import {
     Info,
     Sun,
     Moon,
-    RotateCw
+    RotateCw,
+    Pencil,
+    Copy,
+    FileText
 } from "lucide-react";
 import { createPortal } from "react-dom";
 
@@ -45,6 +47,10 @@ function WorkspaceContent() {
         addPlan,
         updatePlan,
         deletePlan,
+        updateDatasource,
+        duplicateDatasource,
+        deleteDatasource,
+        deduplicateDatasources,
         autoSchedulePlan,
         generateCandidateSchedule,
         setRulesForPlan,
@@ -67,6 +73,10 @@ function WorkspaceContent() {
     const { theme, setTheme } = useTheme();
     const [activeOverlay, setActiveOverlay] = useState<ActiveOverlay>("none");
     const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
+    const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
+    const [dataModalEditSourceId, setDataModalEditSourceId] = useState<string | null>(null);
+    const sourceMenuRef = useRef<HTMLDivElement>(null);
+
     const [activeTab, setActiveTab] = useState<"selected" | "catalog">("selected");
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
     const [editingPlanName, setEditingPlanName] = useState("");
@@ -80,10 +90,29 @@ function WorkspaceContent() {
     const [gridFocusedSubjectId, setGridFocusedSubjectId] = useState<string | null>(null);
     const hasDismissedImportRef = useRef(false);
 
+    // Auto-deduplicate any redundant sample sources on mount
+    useEffect(() => {
+        deduplicateDatasources();
+    }, [deduplicateDatasources]);
+
+    // Close source menu on outside click
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (sourceMenuRef.current && !sourceMenuRef.current.contains(e.target as Node)) {
+                setIsSourceMenuOpen(false);
+            }
+        };
+        if (isSourceMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isSourceMenuOpen]);
+
     // Single source of overlay close logic
     const closeOverlay = useCallback(() => {
         setActiveOverlay("none");
         setIsDataModalOpen(false);
+        setDataModalEditSourceId(null);
         hasDismissedImportRef.current = true;
     }, [setIsDataModalOpen]);
 
@@ -105,10 +134,13 @@ function WorkspaceContent() {
         }
     }, [isDataModalOpen, activeOverlay]);
 
-    // Handle ESC key to dismiss any active overlay or mobile drawer
+    // Handle ESC key to dismiss any active overlay or dropdowns
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
+                if (isSourceMenuOpen) {
+                    setIsSourceMenuOpen(false);
+                }
                 if (isMobileCoursesOpen) {
                     setIsMobileCoursesOpen(false);
                 }
@@ -119,7 +151,63 @@ function WorkspaceContent() {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [activeOverlay, closeOverlay, isMobileCoursesOpen]);
+    }, [activeOverlay, closeOverlay, isMobileCoursesOpen, isSourceMenuOpen]);
+
+    const handleSwitchDatasource = (dsId: string) => {
+        setActiveDatasourceId(dsId);
+        const existingPlan = plans.find(p => p.datasourceId === dsId);
+        if (existingPlan) {
+            setActivePlanId(existingPlan.id);
+        } else {
+            const newPlanId = addPlan({
+                name: "Plan 1",
+                datasourceId: dsId,
+                selectedSubjectIds: [],
+                selectedClassBySubjectId: {},
+                rules: [],
+                savedVariants: [],
+                frozenSubjectIds: [],
+                previewOverrides: {},
+            });
+            setActivePlanId(newPlanId);
+        }
+        toast.success("Switched Schedule Data");
+        setIsSourceMenuOpen(false);
+    };
+
+    const handleDuplicateDatasource = (dsId: string) => {
+        duplicateDatasource(dsId);
+        toast.success("Source duplicated");
+        setIsSourceMenuOpen(false);
+    };
+
+    const handleDeleteDatasource = (ds: any) => {
+        if (confirm(`Delete schedule "${ds.name}" and its associated plans?`)) {
+            deleteDatasource(ds.id);
+            toast.success("Source deleted");
+        }
+    };
+
+    const handleLoadSample = () => {
+        const existingSample = datasources.find(d =>
+            d.id.startsWith("sample") || d.name.toLowerCase().includes("sample")
+        );
+        if (existingSample) {
+            handleSwitchDatasource(existingSample.id);
+            toast.info("Switched to existing Sample Schedule");
+            return;
+        }
+        const { parseBimaMasterWithDebug } = require("@krs/engine");
+        const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
+        const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
+        const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
+        updatePlan(planId, {
+            name: "Semester 4",
+            selectedSubjectIds: sampleSubIds
+        });
+        toast.success("Sample Data Loaded!");
+        setIsSourceMenuOpen(false);
+    };
 
     // Hover previews from sidebar to grid
     const [hoveredSubjectId, setHoveredSubjectId] = useState<string | null>(null);
@@ -482,12 +570,15 @@ function WorkspaceContent() {
 
                         {/* Option 2: Paste BIMA Data */}
                         <div
-                            onClick={() => openOverlay("bima-import")}
+                            onClick={() => {
+                                setDataModalEditSourceId(null);
+                                openOverlay("bima-import");
+                            }}
                             className="p-6 rounded-2xl bg-white border border-[#e6e6e3] shadow-sm hover:border-[#141413] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
                         >
                             <div className="space-y-2">
                                 <div className="w-10 h-10 rounded-xl bg-neutral-100 text-[#141413] flex items-center justify-center font-bold group-hover:text-black transition-colors">
-                                    <Database className="w-5 h-5" />
+                                    <FileText className="w-5 h-5 text-[#5b82a6]" />
                                 </div>
                                 <h3 className="text-base font-semibold text-[#141413] group-hover:text-black transition-colors">
                                     Import BIMA Schedule
@@ -508,6 +599,7 @@ function WorkspaceContent() {
                 <DataModal
                     isOpen={activeOverlay === "bima-import"}
                     onClose={closeOverlay}
+                    editSourceId={dataModalEditSourceId}
                 />
             </div>
         );
@@ -546,28 +638,134 @@ function WorkspaceContent() {
 
                     <span className="text-[#d8d8d4] text-sm shrink-0 font-light">/</span>
 
-                    {/* Explicit BIMA Data Button (Tour Target 1) */}
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Source Switcher Dropdown Popover */}
+                    <div className="relative shrink-0" ref={sourceMenuRef}>
                         <button
                             id="tour-datasource-btn"
-                            onClick={() => openOverlay("bima-import")}
-                            className="tactile-btn px-2.5 py-1 rounded-lg text-[13px] font-medium text-[#141413] flex items-center gap-1.5 bg-white border border-[#e2e2de] shadow-xs hover:border-[#141413]/30 transition-all max-w-[150px] sm:max-w-[190px]"
-                            title="Click to switch or import BIMA schedule data"
+                            type="button"
+                            onClick={() => setIsSourceMenuOpen((prev) => !prev)}
+                            className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 text-[13.5px] font-medium text-[#141413] flex items-center gap-1.5 transition-colors select-none"
+                            title="Click to switch, edit, copy, or import schedule sources"
                         >
-                            <Database className="w-3.5 h-3.5 text-[#6e6e77] shrink-0" />
-                            <span className="truncate">{activeDatasource.name}</span>
-                            <ChevronDown className="w-3 h-3 text-[#a1a1aa] shrink-0" />
+                            <span className="max-w-[150px] sm:max-w-[220px] truncate">{activeDatasource.name}</span>
+                            <ChevronDown className={cn("w-3 h-3 text-[#a1a1aa] shrink-0 transition-transform duration-150", isSourceMenuOpen && "rotate-180")} />
                         </button>
 
-                        {activeDatasource.id.startsWith("sample") && (
-                            <button
-                                onClick={() => openOverlay("bima-import")}
-                                className="hidden lg:flex items-center gap-1 px-2 py-1 rounded-lg text-[12px] font-medium text-[#5b82a6] bg-sky-50/80 border border-sky-200/70 hover:bg-sky-100 transition-colors"
-                                title="Import your official BIMA schedule"
-                            >
-                                <Plus className="w-3 h-3" />
-                                <span>Import BIMA</span>
-                            </button>
+                        {/* Popover Menu */}
+                        {isSourceMenuOpen && (
+                            <div className="absolute top-full left-0 mt-1.5 w-[300px] sm:w-[340px] bg-white border border-[#e2e2de] rounded-xl shadow-xl p-1.5 z-[100] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left">
+                                <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] select-none">
+                                    schedule sources
+                                </div>
+
+                                <div className="max-h-[260px] overflow-y-auto custom-scrollbar space-y-0.5 my-1">
+                                    {datasources.map((ds) => {
+                                        const isActive = ds.id === activeDatasource.id;
+                                        const totalClasses = ds.subjects.reduce((sum, s) => sum + s.classes.length, 0);
+
+                                        return (
+                                            <div
+                                                key={ds.id}
+                                                onClick={() => handleSwitchDatasource(ds.id)}
+                                                className={cn(
+                                                    "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
+                                                    isActive ? "bg-neutral-100/80 font-medium" : "hover:bg-neutral-50"
+                                                )}
+                                            >
+                                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <span className="text-[13px] text-[#141413] truncate font-medium">
+                                                                {ds.name}
+                                                            </span>
+                                                            {isActive && (
+                                                                <Check className="w-3.5 h-3.5 text-[#141413] shrink-0" />
+                                                            )}
+                                                        </div>
+                                                        <div className="text-[11px] text-[#6e6e77] truncate">
+                                                            {ds.subjects.length} courses · {totalClasses} classes
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Inline management actions on each row */}
+                                                <div
+                                                    className="flex items-center gap-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    {/* Edit */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setIsSourceMenuOpen(false);
+                                                            setDataModalEditSourceId(ds.id);
+                                                            openOverlay("bima-import");
+                                                        }}
+                                                        className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                        title="Edit source or rename"
+                                                    >
+                                                        <Pencil className="w-3.5 h-3.5" />
+                                                    </button>
+
+                                                    {/* Duplicate */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDuplicateDatasource(ds.id);
+                                                        }}
+                                                        className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                        title="Duplicate source"
+                                                    >
+                                                        <Copy className="w-3.5 h-3.5" />
+                                                    </button>
+
+                                                    {/* Delete */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDeleteDatasource(ds);
+                                                        }}
+                                                        className="p-1 rounded hover:bg-rose-100 text-[#a1a1aa] hover:text-rose-600 transition-colors"
+                                                        title="Delete source"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Popover Footer Actions */}
+                                <div className="border-t border-[#e6e6e3] mt-1 pt-1.5 space-y-0.5">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSourceMenuOpen(false);
+                                            setDataModalEditSourceId(null);
+                                            openOverlay("bima-import");
+                                        }}
+                                        className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
+                                    >
+                                        <Plus className="w-3.5 h-3.5 text-[#5b82a6]" />
+                                        <span>+ Import new BIMA source...</span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsSourceMenuOpen(false);
+                                            handleLoadSample();
+                                        }}
+                                        className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-50 flex items-center gap-2 transition-colors select-none"
+                                    >
+                                        <span>Load sample Informatics data</span>
+                                    </button>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -955,6 +1153,7 @@ function WorkspaceContent() {
             <DataModal
                 isOpen={activeOverlay === "bima-import"}
                 onClose={closeOverlay}
+                editSourceId={dataModalEditSourceId}
             />
 
             {/* Interactive 4-Step Spotlight Tour */}
