@@ -1,9 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Database, CalendarDays, Zap, ShieldCheck, Sun, Moon, X, Github, ExternalLink, Cpu, Menu } from "lucide-react";
+import {
+    CalendarDays,
+    Database,
+    Sun,
+    Moon,
+    X,
+    Github,
+    ExternalLink,
+    ChevronLeft,
+    ChevronRight,
+    Info
+} from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
@@ -16,232 +27,208 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
-    const router = useRouter();
-    const activePlanId = useAppStore((state) => state.activePlanId);
-    const plans = useAppStore((state) => state.plans);
-    const datasources = useAppStore((state) => state.datasources);
-    const _hasHydrated = useAppStore((state) => state._hasHydrated);
-    const activePlan = plans.find(p => p.id === activePlanId);
+    const { activePlanId, plans, datasources, setIsDataModalOpen } = useAppStore();
+    const activePlan = plans.find((p) => p.id === activePlanId);
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
-    const [isDismissed, setIsDismissed] = useState(true);
     const [isCreditsOpen, setIsCreditsOpen] = useState(false);
+    const [isCollapsed, setIsCollapsed] = useState(true);
 
-    const showOnboarding = mounted && _hasHydrated && !isDismissed && datasources.length === 0;
+    useEffect(() => {
+        setMounted(true);
+        const savedCollapsed = localStorage.getItem("krslab_sidebar_collapsed");
+        if (savedCollapsed !== null) {
+            setIsCollapsed(savedCollapsed === "true");
+        }
+    }, []);
+
+    const toggleCollapse = () => {
+        const next = !isCollapsed;
+        setIsCollapsed(next);
+        localStorage.setItem("krslab_sidebar_collapsed", String(next));
+    };
 
     // Close on navigation (mobile)
     useEffect(() => {
         if (onClose) onClose();
-    }, [pathname]);
-
-    useEffect(() => {
-        setMounted(true);
-        const dismissed = localStorage.getItem("krs_onboard_ds_dismissed") === "1";
-        setIsDismissed(dismissed);
-
-        if (_hasHydrated && !dismissed && datasources.length === 0 && window.location.pathname !== "/datasource" && window.location.pathname !== "/") {
-            router.push("/datasource");
-        }
-    }, [datasources.length, router, _hasHydrated]);
-
-    const handleDismiss = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        localStorage.setItem("krs_onboard_ds_dismissed", "1");
-        setIsDismissed(true);
-    };
-
-    const navItems = [
-        { name: "Dashboard", href: "/", icon: LayoutDashboard },
-        { name: "Datasources", href: "/datasource", icon: Database },
-        { name: "Master Schedule", href: "/view", icon: CalendarDays, disabled: !activePlanId },
-    ];
+    }, [pathname, onClose]);
 
     return (
         <>
             {/* Mobile Backdrop */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[90] md:hidden animate-in fade-in duration-300"
+                    className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[90] md:hidden animate-in fade-in duration-200"
                     onClick={onClose}
                 />
             )}
 
-            <aside className={cn(
-                "fixed inset-y-0 left-0 w-64 border-r border-border bg-card flex flex-col h-screen z-[100] transition-transform duration-300 ease-in-out md:sticky md:translate-x-0 overflow-hidden",
-                isOpen ? "translate-x-0" : "-translate-x-full"
-            )}>
-                <div className="p-6 border-b border-border/50 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2.5 group hover:opacity-90 transition-soft">
-                        <span className="flex items-baseline gap-1 leading-none">
-                            <span className="text-[22px] font-black tracking-tight text-foreground">
-                                KRS
+            <aside
+                className={cn(
+                    "fixed inset-y-0 left-0 border-r border-border bg-card flex flex-col h-screen z-[100] transition-all duration-300 ease-in-out md:sticky md:translate-x-0 overflow-hidden shrink-0",
+                    isOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0",
+                    isCollapsed ? "md:w-14" : "md:w-56"
+                )}
+            >
+                {/* Brand & Collapse Header */}
+                <div className="h-14 border-b border-border/60 flex items-center justify-between px-3 shrink-0">
+                    <Link
+                        href="/"
+                        className="flex items-center gap-2 group hover:opacity-90 transition-opacity overflow-hidden"
+                    >
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center font-black text-xs text-primary shrink-0">
+                            KRS
+                        </div>
+                        {(!isCollapsed || isOpen) && (
+                            <span className="text-sm font-black tracking-tight text-foreground truncate">
+                                KRS<span className="text-primary font-extrabold">lab</span>
                             </span>
-                            <span className="text-[18px] font-extrabold tracking-tight bg-gradient-to-r from-primary to-foreground bg-clip-text text-transparent">
-                                lab
-                            </span>
-                        </span>
+                        )}
                     </Link>
+
+                    {/* Mobile close button */}
                     {onClose && (
                         <button
                             onClick={onClose}
-                            className="md:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors"
+                            className="md:hidden p-1.5 text-muted-foreground hover:text-foreground transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
                     )}
+
+                    {/* Desktop collapse toggle */}
+                    <button
+                        onClick={toggleCollapse}
+                        className="hidden md:flex p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                        title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                    >
+                        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+                    </button>
                 </div>
 
-                <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto no-scrollbar">
-                    <div className="mb-4 px-3">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Navigation</p>
-                    </div>
-                    {navItems.map((item) => {
-                        const Icon = item.icon;
-                        const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+                {/* Navigation Items */}
+                <nav className="flex-1 px-2 py-4 space-y-1.5 overflow-y-auto no-scrollbar">
+                    {/* Studio / Workspace Link */}
+                    <Link
+                        href="/"
+                        className={cn(
+                            "flex items-center gap-3 px-2.5 py-2 rounded-lg transition-colors font-bold text-xs group relative",
+                            pathname === "/" || pathname === "/view"
+                                ? "text-primary bg-primary/10"
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        )}
+                        title="Schedule Studio"
+                    >
+                        <CalendarDays className="w-4 h-4 shrink-0 text-primary" />
+                        {(!isCollapsed || isOpen) && <span className="truncate">Schedule Studio</span>}
+                    </Link>
 
-                        if (item.disabled) {
-                            return (
-                                <div
-                                    key={item.name}
-                                    className="flex items-center gap-3 px-3 py-2.5 text-muted-foreground/30 cursor-not-allowed select-none transition-soft"
-                                >
-                                    <Icon className="w-4 h-4" />
-                                    <span className="text-[13px] font-medium">{item.name}</span>
-                                </div>
-                            );
-                        }
-
-                        return (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                className={cn(
-                                    "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-soft font-medium text-[13px] relative group",
-                                    isActive
-                                        ? "text-primary bg-primary/5"
-                                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50",
-                                    item.name === "Datasources" && showOnboarding && "bg-primary/5 animate-glow border-primary/50"
-                                )}
-                            >
-                                <Icon className={cn("w-4 h-4 transition-soft", isActive ? "text-primary" : "group-hover:text-foreground")} />
-                                {item.name}
-                                {isActive && (
-                                    <div className="absolute left-0 w-1 h-5 bg-primary rounded-r-full" />
-                                )}
-
-                                {item.name === "Datasources" && showOnboarding && (
-                                    <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 z-[100] animate-in slide-in-from-left-2 duration-300 md:block hidden">
-                                        <div className="bg-primary text-primary-foreground px-5 py-3 rounded-2xl shadow-[0_0_40px_rgba(132,204,22,0.4)] relative w-60 border border-white/20">
-                                            <div className="absolute right-full top-1/2 -translate-y-1/2 border-8 border-transparent border-r-primary" />
-                                            <div className="flex justify-between items-start gap-4">
-                                                <div className="space-y-0.5">
-                                                    <p className="text-[10px] font-black uppercase tracking-widest text-white/50 leading-none">Phase 1</p>
-                                                    <p className="text-[11px] font-bold leading-relaxed">CREATE DATASOURCE FIRST</p>
-                                                </div>
-                                                <button onClick={handleDismiss} className="hover:bg-white/10 p-1 rounded-full transition-colors -mr-1 -mt-1">
-                                                    <X className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </Link>
-                        );
-                    })}
+                    {/* BIMA Data Manager */}
+                    <button
+                        onClick={() => setIsDataModalOpen(true)}
+                        className={cn(
+                            "w-full flex items-center gap-3 px-2.5 py-2 rounded-lg transition-colors font-bold text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 group text-left",
+                            datasources.length === 0 && "text-primary bg-primary/5 animate-pulse"
+                        )}
+                        title="BIMA Schedule Data"
+                    >
+                        <Database className="w-4 h-4 shrink-0" />
+                        {(!isCollapsed || isOpen) && (
+                            <div className="flex-1 flex items-center justify-between min-w-0">
+                                <span className="truncate">BIMA Data</span>
+                                <span className="text-[10px] bg-muted px-1.5 py-0.5 rounded text-muted-foreground font-mono">
+                                    {datasources.length}
+                                </span>
+                            </div>
+                        )}
+                    </button>
                 </nav>
 
-                <div className="p-4 space-y-4 border-t border-border/50">
-                    {activePlan && (
-                        <div className="p-4 bg-muted/50 border border-border/50 rounded-xl space-y-3">
-                            <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider italic">Active Plan</p>
-                            </div>
-                            <p className="text-[13px] font-bold text-foreground truncate">{activePlan.name}</p>
-                            <Link
-                                href={`/plan/${activePlanId}`}
-                                className="bg-primary text-primary-foreground text-[11px] font-black py-2 rounded-lg flex items-center justify-center gap-1 transition-soft hover:bg-primary/90 active:scale-95 shadow-sm"
-                            >
-                                MODIFY
-                            </Link>
-                        </div>
-                    )}
+                {/* Footer Cluster */}
+                <div className="p-2 border-t border-border/60 space-y-2 shrink-0">
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-xs font-bold"
+                        title="Toggle Dark / Light Theme"
+                    >
+                        {mounted && (theme === "dark" ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />)}
+                        {(!isCollapsed || isOpen) && <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>}
+                    </button>
 
-                    <div className="flex items-center justify-between px-2 pt-2">
-                        <button
-                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-soft active:scale-95"
-                            aria-label="Toggle Theme"
-                        >
-                            {mounted && (theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />)}
-                        </button>
-                        <div className="flex items-center gap-1.5 text-muted-foreground/40">
-                            <button
-                                onClick={() => setIsCreditsOpen(true)}
-                                className="text-[9px] font-bold uppercase tracking-widest hover:text-foreground/50 transition-colors mr-2"
-                            >
-                                Credits
-                            </button>
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                            <span className="text-[10px] font-bold uppercase tracking-tighter">V1.0</span>
-                        </div>
-                    </div>
+                    {/* Credits Button */}
+                    <button
+                        onClick={() => setIsCreditsOpen(true)}
+                        className="w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors text-xs font-bold"
+                        title="Credits & Attribution"
+                    >
+                        <Info className="w-4 h-4 shrink-0 opacity-60" />
+                        {(!isCollapsed || isOpen) && <span>Credits</span>}
+                    </button>
                 </div>
 
+                {/* Credits Modal */}
                 {isCreditsOpen && mounted && createPortal(
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-                        <div className="absolute inset-0 bg-background/40 backdrop-blur-md" onClick={() => setIsCreditsOpen(false)} />
-                        <div className="relative bg-card border border-border/50 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 duration-500 realistic-shadow">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
-                            <div className="p-8 space-y-8">
+                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsCreditsOpen(false)} />
+                        <div className="relative bg-card border border-border/80 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden z-10 animate-in zoom-in-95 duration-200">
+                            <div className="h-1 bg-gradient-to-r from-primary/50 via-primary to-primary/50" />
+                            <div className="p-6 space-y-6">
                                 <div className="flex justify-between items-center">
-                                    <div className="space-y-1">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/70">Infrastructure</h3>
-                                        <p className="text-lg font-black tracking-tight text-foreground">Credits</p>
+                                    <div className="space-y-0.5">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">About KRSlab</h3>
+                                        <p className="text-base font-black tracking-tight text-foreground">Credits & License</p>
                                     </div>
-                                    <button onClick={() => setIsCreditsOpen(false)} className="p-2 hover:bg-muted rounded-full transition-soft text-muted-foreground/30 hover:text-foreground">
+                                    <button
+                                        onClick={() => setIsCreditsOpen(false)}
+                                        className="p-1.5 hover:bg-muted rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                                    >
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="space-y-4">
-                                    <div className="px-5 py-6 rounded-2xl bg-muted/20 border border-border/10 transition-soft hover:bg-primary/[0.03] hover:border-primary/10 text-center flex flex-col items-center">
-                                        <h4 className="text-[16px] font-black text-foreground tracking-tight mb-1">KRSlab</h4>
-                                        <div className="flex flex-col items-center gap-2">
-                                            <p className="text-[13px] font-medium text-muted-foreground/80">built by <span className="text-foreground font-bold">Azzaky Raihan</span></p>
-                                            <a href="https://github.com/glacerous" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/50 hover:bg-primary/10 text-[10px] font-bold text-muted-foreground hover:text-primary transition-soft group/az">
-                                                <Github className="w-3 h-3 opacity-30 group-hover/az:opacity-100 transition-opacity" />
-                                                @glacerous
-                                            </a>
-                                        </div>
+
+                                <div className="space-y-3">
+                                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50 text-center flex flex-col items-center">
+                                        <h4 className="text-sm font-black text-foreground">KRSlab Studio</h4>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            Built by <span className="text-foreground font-bold">Azzaky Raihan</span>
+                                        </p>
+                                        <a
+                                            href="https://github.com/glacerous"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-muted hover:bg-primary/10 text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors"
+                                        >
+                                            <Github className="w-3.5 h-3.5" />
+                                            @glacerous
+                                        </a>
                                     </div>
-                                    <div className="p-5 rounded-2xl bg-muted/5 border border-border/5 transition-soft hover:bg-muted/10">
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-card border border-border/50 flex items-center justify-center shrink-0">
-                                                    <Github className="w-4 h-4 text-foreground/40" />
-                                                </div>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-muted-foreground/30">Adapted Engine</p>
-                                            </div>
-                                            <div className="space-y-2.5 pl-1">
-                                                <p className="text-[13px] font-bold text-foreground leading-snug">Scheduling engine adapted from <span className="text-primary italic">KRSPlan Engine</span></p>
-                                                <div className="space-y-2">
-                                                    <a href="https://github.com/farhanisty/krsplan-engine" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/40 hover:bg-primary/10 text-[11px] font-bold text-muted-foreground hover:text-primary transition-soft group/link">
-                                                        Original author: @farhanisty
-                                                        <ExternalLink className="w-3 h-3 opacity-30 group-hover/link:opacity-100 transition-opacity" />
-                                                    </a>
-                                                    <p className="text-[9px] text-muted-foreground/40 font-bold uppercase tracking-wider pl-1">No license was specified in the original repository.</p>
-                                                </div>
-                                            </div>
-                                        </div>
+
+                                    <div className="p-4 rounded-xl bg-muted/20 border border-border/50 space-y-2">
+                                        <p className="text-xs font-bold text-foreground">
+                                            Scheduling engine adapted from <span className="text-primary italic">KRSPlan Engine</span>
+                                        </p>
+                                        <a
+                                            href="https://github.com/farhanisty/krsplan-engine"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors font-medium"
+                                        >
+                                            Original author: @farhanisty
+                                            <ExternalLink className="w-3 h-3 opacity-60" />
+                                        </a>
+                                        <p className="text-[10px] text-muted-foreground/60">
+                                            Adapted and extended for educational and experimental use.
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="pt-2 flex flex-col items-center">
-                                    <div className="px-4 py-2 rounded-full bg-muted/10 border border-border/5 mb-4">
-                                        <p className="text-[9px] font-black text-muted-foreground/30 uppercase tracking-[0.2em] text-center italic">Adapted and extended for educational/experimental use.</p>
-                                    </div>
-                                    <div className="w-12 h-0.5 bg-primary/10 rounded-full" />
-                                </div>
+
+                                <button
+                                    onClick={() => setIsCreditsOpen(false)}
+                                    className="w-full py-2.5 bg-muted hover:bg-muted/80 text-foreground font-bold text-xs rounded-xl transition-colors"
+                                >
+                                    Close
+                                </button>
                             </div>
                         </div>
                     </div>,
