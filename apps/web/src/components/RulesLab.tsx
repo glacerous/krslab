@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Plus, Trash2, Clock, CalendarX, Layers, Zap, CheckCircle2, AlertCircle, Dna } from "lucide-react";
+import { X, Plus, Trash2, Clock, CalendarX, Calendar, Hourglass, CheckCircle2, AlertCircle, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Rule, TimeWindowRule, NoDayRule, MaxDaysPerWeekRule, MaxGapRule, Day } from "@krs/engine";
 import { createPortal } from "react-dom";
@@ -73,26 +73,30 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
         <>
             {isOpen && typeof document !== 'undefined' && createPortal(
                 <div
-                    className="fixed inset-0 z-[100] animate-in fade-in duration-300 pointer-events-none"
+                    className="fixed inset-0 z-[120] animate-in fade-in duration-200"
                 >
-                    <div className="absolute inset-0 bg-black/5 transition-opacity pointer-events-none" />
+                    {/* Backdrop closes drawer on click */}
+                    <div
+                        className="absolute inset-0 bg-black/15 backdrop-blur-[1px] transition-opacity cursor-pointer"
+                        onClick={onClose}
+                    />
 
                     {/* Panel */}
                     <div
-                        className="absolute top-0 right-0 h-full w-[400px] max-w-[90vw] bg-card border-l border-border shadow-2xl flex flex-col animate-in slide-in-from-right duration-500 z-[110] pointer-events-auto"
+                        className="absolute top-0 right-0 h-full w-[410px] max-w-[90vw] bg-white border-l border-[#e6e6e3] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 z-[125]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="p-6 border-b border-border flex items-center justify-between bg-muted/30 shrink-0">
+                        <div className="p-5 px-6 border-b border-[#e6e6e3] flex items-center justify-between bg-[#fbfbfa] shrink-0">
                             <div>
-                                <h2 className="text-sm font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Zap className="w-4 h-4 text-primary" /> Rules
+                                <h2 className="text-[16px] font-semibold text-[#141413] tracking-tight">
+                                    Rules & Preferences
                                 </h2>
-                                <p className="text-[10px] text-muted-foreground mt-1 font-medium opacity-60">CONFIGURE GENERATOR CONSTRAINTS</p>
+                                <p className="text-[12px] text-[#6e6e77] mt-0.5">Configure solver schedule constraints</p>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-2 hover:bg-muted rounded-full transition-soft text-muted-foreground hover:text-foreground"
+                                className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors text-[#6e6e77] hover:text-[#141413]"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -101,9 +105,14 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
                         {/* Rules List */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
                             {rules.length === 0 ? (
-                                <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl opacity-40">
-                                    <Layers className="w-8 h-8 mb-2" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">No active rules</p>
+                                <div className="py-8 px-4 flex flex-col items-center justify-center border border-dashed border-[#e6e6e3] rounded-2xl text-center bg-[#fafaf9]/70 space-y-2">
+                                    <p className="font-doodle text-[17px] font-bold text-[#6e6e77] leading-snug max-w-[240px]">
+                                        no rules yet — add one below to filter schedules
+                                    </p>
+                                    <svg className="w-5 h-6 text-[#5b82a6] stroke-current fill-none stroke-[2] translate-y-1" viewBox="0 0 20 24">
+                                        <path d="M10 2 L10 20" strokeLinecap="round" />
+                                        <path d="M5 15 L10 20 L15 15" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
                                 </div>
                             ) : (
                                 rules.map((rule) => (
@@ -118,24 +127,32 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
                             )}
 
                             {/* Add Rules Section */}
-                            <div className="pt-4 border-t border-border">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-3 opacity-50">Add New Constraint</p>
+                            <div className="pt-4 border-t border-[#e6e6e3] space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                    <span className="font-doodle text-[19px] font-bold text-[#5b82a6] select-none">
+                                        add a rule
+                                    </span>
+                                    <span className="text-[11px] font-mono text-[#a1a1aa]">
+                                        tap to add
+                                    </span>
+                                </div>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <AddRuleButton label="No Day" icon={CalendarX} onClick={() => addRule("noDay")} />
-                                    <AddRuleButton label="Time Window" icon={Clock} onClick={() => addRule("timeWindow")} />
-                                    <AddRuleButton label="Max Days" icon={Layers} onClick={() => addRule("maxDaysPerWeek")} />
-                                    <AddRuleButton label="Max Gap" icon={Zap} onClick={() => addRule("maxGap")} />
+                                    <AddRuleButton num="01" label="No free day / Ban day" onClick={() => addRule("noDay")} />
+                                    <AddRuleButton num="02" label="Time window" onClick={() => addRule("timeWindow")} />
+                                    <AddRuleButton num="03" label="Max days on campus" onClick={() => addRule("maxDaysPerWeek")} />
+                                    <AddRuleButton num="04" label="Max gap between classes" onClick={() => addRule("maxGap")} />
                                 </div>
                             </div>
                         </div>
 
                         {/* Footer */}
-                        <div className="p-6 border-t border-border bg-muted/20 shrink-0">
+                        <div className="p-4 px-6 border-t border-[#e6e6e3] bg-[#fbfbfa] shrink-0">
                             <button
                                 onClick={onGenerate}
-                                className="w-full py-4 bg-primary text-primary-foreground rounded-xl font-bold text-xs uppercase tracking-[0.15em] shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                                className="w-full btn-tactile-dark py-2.5 rounded-xl font-medium text-[13px] text-white flex items-center justify-center gap-2 select-none"
                             >
-                                <Dna className="w-4 h-4" /> Run Generation
+                                <span>Run Auto-Schedule</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                         </div>
                     </div>
@@ -146,14 +163,18 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
     );
 }
 
-function AddRuleButton({ label, icon: Icon, onClick }: { label: string, icon: any, onClick: () => void }) {
+function AddRuleButton({ num, label, onClick }: { num: string; label: string; onClick: () => void }) {
     return (
         <button
             onClick={onClick}
-            className="flex items-center gap-2.5 p-3 rounded-xl border border-border/50 bg-muted/40 hover:bg-primary/5 hover:border-primary/20 transition-soft group"
+            className="tactile-btn flex items-start gap-2 p-2.5 rounded-xl border border-[#e2e2de] bg-white hover:bg-neutral-50 hover:border-[#141413]/30 transition-all text-left shadow-2xs group"
         >
-            <Icon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+            <span className="font-doodle text-[17px] font-bold text-[#5b82a6] shrink-0 leading-none pt-0.5 select-none">
+                {num}
+            </span>
+            <span className="text-[12px] font-medium text-[#141413] leading-snug line-clamp-2">
+                {label}
+            </span>
         </button>
     );
 }
@@ -177,26 +198,26 @@ function RuleCard({ rule, onToggle, onRemove, onUpdate }: {
 
     return (
         <div className={cn(
-            "rounded-xl border transition-soft realistic-shadow",
-            rule.enabled ? "bg-card border-border shadow-sm" : "bg-muted/30 border-border/50 opacity-60"
+            "rounded-xl border transition-all",
+            rule.enabled ? "bg-white border-[#e6e6e3] shadow-sm" : "bg-neutral-50/60 border-[#e6e6e3] opacity-60"
         )}>
             {/* Card Header */}
-            <div className="p-4 flex items-center justify-between border-b border-border/10">
+            <div className="p-4 flex items-center justify-between border-b border-[#e6e6e3]/60">
                 <div className="flex items-center gap-3">
                     <div className={cn(
                         "p-2 rounded-lg",
-                        rule.enabled ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                        rule.enabled ? "bg-neutral-100 text-[#141413]" : "bg-neutral-200/50 text-[#a1a1aa]"
                     )}>
                         {rule.type === "noDay" && <CalendarX className="w-3.5 h-3.5" />}
                         {rule.type === "timeWindow" && <Clock className="w-3.5 h-3.5" />}
-                        {rule.type === "maxDaysPerWeek" && <Layers className="w-3.5 h-3.5" />}
-                        {rule.type === "maxGap" && <Zap className="w-3.5 h-3.5" />}
+                        {rule.type === "maxDaysPerWeek" && <Calendar className="w-3.5 h-3.5" />}
+                        {rule.type === "maxGap" && <Hourglass className="w-3.5 h-3.5" />}
                     </div>
                     <div>
-                        <h3 className="text-[11px] font-black uppercase tracking-wider">{rule.label}</h3>
+                        <h3 className="text-[13px] font-semibold text-[#141413]">{rule.label}</h3>
                         {!isValid() && (
-                            <span className="text-[8px] text-destructive font-bold flex items-center gap-1 mt-0.5">
-                                <AlertCircle className="w-2.5 h-2.5" /> Incomplete
+                            <span className="text-[11px] text-rose-500 font-medium flex items-center gap-1 mt-0.5">
+                                <AlertCircle className="w-3 h-3" /> Incomplete
                             </span>
                         )}
                     </div>
@@ -205,7 +226,7 @@ function RuleCard({ rule, onToggle, onRemove, onUpdate }: {
                     <Switch checked={rule.enabled} onChange={onToggle} />
                     <button
                         onClick={onRemove}
-                        className="p-1.5 hover:bg-destructive/10 hover:text-destructive rounded-md transition-soft text-muted-foreground/40"
+                        className="p-1.5 hover:bg-rose-50 hover:text-rose-600 rounded-md transition-colors text-neutral-400"
                     >
                         <Trash2 className="w-3.5 h-3.5" />
                     </button>
