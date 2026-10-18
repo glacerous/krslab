@@ -71,7 +71,7 @@ function WorkspaceContent() {
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
     const [editingPlanName, setEditingPlanName] = useState("");
     const [allowOverload, setAllowOverload] = useState(false);
-    const [mobileView, setMobileView] = useState<"courses" | "grid">("grid");
+    const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
 
     // Single-Candidate Preview State (do not overwrite plan until explicitly accepted)
     const [previewMapping, setPreviewMapping] = useState<Record<string, string> | null>(null);
@@ -105,16 +105,21 @@ function WorkspaceContent() {
         }
     }, [isDataModalOpen, activeOverlay]);
 
-    // Handle ESC key to dismiss any active overlay
+    // Handle ESC key to dismiss any active overlay or mobile drawer
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && activeOverlay !== "none") {
-                closeOverlay();
+            if (e.key === "Escape") {
+                if (isMobileCoursesOpen) {
+                    setIsMobileCoursesOpen(false);
+                }
+                if (activeOverlay !== "none") {
+                    closeOverlay();
+                }
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [activeOverlay, closeOverlay]);
+    }, [activeOverlay, closeOverlay, isMobileCoursesOpen]);
 
     // Hover previews from sidebar to grid
     const [hoveredSubjectId, setHoveredSubjectId] = useState<string | null>(null);
@@ -528,7 +533,7 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 1. TOP WORKSPACE HEADER & TOOLBAR                         */}
             {/* ========================================================= */}
-            <header className="h-14 border-b border-[#e6e6e3] bg-white/90 backdrop-blur-md px-6 flex items-center justify-between gap-4 shrink-0 relative z-50 sticky top-0">
+            <header className="h-14 border-b border-[#e6e6e3] bg-white/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0 overflow-x-auto no-scrollbar">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
                 <div className="flex items-center gap-2.5 min-w-0">
                     {/* Minimal Dark Squircle Mark + Brand Wordmark */}
@@ -830,35 +835,10 @@ function WorkspaceContent() {
             {/* 4. MAIN WORKSPACE STAGE: (Left Panel + Center Grid)       */}
             {/* ========================================================= */}
             <div className="flex-1 flex overflow-hidden relative bg-[#f9f9f8] bg-dot-matrix">
-                {/* Mobile View Toggle Bar */}
-                <div className="md:hidden flex border-b border-[#e6e6e3] bg-white shrink-0 absolute top-0 left-0 right-0 z-20">
-                    <button
-                        onClick={() => setMobileView("courses")}
-                        className={cn(
-                            "flex-1 py-2 text-xs font-semibold text-center border-b-2 transition-colors",
-                            mobileView === "courses" ? "border-[#141413] text-[#141413]" : "border-transparent text-[#6e6e77]"
-                        )}
-                    >
-                        Courses ({activePlan.selectedSubjectIds.length})
-                    </button>
-                    <button
-                        onClick={() => setMobileView("grid")}
-                        className={cn(
-                            "flex-1 py-2 text-xs font-semibold text-center border-b-2 transition-colors",
-                            mobileView === "grid" ? "border-[#141413] text-[#141413]" : "border-transparent text-[#6e6e77]"
-                        )}
-                    >
-                        Schedule Grid
-                    </button>
-                </div>
-
-                {/* Left Panel: Course Catalog & Selected Sections (320px Clean Split) */}
+                {/* Left Panel: Desktop 320px Clean Split (Untouched on lg screens) */}
                 <div
                     id="tour-course-panel"
-                    className={cn(
-                        "w-full md:w-[320px] shrink-0 h-full flex flex-col z-10 transition-all border-r border-[#e6e6e3] bg-white/95",
-                        mobileView === "courses" ? "flex" : "hidden md:flex"
-                    )}
+                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] bg-white/95"
                 >
                     <CoursePanel
                         plan={activePlan}
@@ -872,13 +852,10 @@ function WorkspaceContent() {
                     />
                 </div>
 
-                {/* Center / Right Panel: Live Interactive ScheduleGrid */}
+                {/* Center / Right Panel: Live Interactive ScheduleGrid (100% width on mobile/tablet) */}
                 <div
                     id="krs-grid-capture"
-                    className={cn(
-                        "flex-1 h-full overflow-hidden bg-[#f9f9f8] bg-dot-matrix relative flex flex-col",
-                        mobileView === "grid" ? "flex" : "hidden md:flex"
-                    )}
+                    className="flex-1 h-full overflow-hidden bg-[#f9f9f8] bg-dot-matrix relative flex flex-col"
                 >
                     <ScheduleGrid
                         selectedClasses={selectedClasses}
@@ -905,6 +882,64 @@ function WorkspaceContent() {
                         onFocusSubject={setGridFocusedSubjectId}
                     />
                 </div>
+
+                {/* Mobile/Tablet (< lg) Floating Pill Button to toggle Courses Drawer */}
+                <div className="lg:hidden fixed bottom-5 left-5 z-40">
+                    <button
+                        onClick={() => setIsMobileCoursesOpen(true)}
+                        className="tactile-btn px-4 py-2.5 rounded-full bg-[#141413] text-white text-[13px] font-medium shadow-xl flex items-center gap-2 hover:bg-[#282826] active:scale-95 transition-all border border-neutral-700 select-none"
+                        title="Open Course Catalog & Selected Sections"
+                    >
+                        <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <span>Courses ({activePlan.selectedSubjectIds.length})</span>
+                        <span className="text-[#a1a1aa]">·</span>
+                        <span className="text-amber-300 font-semibold">+ Add</span>
+                    </button>
+                </div>
+
+                {/* Mobile/Tablet (< lg) Slide-Over Course Drawer */}
+                {isMobileCoursesOpen && (
+                    <div className="fixed inset-0 z-50 lg:hidden flex">
+                        {/* Backdrop */}
+                        <div
+                            className="fixed inset-0 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+                            onClick={() => setIsMobileCoursesOpen(false)}
+                        />
+
+                        {/* Slide-over Panel */}
+                        <div className="relative w-full max-w-[340px] sm:max-w-[380px] h-full bg-white shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+                            {/* Drawer Top Header with Close Button */}
+                            <div className="h-12 px-4 border-b border-[#e6e6e3] flex items-center justify-between bg-neutral-50/80 shrink-0">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-[13.5px] text-[#141413]">Courses</span>
+                                    <span className="text-[11px] font-mono text-[#6e6e77] bg-neutral-200/60 px-1.5 py-0.2 rounded">
+                                        {activePlan.selectedSubjectIds.length} selected
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => setIsMobileCoursesOpen(false)}
+                                    className="p-1.5 rounded-lg hover:bg-neutral-200/60 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                    title="Close Drawer"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-hidden">
+                                <CoursePanel
+                                    plan={activePlan}
+                                    datasource={activeDatasource}
+                                    activeTab={activeTab}
+                                    onTabChange={setActiveTab}
+                                    conflicts={conflicts}
+                                    effectiveMapping={effectiveMapping}
+                                    onHoverSubject={setHoveredSubjectId}
+                                    onHoverClass={setHoveredClassId}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Rules Drawer */}
