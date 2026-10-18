@@ -361,11 +361,15 @@ export function InteractiveTour({
                 return;
             }
 
-            // STEP 4 (5 of 6): Grid Course Node
+            // STEP 4 (5 of 6): Grid Course Node (or entire schedule board when no courses added)
             if (stepIndex === 4) {
                 const nodeEl = document.getElementById("tour-first-node");
+                const boardEl = document.getElementById("tour-schedule-board") || document.getElementById("krs-grid-capture");
+
                 const nRect = nodeEl ? nodeEl.getBoundingClientRect() : null;
+                const bRect = boardEl ? boardEl.getBoundingClientRect() : null;
                 const cutouts: CutoutRect[] = [];
+
                 if (nRect) {
                     cutouts.push({
                         x: Math.round(nRect.left),
@@ -374,10 +378,39 @@ export function InteractiveTour({
                         height: Math.round(nRect.height),
                         rx: 12
                     });
+                    setCutoutRects(cutouts);
+                    setScribbleItems([{ id: "grid-node", rect: nRect, pad: 2 }]);
+                    setPrimaryTargetRect(nRect);
+                    return;
                 }
-                setCutoutRects(cutouts);
-                setScribbleItems(nRect ? [{ id: "grid-node", rect: nRect, pad: 2 }] : []);
-                setPrimaryTargetRect(nRect);
+
+                if (bRect) {
+                    cutouts.push({
+                        x: Math.round(bRect.left),
+                        y: Math.round(bRect.top),
+                        width: Math.round(bRect.width),
+                        height: Math.round(bRect.height),
+                        rx: 0
+                    });
+                    setCutoutRects(cutouts);
+
+                    // Frame the schedule board with an organic hand-drawn scribble loop inset slightly from edges
+                    const boardScribbleRect: SimpleRect = {
+                        left: Math.round(bRect.left + 8),
+                        top: Math.round(bRect.top + 8),
+                        right: Math.round(bRect.right - 10),
+                        bottom: Math.round(bRect.bottom - 10),
+                        width: Math.round(bRect.width - 18),
+                        height: Math.round(bRect.height - 18)
+                    };
+                    setScribbleItems([{ id: "grid-board", rect: boardScribbleRect, pad: 2 }]);
+                    setPrimaryTargetRect(bRect);
+                    return;
+                }
+
+                setCutoutRects([]);
+                setScribbleItems([]);
+                setPrimaryTargetRect(null);
                 return;
             }
 
@@ -469,18 +502,26 @@ export function InteractiveTour({
             return { top, left };
         }
 
-        // Step 5 (5 of 6): Drag or click to swap classes (Grid node)
+        // Step 5 (5 of 6): Drag or click to swap classes (Grid node or Board)
         if (stepIndex === 4) {
-            const availableLeft = primaryTargetRect.left - 340;
-            if (availableLeft >= CARD_WIDTH + 16) {
-                // Place cleanly to the LEFT of the course node
-                const left = primaryTargetRect.left - CARD_WIDTH - 16;
-                const top = Math.max(80, Math.min(window.innerHeight - 300, primaryTargetRect.top));
-                return { top, left };
-            } else {
-                // Course is in Monday/Tuesday; position at bottom-left of grid canvas
-                const left = 340;
-                const top = Math.min(window.innerHeight - 290, Math.max(primaryTargetRect.bottom + 40, window.innerHeight - 310));
+            const nodeEl = document.getElementById("tour-first-node");
+            if (nodeEl && primaryTargetRect) {
+                const availableLeft = primaryTargetRect.left - 340;
+                if (availableLeft >= CARD_WIDTH + 16) {
+                    // Place cleanly to the LEFT of the course node
+                    const left = primaryTargetRect.left - CARD_WIDTH - 16;
+                    const top = Math.max(80, Math.min(window.innerHeight - 300, primaryTargetRect.top));
+                    return { top, left };
+                } else {
+                    // Course is in Monday/Tuesday; position at bottom-left of grid canvas
+                    const left = 340;
+                    const top = Math.min(window.innerHeight - 290, Math.max(primaryTargetRect.bottom + 40, window.innerHeight - 310));
+                    return { top, left };
+                }
+            } else if (primaryTargetRect) {
+                // No courses on board: center the card within the highlighted board area
+                const left = Math.max(16, Math.round(primaryTargetRect.left + (primaryTargetRect.width - CARD_WIDTH) / 2));
+                const top = Math.max(80, Math.min(window.innerHeight - 300, Math.round(primaryTargetRect.top + (primaryTargetRect.height - 240) / 2)));
                 return { top, left };
             }
         }

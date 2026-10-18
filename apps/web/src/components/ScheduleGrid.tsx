@@ -567,6 +567,7 @@ export function ScheduleGrid({
 
     return (
         <div
+            id="tour-schedule-board"
             ref={gridRef}
             onClick={() => {
                 if (!isDragging) {
