@@ -8,11 +8,10 @@ import { createPortal } from "react-dom";
 interface InteractiveTourProps {
     isOpen: boolean;
     onClose: () => void;
-    onFocusFirstCourse: () => void;
-    onClearFocus: () => void;
-    onOpenImport?: () => void;
-    onOpenSourceMenu?: () => void;
-    onOpenPlanMenu?: () => void;
+    tourStep?: number;
+    onStepChange?: (stepIndex: number) => void;
+    onFocusFirstCourse?: () => void;
+    onClearFocus?: () => void;
     selectedClasses?: any[];
 }
 
@@ -21,8 +20,7 @@ interface StepConfig {
     label: string;
     title: string;
     body: string;
-    placement: "bottom" | "right";
-    actionType?: "source-menu" | "bima-preview" | "plan-menu";
+    actionType?: "bima-preview";
 }
 
 const STEPS: StepConfig[] = [
@@ -30,124 +28,124 @@ const STEPS: StepConfig[] = [
         targetId: "tour-datasource-btn",
         label: "1 of 6",
         title: "Manage schedule sources",
-        body: "Click here to switch between semester datasets, rename or duplicate a source, or add a new BIMA schedule.",
-        placement: "bottom",
-        actionType: "source-menu"
+        body: "Switch between semester datasets, duplicate or rename a source, or add a new BIMA schedule from the live menu."
     },
     {
-        targetId: "tour-datasource-btn",
+        targetId: "tour-data-modal",
         label: "2 of 6",
         title: "Importing BIMA table data",
-        body: "In bima.upnyk.ac.id (Menu Perkuliahan → Dosen → Jadwal Dosen), highlight all table rows (Ctrl+C) and paste into + Import new BIMA source. Messy tabs & lecturer lines parse automatically.",
-        placement: "bottom",
+        body: "In bima.upnyk.ac.id (Menu Perkuliahan → Dosen → Jadwal Dosen), copy the table rows (Ctrl+C) and paste into the box. Lecturers and rooms parse automatically.",
         actionType: "bima-preview"
     },
     {
         targetId: "tour-plan-btn",
         label: "3 of 6",
         title: "Create & switch plans",
-        body: "Build multiple schedule backups (Plan 1, Plan 2) for the same source. Click here to switch, rename, duplicate, or create a new plan.",
-        placement: "bottom",
-        actionType: "plan-menu"
+        body: "Build multiple schedule backups (Plan 1, Plan 2) for the same source. Switch, rename, duplicate, or create a new plan here."
     },
     {
-        targetId: "tour-add-course-btn",
+        targetId: "tour-course-panel",
         label: "4 of 6",
         title: "Pick your semester courses",
-        body: "Browse the course catalog and check the subjects you need. Every selected course is placed onto the timetable grid automatically.",
-        placement: "right"
+        body: "Browse the course catalog and check the subjects you need. Every selected course is placed onto the timetable grid automatically."
     },
     {
         targetId: "tour-first-node",
         label: "5 of 6",
         title: "Drag or click to swap classes",
-        body: "Drag any course block (or click the dashed amber slots on the grid) to switch to a different day, time, or lecturer.",
-        placement: "right"
+        body: "Drag any course block (or click the dashed amber slots on the grid) to switch to a different day, time, or lecturer."
     },
     {
         targetId: "tour-solver-bar",
         label: "6 of 6",
         title: "Lock, set rules & auto-schedule",
-        body: "Lock favorite classes on the grid, add day/gap constraints in Rules, and press Space to shuffle conflict-free combinations.",
-        placement: "bottom"
+        body: "Lock favorite classes on the grid, add day/gap constraints in Rules, and press Space to shuffle conflict-free combinations."
     }
 ];
 
-// Generates a 2-pass organic hand-drawn doodle marker loop
-function generateScribblePath(w: number, h: number): string {
-    const x0 = 10;
-    const y0 = 8;
-    const x1 = w - 10;
-    const y1 = h - 8;
+// Generates a single organic hand-drawn doodle frame with subtle natural curvature
+function generateSingleScribblePath(w: number, h: number): string {
+    const r = Math.min(10, Math.min(w, h) / 4);
+    const x0 = 2;
+    const y0 = 2;
+    const x1 = w - 2;
+    const y1 = h - 2;
     const midX = (x0 + x1) / 2;
     const midY = (y0 + y1) / 2;
 
     return [
-        `M ${midX - 12} ${y0}`,
-        `C ${x1 - 10} ${y0 - 2}, ${x1 + 3} ${y0 + 4}, ${x1 + 3} ${y0 + 10}`,
-        `C ${x1 + 4} ${midY}, ${x1} ${y1 - 10}, ${x1} ${y1 - 4}`,
-        `C ${x1 - 2} ${y1 + 3}, ${x1 - 12} ${y1 + 2}, ${midX} ${y1 + 2}`,
-        `C ${x0 + 10} ${y1 + 1}, ${x0 - 3} ${y1 - 3}, ${x0 - 3} ${y1 - 10}`,
-        `C ${x0 - 4} ${midY}, ${x0 - 1} ${y0 + 10}, ${x0 - 1} ${y0 + 4}`,
-        `C ${x0} ${y0 - 2}, ${x0 + 8} ${y0 - 1}, ${midX + 6} ${y0 - 1}`,
-        // Pass 2 with slight offset to look like pen circling twice
-        `C ${x1 - 6} ${y0 + 1}, ${x1 - 2} ${y0 + 6}, ${x1 - 2} ${y0 + 12}`,
-        `C ${x1 - 1} ${midY + 4}, ${x1 - 3} ${y1 - 8}, ${x1 - 3} ${y1 - 2}`,
-        `C ${x1 - 4} ${y1 + 1}, ${x1 - 10} ${y1 - 1}, ${midX - 6} ${y1 - 1}`,
-        `C ${x0 + 8} ${y1 - 2}, ${x0 + 2} ${y1 - 6}, ${x0 + 2} ${midY}`,
-        `C ${x0 + 3} ${y0 + 8}, ${x0 + 5} ${y0 + 2}, ${midX + 16} ${y0 + 1}`
+        `M ${x0 + r} ${y0 + 0.5}`,
+        `C ${midX - 8} ${y0 - 0.7}, ${midX + 8} ${y0 + 0.5}, ${x1 - r} ${y0}`,
+        `C ${x1} ${y0 + 0.4}, ${x1 + 0.7} ${y0 + r}, ${x1} ${y0 + r + 2}`,
+        `C ${x1 + 0.5} ${midY - 6}, ${x1 - 0.6} ${midY + 6}, ${x1} ${y1 - r}`,
+        `C ${x1 + 0.4} ${y1}, ${x1 - 0.8} ${y1 + 0.7}, ${x1 - r} ${y1}`,
+        `C ${midX + 8} ${y1 + 0.7}, ${midX - 8} ${y1 - 0.5}, ${x0 + r} ${y1}`,
+        `C ${x0} ${y1 - 0.4}, ${x0 - 0.7} ${y1 - r}, ${x0} ${y1 - r - 2}`,
+        `C ${x0 - 0.6} ${midY + 6}, ${x0 + 0.5} ${midY - 6}, ${x0} ${y0 + r}`,
+        `C ${x0 - 0.3} ${y0 + 2}, ${x0 + 1.5} ${y0 - 0.4}, ${x0 + r + 3} ${y0 + 0.2}`
     ].join(" ");
 }
 
 export function InteractiveTour({
     isOpen,
     onClose,
+    tourStep,
+    onStepChange,
     onFocusFirstCourse,
-    onClearFocus,
-    onOpenImport,
-    onOpenSourceMenu,
-    onOpenPlanMenu
+    onClearFocus
 }: InteractiveTourProps) {
     const [stepIndex, setStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     const [showImage, setShowImage] = useState(false);
 
+    // Sync external tourStep if provided
+    useEffect(() => {
+        if (tourStep !== undefined && tourStep !== stepIndex) {
+            setStepIndex(tourStep);
+        }
+    }, [tourStep, stepIndex]);
+
     const step = STEPS[stepIndex] || STEPS[0];
+
+    const goToStep = useCallback((newIndex: number) => {
+        setStepIndex(newIndex);
+        setShowImage(false);
+        onStepChange?.(newIndex);
+    }, [onStepChange]);
 
     // Reset when tour opens
     useEffect(() => {
         if (isOpen) {
             setStepIndex(0);
             setShowImage(false);
+            onStepChange?.(0);
         }
-    }, [isOpen]);
+    }, [isOpen, onStepChange]);
 
     const handleClose = useCallback(() => {
-        onClearFocus();
+        onClearFocus?.();
         onClose();
     }, [onClearFocus, onClose]);
 
     const handleNext = useCallback(() => {
         if (stepIndex < STEPS.length - 1) {
-            setStepIndex((i) => i + 1);
-            setShowImage(false);
+            goToStep(stepIndex + 1);
         } else {
             handleClose();
         }
-    }, [stepIndex, handleClose]);
+    }, [stepIndex, goToStep, handleClose]);
 
     const handleBack = useCallback(() => {
         if (stepIndex > 0) {
-            setStepIndex((i) => i - 1);
-            setShowImage(false);
+            goToStep(stepIndex - 1);
         }
-    }, [stepIndex]);
+    }, [stepIndex, goToStep]);
 
-    // Keyboard navigation: ESC to close, arrows for next/back
+    // Keyboard navigation: ESC to close, Enter/ArrowRight for next, ArrowLeft for back
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") handleClose();
-            if (e.key === "ArrowRight") handleNext();
+            if (e.key === "ArrowRight" || e.key === "Enter") handleNext();
             if (e.key === "ArrowLeft") handleBack();
         };
         if (isOpen) {
@@ -161,9 +159,9 @@ export function InteractiveTour({
         if (!isOpen) return;
 
         if (stepIndex === 4) {
-            onFocusFirstCourse();
+            onFocusFirstCourse?.();
         } else {
-            onClearFocus();
+            onClearFocus?.();
         }
     }, [stepIndex, isOpen, onFocusFirstCourse, onClearFocus]);
 
@@ -173,11 +171,14 @@ export function InteractiveTour({
 
         const updateRect = () => {
             let el = document.getElementById(step.targetId);
+            if (!el && stepIndex === 1) {
+                el = document.getElementById("tour-data-modal");
+            }
             if (!el && stepIndex === 3) {
-                el = document.getElementById("tour-course-panel");
+                el = document.getElementById("tour-course-panel") || document.getElementById("tour-add-course-btn");
             }
             if (!el && stepIndex === 4) {
-                el = document.getElementById("krs-grid-capture");
+                el = document.getElementById("tour-first-node") || document.getElementById("krs-grid-capture");
             }
             if (!el && stepIndex === 5) {
                 el = document.getElementById("tour-auto-schedule-btn") || document.getElementById("tour-solver-bar");
@@ -190,7 +191,7 @@ export function InteractiveTour({
         };
 
         updateRect();
-        const interval = setInterval(updateRect, 250);
+        const interval = setInterval(updateRect, 150);
         window.addEventListener("resize", updateRect);
         window.addEventListener("scroll", updateRect, true);
 
@@ -201,31 +202,119 @@ export function InteractiveTour({
         };
     }, [stepIndex, isOpen, step]);
 
-    // Card position calculation
+    // Card position calculation: intelligent per-step placement
     const CARD_WIDTH = 315;
     const popoverCoords = useMemo(() => {
         if (!targetRect) {
             return {
-                top: window.innerHeight / 2 - 130,
-                left: window.innerWidth / 2 - CARD_WIDTH / 2
+                top: Math.max(20, window.innerHeight / 2 - 130),
+                left: Math.max(16, window.innerWidth / 2 - CARD_WIDTH / 2)
             };
         }
 
-        if (step.placement === "right") {
-            const top = Math.max(16, Math.min(window.innerHeight - 300, targetRect.top - 8));
-            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.right + 22);
-            return { top, left };
-        } else {
-            // "bottom"
-            const top = Math.min(window.innerHeight - 300, targetRect.bottom + 20);
-            const left = Math.max(16, Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.left - 6));
+        // Step 1 (1 of 6): Manage schedule sources
+        // Position directly to the right of the open source dropdown menu card
+        if (stepIndex === 0) {
+            const menuEl = document.getElementById("tour-source-menu-card");
+            if (menuEl) {
+                const menuRect = menuEl.getBoundingClientRect();
+                const left = Math.min(window.innerWidth - CARD_WIDTH - 16, menuRect.right + 16);
+                const top = Math.max(16, Math.min(window.innerHeight - 300, menuRect.top + 8));
+                return { top, left };
+            }
+            // Fallback if menu card is mounting
+            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, 360);
+            const top = Math.max(16, targetRect.bottom + 10);
             return { top, left };
         }
-    }, [targetRect, step.placement]);
 
-    // Connector arrow path calculation
+        // Step 2 (2 of 6): Importing BIMA table data (DataModal)
+        // Position to the right of the modal if space permits, else bottom-right pinned
+        if (stepIndex === 1) {
+            const modalEl = document.getElementById("tour-data-modal");
+            const mRect = modalEl ? modalEl.getBoundingClientRect() : targetRect;
+            const spaceOnRight = window.innerWidth - mRect.right;
+            if (spaceOnRight >= CARD_WIDTH + 20) {
+                const left = mRect.right + 18;
+                const top = Math.max(20, Math.min(window.innerHeight - 340, mRect.top + 24));
+                return { top, left };
+            } else {
+                const left = Math.max(16, window.innerWidth - CARD_WIDTH - 20);
+                const top = Math.min(window.innerHeight - 320, mRect.bottom - 160);
+                return { top, left };
+            }
+        }
+
+        // Step 3 (3 of 6): Create & switch plans
+        // Position directly to the right of the open plan manager dropdown menu card
+        if (stepIndex === 2) {
+            const menuEl = document.getElementById("tour-plan-menu-card");
+            if (menuEl) {
+                const menuRect = menuEl.getBoundingClientRect();
+                const left = Math.min(window.innerWidth - CARD_WIDTH - 16, menuRect.right + 16);
+                const top = Math.max(16, Math.min(window.innerHeight - 300, menuRect.top + 8));
+                return { top, left };
+            }
+            // Fallback
+            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.right + 20);
+            const top = Math.max(16, targetRect.bottom + 10);
+            return { top, left };
+        }
+
+        // Step 4 (4 of 6): Pick your semester courses (Left Sidebar)
+        // Position to the right of the Left Sidebar (left: 340px)
+        if (stepIndex === 3) {
+            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, 340);
+            const top = Math.max(80, Math.min(window.innerHeight - 320, 140));
+            return { top, left };
+        }
+
+        // Step 5 (5 of 6): Drag or click to swap classes (Grid node)
+        // CRITICAL: NEVER cover ghost drop-zones!
+        // Ghost drop-zones are typically in columns to the right.
+        if (stepIndex === 4) {
+            const availableLeft = targetRect.left - 340;
+            if (availableLeft >= CARD_WIDTH + 16) {
+                // Place cleanly to the LEFT of the course node
+                const left = targetRect.left - CARD_WIDTH - 16;
+                const top = Math.max(80, Math.min(window.innerHeight - 300, targetRect.top));
+                return { top, left };
+            } else {
+                // Course is in Monday/Tuesday; position at bottom-left of grid canvas
+                // well below the node so both the node and any ghost slots across all columns are uncovered!
+                const left = 340;
+                const top = Math.min(window.innerHeight - 290, Math.max(targetRect.bottom + 40, window.innerHeight - 310));
+                return { top, left };
+            }
+        }
+
+        // Step 6 (6 of 6): Lock, set rules & auto-schedule
+        if (stepIndex === 5) {
+            const top = Math.min(window.innerHeight - 300, targetRect.bottom + 16);
+            const left = Math.max(16, Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.left - 40));
+            return { top, left };
+        }
+
+        // Default fallback
+        const top = Math.min(window.innerHeight - 300, targetRect.bottom + 20);
+        const left = Math.max(16, Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.left - 6));
+        return { top, left };
+    }, [targetRect, stepIndex]);
+
+    // Connector arrow path calculation (only rendered if distance >= 28px)
     const connectorArrow = useMemo(() => {
         if (!targetRect) return null;
+
+        const popoverRight = popoverCoords.left + CARD_WIDTH;
+        const popoverBottom = popoverCoords.top + 220; // estimated card height
+
+        // Calculate edge-to-edge distance between target and popover card
+        const dx = Math.max(0, Math.max(targetRect.left - popoverRight, popoverCoords.left - targetRect.right));
+        const dy = Math.max(0, Math.max(targetRect.top - popoverBottom, popoverCoords.top - targetRect.bottom));
+        const distance = Math.hypot(dx, dy);
+
+        // Suppress arrow if distance is less than 28px
+        if (distance < 28) return null;
 
         let startX = 0;
         let startY = 0;
@@ -234,33 +323,44 @@ export function InteractiveTour({
         let ctrlX = 0;
         let ctrlY = 0;
 
-        if (step.placement === "bottom") {
-            startX = popoverCoords.left + 45;
+        if (popoverCoords.left >= targetRect.right) {
+            // Popover is to the RIGHT of target
+            startX = popoverCoords.left;
+            startY = Math.min(popoverCoords.top + 36, popoverCoords.top + 100);
+            endX = targetRect.right + 6;
+            endY = Math.max(targetRect.top + 6, Math.min(targetRect.bottom - 6, startY));
+            ctrlX = (startX + endX) / 2;
+            ctrlY = (startY + endY) / 2 - 12;
+        } else if (popoverRight <= targetRect.left) {
+            // Popover is to the LEFT of target
+            startX = popoverRight;
+            startY = Math.min(popoverCoords.top + 36, popoverCoords.top + 100);
+            endX = targetRect.left - 6;
+            endY = Math.max(targetRect.top + 6, Math.min(targetRect.bottom - 6, startY));
+            ctrlX = (startX + endX) / 2;
+            ctrlY = (startY + endY) / 2 - 12;
+        } else if (popoverCoords.top >= targetRect.bottom) {
+            // Popover is BELOW target
+            startX = popoverCoords.left + 50;
             startY = popoverCoords.top;
-            endX = Math.min(
-                popoverCoords.left + 65,
-                Math.max(targetRect.left + 15, targetRect.left + targetRect.width / 2)
-            );
-            endY = targetRect.bottom + 8;
-            ctrlX = (startX + endX) / 2 + 18;
+            endX = Math.min(popoverCoords.left + 65, Math.max(targetRect.left + 15, targetRect.left + targetRect.width / 2));
+            endY = targetRect.bottom + 6;
+            ctrlX = (startX + endX) / 2 + 16;
             ctrlY = (startY + endY) / 2;
         } else {
-            // "right"
-            startX = popoverCoords.left;
-            startY = popoverCoords.top + 34;
-            endX = targetRect.right + 8;
-            endY = Math.min(
-                popoverCoords.top + 34,
-                Math.max(targetRect.top + 10, targetRect.top + targetRect.height / 2)
-            );
-            ctrlX = (startX + endX) / 2;
-            ctrlY = (startY + endY) / 2 - 16;
+            // Popover is ABOVE target
+            startX = popoverCoords.left + 50;
+            startY = popoverBottom;
+            endX = Math.min(popoverCoords.left + 65, Math.max(targetRect.left + 15, targetRect.left + targetRect.width / 2));
+            endY = targetRect.top - 6;
+            ctrlX = (startX + endX) / 2 - 16;
+            ctrlY = (startY + endY) / 2;
         }
 
-        const dx = endX - ctrlX;
-        const dy = endY - ctrlY;
-        const angle = Math.atan2(dy, dx);
-        const headLen = 7.5;
+        const adx = endX - ctrlX;
+        const ady = endY - ctrlY;
+        const angle = Math.atan2(ady, adx);
+        const headLen = 6.5;
         const x1 = endX - headLen * Math.cos(angle - Math.PI / 6.5);
         const y1 = endY - headLen * Math.sin(angle - Math.PI / 6.5);
         const x2 = endX - headLen * Math.cos(angle + Math.PI / 6.5);
@@ -270,28 +370,29 @@ export function InteractiveTour({
             pathD: `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`,
             arrowPoints: `${endX},${endY} ${x1},${y1} ${x2},${y2}`
         };
-    }, [targetRect, popoverCoords, step.placement]);
+    }, [targetRect, popoverCoords]);
 
     if (!isOpen || typeof document === "undefined") return null;
 
-    // Dimensions for hand-drawn scribble highlight
-    const scribbleW = targetRect ? Math.round(targetRect.width + 20) : 0;
-    const scribbleH = targetRect ? Math.round(targetRect.height + 16) : 0;
-    const scribbleTop = targetRect ? Math.round(targetRect.top - 8) : 0;
-    const scribbleLeft = targetRect ? Math.round(targetRect.left - 10) : 0;
+    // Dimensions for single hand-drawn scribble highlight with 6px padding offset
+    const PAD = 6;
+    const scribbleW = targetRect ? Math.round(targetRect.width + PAD * 2) : 0;
+    const scribbleH = targetRect ? Math.round(targetRect.height + PAD * 2) : 0;
+    const scribbleTop = targetRect ? Math.round(targetRect.top - PAD) : 0;
+    const scribbleLeft = targetRect ? Math.round(targetRect.left - PAD) : 0;
 
     return createPortal(
-        <div className="fixed inset-0 z-[130] animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-[10000] animate-in fade-in duration-150">
             {/* Subtle Dim Backdrop */}
             <div
-                className="absolute inset-0 bg-black/15 cursor-pointer"
+                className="absolute inset-0 bg-black/15 cursor-pointer pointer-events-auto"
                 onClick={handleClose}
             />
 
-            {/* Hand-Drawn SVG Scribble Circle/Loop Highlight */}
+            {/* Hand-Drawn SVG Scribble Loop Highlight (Single 1.35px Slate-Blue Stroke) */}
             {targetRect && (
                 <div
-                    className="fixed pointer-events-none z-[136] transition-all duration-200"
+                    className="fixed pointer-events-none z-[10001] transition-all duration-200"
                     style={{
                         top: `${scribbleTop}px`,
                         left: `${scribbleLeft}px`,
@@ -306,43 +407,37 @@ export function InteractiveTour({
                         fill="none"
                         className="w-full h-full overflow-visible"
                     >
-                        <filter id="tour-scribble-glow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feGaussianBlur stdDeviation="1.5" result="blur" />
-                            <feMerge>
-                                <feMergeNode in="blur" />
-                                <feMergeNode in="SourceGraphic" />
-                            </feMerge>
-                        </filter>
                         <path
                             key={stepIndex}
-                            d={generateScribblePath(scribbleW, scribbleH)}
-                            stroke="#f59e0b"
-                            strokeWidth="2.2"
+                            d={generateSingleScribblePath(scribbleW, scribbleH)}
+                            stroke="#6488a8"
+                            strokeWidth="1.35"
                             strokeLinecap="round"
                             strokeLinejoin="round"
-                            filter="url(#tour-scribble-glow)"
+                            vectorEffect="non-scaling-stroke"
                             className="animate-scribble"
                         />
                     </svg>
                 </div>
             )}
 
-            {/* Hand-Drawn Curved Pointer Arrow */}
+            {/* Hand-Drawn Curved Pointer Arrow (Only if distance >= 28px) */}
             {connectorArrow && (
-                <svg className="fixed inset-0 w-full h-full pointer-events-none z-[138]">
+                <svg className="fixed inset-0 w-full h-full pointer-events-none z-[10001]">
                     <path
                         key={`arrow-${stepIndex}`}
                         d={connectorArrow.pathD}
-                        stroke="#5b82a6"
-                        strokeWidth="1.8"
+                        stroke="#6488a8"
+                        strokeWidth="1.25"
                         strokeDasharray="4 3"
+                        vectorEffect="non-scaling-stroke"
                         fill="none"
                         strokeLinecap="round"
                     />
                     <polygon
                         key={`arrowhead-${stepIndex}`}
                         points={connectorArrow.arrowPoints}
-                        fill="#5b82a6"
+                        fill="#6488a8"
                     />
                 </svg>
             )}
@@ -353,9 +448,9 @@ export function InteractiveTour({
                     position: "fixed",
                     top: `${popoverCoords.top}px`,
                     left: `${popoverCoords.left}px`,
-                    zIndex: 140
+                    zIndex: 10002
                 }}
-                className="w-[315px] max-w-[315px] bg-[#fcfcfa] rounded-2xl border border-[#d8d8d4] border-b-[3px] border-b-[#c2c2bc] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 z-[140] pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
+                className="w-[315px] max-w-[315px] bg-[#fcfcfa] rounded-2xl border border-[#d8d8d4] border-b-[3px] border-b-[#c2c2bc] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header row: doodle label + close */}
@@ -374,34 +469,14 @@ export function InteractiveTour({
                 </div>
 
                 {/* Title */}
-                <h3 className="text-[15px] font-semibold text-[#141413] mt-1 leading-snug">
+                <h3 className="text-[15px] font-semibold text-[#141413] mt-1.5 leading-snug">
                     {step.title}
                 </h3>
-
-                {/* Subtle hand-drawn title underline doodle */}
-                <svg className="w-14 h-1.5 text-[#f59e0b] stroke-current stroke-[1.8] fill-none mt-1" viewBox="0 0 56 6">
-                    <path d="M 1 3.5 C 14 1, 28 5.5, 42 2 C 48 0.5, 53 4, 55 3" strokeLinecap="round" />
-                </svg>
 
                 {/* Body (1–2 concise sentences) */}
                 <p className="text-[13px] text-[#6e6e77] leading-relaxed mt-2">
                     {step.body}
                 </p>
-
-                {/* Step 1 Interactive Link: Open Source Menu */}
-                {step.actionType === "source-menu" && (
-                    <div className="mt-2.5">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                onOpenSourceMenu?.();
-                            }}
-                            className="text-[12px] font-medium text-[#141413] nexvyn-dash hover:text-black cursor-pointer inline-flex items-center gap-1"
-                        >
-                            open source menu ▾
-                        </button>
-                    </div>
-                )}
 
                 {/* Step 2 Inline Preview Toggle: View BIMA Table Example */}
                 {step.actionType === "bima-preview" && (
@@ -424,21 +499,6 @@ export function InteractiveTour({
                                 />
                             </div>
                         )}
-                    </div>
-                )}
-
-                {/* Step 3 Interactive Link: Open Plan Menu */}
-                {step.actionType === "plan-menu" && (
-                    <div className="mt-2.5">
-                        <button
-                            type="button"
-                            onClick={() => {
-                                onOpenPlanMenu?.();
-                            }}
-                            className="text-[12px] font-medium text-[#141413] nexvyn-dash hover:text-black cursor-pointer inline-flex items-center gap-1"
-                        >
-                            open plan menu ▾
-                        </button>
                     </div>
                 )}
 

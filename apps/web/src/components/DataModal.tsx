@@ -239,6 +239,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
 
             {/* Modal Card */}
             <div
+                id="tour-data-modal"
                 className="relative w-full max-w-2xl bg-white border border-[#e6e6e3] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >

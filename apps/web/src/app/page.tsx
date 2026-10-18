@@ -73,6 +73,7 @@ function WorkspaceContent() {
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
     const [activeOverlay, setActiveOverlay] = useState<ActiveOverlay>("none");
+    const [tourStep, setTourStep] = useState(0);
     const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
     const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
     const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
@@ -184,17 +185,33 @@ function WorkspaceContent() {
         hasDismissedImportRef.current = true;
     }, [setIsDataModalOpen]);
 
+    const handleCloseTour = useCallback(() => {
+        closeOverlay();
+        setIsSourceMenuOpen(false);
+        setIsPlanMenuOpen(false);
+        setGridFocusedSubjectId(null);
+        setTourStep(0);
+    }, [closeOverlay]);
+
+
     const openOverlay = useCallback((overlay: ActiveOverlay) => {
         setActiveOverlay(overlay);
         if (overlay === "bima-import") {
             setIsDataModalOpen(true);
+        } else if (overlay === "tour") {
+            setTourStep(0);
+            updateSourceMenuCoords();
+            setIsSourceMenuOpen(true);
+            setIsPlanMenuOpen(false);
+            setGridFocusedSubjectId(null);
         } else {
             setIsDataModalOpen(false);
         }
-    }, [setIsDataModalOpen]);
+    }, [setIsDataModalOpen, updateSourceMenuCoords]);
 
     // Sync external store isDataModalOpen changes (e.g., from direct actions)
     useEffect(() => {
+        if (activeOverlay === "tour") return;
         if (isDataModalOpen && activeOverlay !== "bima-import" && !hasDismissedImportRef.current) {
             setActiveOverlay("bima-import");
         } else if (!isDataModalOpen && activeOverlay === "bima-import") {
@@ -206,10 +223,10 @@ function WorkspaceContent() {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
-                if (isSourceMenuOpen) {
+                if (isSourceMenuOpen && activeOverlay !== "tour") {
                     setIsSourceMenuOpen(false);
                 }
-                if (isPlanMenuOpen) {
+                if (isPlanMenuOpen && activeOverlay !== "tour") {
                     setIsPlanMenuOpen(false);
                     setConfirmDeletePlanId(null);
                     setEditingPlanIdInMenu(null);
@@ -220,14 +237,16 @@ function WorkspaceContent() {
                 if (isMobileCoursesOpen) {
                     setIsMobileCoursesOpen(false);
                 }
-                if (activeOverlay !== "none") {
+                if (activeOverlay === "tour") {
+                    handleCloseTour();
+                } else if (activeOverlay !== "none") {
                     closeOverlay();
                 }
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [activeOverlay, closeOverlay, isMobileCoursesOpen, isSourceMenuOpen, isPlanMenuOpen, isRenamingTopBar]);
+    }, [activeOverlay, closeOverlay, handleCloseTour, isMobileCoursesOpen, isSourceMenuOpen, isPlanMenuOpen, isRenamingTopBar]);
 
     const handleSaveTopBarRename = () => {
         if (!activePlan) return;
@@ -476,6 +495,49 @@ function WorkspaceContent() {
             .filter(s => (activePlan.selectedSubjectIds ?? []).includes(s.subjectId))
             .reduce((acc, s) => acc + s.sks, 0);
     }, [activePlan, activeDatasource]);
+
+    // Handle Tour Step changes & automatically open target menus / views
+    const handleTourStepChange = useCallback((step: number) => {
+        setTourStep(step);
+        if (step === 0) {
+            // Step 1: Manage schedule sources
+            setIsPlanMenuOpen(false);
+            updateSourceMenuCoords();
+            setIsSourceMenuOpen(true);
+            setGridFocusedSubjectId(null);
+        } else if (step === 1) {
+            // Step 2: Importing BIMA table data
+            setIsSourceMenuOpen(false);
+            setIsPlanMenuOpen(false);
+            setGridFocusedSubjectId(null);
+        } else if (step === 2) {
+            // Step 3: Create & switch plans
+            setIsSourceMenuOpen(false);
+            updatePlanMenuCoords();
+            setIsPlanMenuOpen(true);
+            setGridFocusedSubjectId(null);
+        } else if (step === 3) {
+            // Step 4: Pick your semester courses
+            setIsSourceMenuOpen(false);
+            setIsPlanMenuOpen(false);
+            setActiveTab("catalog");
+            setGridFocusedSubjectId(null);
+        } else if (step === 4) {
+            // Step 5: Drag or click to swap classes
+            setIsSourceMenuOpen(false);
+            setIsPlanMenuOpen(false);
+            setActiveTab("selected");
+            const firstSubId = selectedClasses[0]?.subjectId || activePlan?.selectedSubjectIds?.[0];
+            if (firstSubId) {
+                setGridFocusedSubjectId(firstSubId);
+            }
+        } else if (step === 5) {
+            // Step 6: Lock, set rules & auto-schedule
+            setIsSourceMenuOpen(false);
+            setIsPlanMenuOpen(false);
+            setGridFocusedSubjectId(null);
+        }
+    }, [updateSourceMenuCoords, updatePlanMenuCoords, selectedClasses, activePlan]);
 
     // Handler: Save Current Schedule to Archive
     const handleSaveCurrentSchedule = useCallback(() => {
@@ -1207,20 +1269,23 @@ function WorkspaceContent() {
 
             {/* BIMA Import / Switch Modal */}
             <DataModal
-                isOpen={activeOverlay === "bima-import"}
-                onClose={closeOverlay}
+                isOpen={activeOverlay === "bima-import" || (activeOverlay === "tour" && tourStep === 1)}
+                onClose={() => {
+                    if (activeOverlay !== "tour") {
+                        closeOverlay();
+                    }
+                }}
                 editSourceId={dataModalEditSourceId}
             />
 
             {/* Interactive 6-Step Spotlight Tour */}
             <InteractiveTour
                 isOpen={activeOverlay === "tour"}
-                onClose={closeOverlay}
-                onOpenImport={() => openOverlay("bima-import")}
-                onOpenSourceMenu={handleToggleSourceMenu}
-                onOpenPlanMenu={handleTogglePlanMenu}
+                tourStep={tourStep}
+                onStepChange={handleTourStepChange}
+                onClose={handleCloseTour}
                 onFocusFirstCourse={() => {
-                    const firstSubId = selectedClasses[0]?.subjectId || activePlan.selectedSubjectIds[0];
+                    const firstSubId = selectedClasses[0]?.subjectId || activePlan?.selectedSubjectIds?.[0];
                     if (firstSubId) {
                         setGridFocusedSubjectId(firstSubId);
                     }
@@ -1236,12 +1301,18 @@ function WorkspaceContent() {
                 <div className="fixed inset-0 z-[9998] pointer-events-auto">
                     {/* Full-screen invisible click-away backdrop */}
                     <div
-                        className="fixed inset-0 z-[9998] bg-transparent"
-                        onClick={() => setIsSourceMenuOpen(false)}
+                        className={cn(
+                            "fixed inset-0 z-[9998] bg-transparent",
+                            activeOverlay === "tour" && "pointer-events-none"
+                        )}
+                        onClick={() => {
+                            if (activeOverlay !== "tour") setIsSourceMenuOpen(false);
+                        }}
                     />
 
                     {/* Popover Card */}
                     <div
+                        id="tour-source-menu-card"
                         style={{
                             position: "fixed",
                             top: `${sourceMenuCoords.top}px`,
@@ -1371,16 +1442,22 @@ function WorkspaceContent() {
                 <div className="fixed inset-0 z-[9998] pointer-events-auto">
                     {/* Full-screen invisible click-away backdrop */}
                     <div
-                        className="fixed inset-0 z-[9998] bg-transparent"
+                        className={cn(
+                            "fixed inset-0 z-[9998] bg-transparent",
+                            activeOverlay === "tour" && "pointer-events-none"
+                        )}
                         onClick={() => {
-                            setIsPlanMenuOpen(false);
-                            setConfirmDeletePlanId(null);
-                            setEditingPlanIdInMenu(null);
+                            if (activeOverlay !== "tour") {
+                                setIsPlanMenuOpen(false);
+                                setConfirmDeletePlanId(null);
+                                setEditingPlanIdInMenu(null);
+                            }
                         }}
                     />
 
                     {/* Popover Card */}
                     <div
+                        id="tour-plan-menu-card"
                         style={{
                             position: "fixed",
                             top: `${planMenuCoords.top}px`,
