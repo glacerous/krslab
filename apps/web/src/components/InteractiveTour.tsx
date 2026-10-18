@@ -91,36 +91,35 @@ function computeUnionRect(rects: SimpleRect[]): SimpleRect | null {
 }
 
 // Generates an authentic hand-drawn organic scribble loop using cubic Beziers with natural wobble, corner overshoot, and overlapping tail
-function generateOrganicScribblePath(w: number, h: number): string {
-    const pad = 6;
+function generateOrganicScribblePath(w: number, h: number, pad: number = 2): string {
     const x0 = pad;
     const y0 = pad;
     const x1 = w - pad;
     const y1 = h - pad;
-    const rx = Math.min(14, Math.max(6, w * 0.08));
-    const ry = Math.min(14, Math.max(6, h * 0.08));
+    const rx = Math.min(12, Math.max(4, w * 0.06));
+    const ry = Math.min(12, Math.max(4, h * 0.06));
     const midX = (x0 + x1) / 2;
     const midY = (y0 + y1) / 2;
 
     return [
         // Start on top edge, slightly right of top-left corner
-        `M ${x0 + rx + 6} ${y0 + 1.2}`,
+        `M ${x0 + rx + 4} ${y0 + 0.8}`,
         // Top edge: subtle organic bow with slight upward arch
-        `C ${midX - 14} ${y0 - 2.2}, ${midX + 18} ${y0 + 0.6}, ${x1 - rx} ${y0 - 0.4}`,
+        `C ${midX - 12} ${y0 - 1.4}, ${midX + 14} ${y0 + 0.5}, ${x1 - rx} ${y0 - 0.2}`,
         // Top-right corner: curves around and slightly overshoots
-        `C ${x1 + 3.8} ${y0 - 0.6}, ${x1 + 4.8} ${y0 + ry * 0.8}, ${x1 + 1.6} ${y0 + ry + 4}`,
+        `C ${x1 + 2.5} ${y0 - 0.4}, ${x1 + 3.2} ${y0 + ry * 0.8}, ${x1 + 1.2} ${y0 + ry + 3}`,
         // Right edge: slight inward wobble
-        `C ${x1 - 1.8} ${midY - 12}, ${x1 + 2.4} ${midY + 14}, ${x1 + 0.8} ${y1 - ry - 2}`,
+        `C ${x1 - 1.2} ${midY - 10}, ${x1 + 1.8} ${midY + 10}, ${x1 + 0.5} ${y1 - ry - 2}`,
         // Bottom-right corner: organic turn
-        `C ${x1 + 1.4} ${y1 + 3.2}, ${x1 - rx * 0.6} ${y1 + 3.8}, ${x1 - rx - 4} ${y1 + 1.6}`,
+        `C ${x1 + 1.0} ${y1 + 2.2}, ${x1 - rx * 0.6} ${y1 + 2.6}, ${x1 - rx - 3} ${y1 + 1.2}`,
         // Bottom edge: gentle curve
-        `C ${midX + 16} ${y1 + 2.4}, ${midX - 18} ${y1 - 1.4}, ${x0 + rx + 2} ${y1 + 0.8}`,
+        `C ${midX + 12} ${y1 + 1.8}, ${midX - 14} ${y1 - 1.0}, ${x0 + rx + 2} ${y1 + 0.6}`,
         // Bottom-left corner: organic turn
-        `C ${x0 - 3.2} ${y1 + 1.6}, ${x0 - 4.2} ${y1 - ry * 0.8}, ${x0 - 1.8} ${y1 - ry - 4}`,
+        `C ${x0 - 2.2} ${y1 + 1.2}, ${x0 - 2.8} ${y1 - ry * 0.8}, ${x0 - 1.2} ${y1 - ry - 3}`,
         // Left edge: slight natural bow
-        `C ${x0 + 1.6} ${midY + 12}, ${x0 - 2.4} ${midY - 14}, ${x0 - 0.8} ${y0 + ry + 2}`,
+        `C ${x0 + 1.2} ${midY + 10}, ${x0 - 1.8} ${midY - 10}, ${x0 - 0.5} ${y0 + ry + 2}`,
         // Top-left corner: curves past start with authentic loop-closure overshoot tail
-        `C ${x0 - 1.4} ${y0 - 1.8}, ${x0 + rx * 0.5} ${y0 - 2.8}, ${x0 + rx + 16} ${y0 - 0.8}`
+        `C ${x0 - 1.0} ${y0 - 1.2}, ${x0 + rx * 0.5} ${y0 - 2.0}, ${x0 + rx + 12} ${y0 - 0.6}`
     ].join(" ");
 }
 
@@ -145,6 +144,29 @@ export function InteractiveTour({
     }, [tourStep, stepIndex]);
 
     const step = STEPS[stepIndex] || STEPS[0];
+
+    // Per-step cutout parameters:
+    // Steps 1, 3, 4, 5 are self-contained bordered containers -> offset = 0px (flush, zero gap/halo!)
+    // Step 2 is DataModal with its own backdrop -> omitCutout = true (zero grey gap frame!)
+    // Step 6 is multi-button group -> offset = 8px (pill padding)
+    const stepCutoutConfig = useMemo(() => {
+        switch (stepIndex) {
+            case 0: // Step 1: Sources dropdown menu
+                return { offset: 0, borderRadius: "12px", scribblePad: 2, omitCutout: false };
+            case 1: // Step 2: BIMA Import Modal (DataModal already has full-screen backdrop)
+                return { offset: 0, borderRadius: "16px", scribblePad: 2, omitCutout: true };
+            case 2: // Step 3: Plan manager dropdown menu
+                return { offset: 0, borderRadius: "12px", scribblePad: 2, omitCutout: false };
+            case 3: // Step 4: Course catalog sidebar (flush to left/top/bottom edges)
+                return { offset: 0, borderRadius: "0px", scribblePad: 2, omitCutout: false };
+            case 4: // Step 5: Grid course node
+                return { offset: 0, borderRadius: "12px", scribblePad: 2, omitCutout: false };
+            case 5: // Step 6: Multi-button solver group
+                return { offset: 8, borderRadius: "14px", scribblePad: 6, omitCutout: false };
+            default:
+                return { offset: 0, borderRadius: "12px", scribblePad: 2, omitCutout: false };
+        }
+    }, [stepIndex]);
 
     const goToStep = useCallback((newIndex: number) => {
         setStepIndex(newIndex);
@@ -209,26 +231,14 @@ export function InteractiveTour({
         if (!isOpen) return;
 
         const measureTargets = () => {
-            // STEP 0 (1 of 6): Sources
+            // STEP 0 (1 of 6): Sources Dropdown Menu (Flush 0px cutout around the open menu)
             if (stepIndex === 0) {
-                const btnEl = document.getElementById("tour-datasource-btn");
                 const menuEl = document.getElementById("tour-source-menu-card");
-                const bRect = btnEl ? btnEl.getBoundingClientRect() : null;
-                const mRect = menuEl ? menuEl.getBoundingClientRect() : null;
-
-                if (bRect && mRect) {
-                    setSpotlightRect(computeUnionRect([bRect, mRect]));
-                    setScribbleRect(mRect);
-                } else if (mRect) {
-                    setSpotlightRect(mRect);
-                    setScribbleRect(mRect);
-                } else if (bRect) {
-                    setSpotlightRect(bRect);
-                    setScribbleRect(bRect);
-                } else {
-                    setSpotlightRect(null);
-                    setScribbleRect(null);
-                }
+                const btnEl = document.getElementById("tour-datasource-btn");
+                const target = menuEl || btnEl;
+                const rect = target ? target.getBoundingClientRect() : null;
+                setSpotlightRect(rect);
+                setScribbleRect(rect);
                 return;
             }
 
@@ -244,30 +254,18 @@ export function InteractiveTour({
                 return;
             }
 
-            // STEP 2 (3 of 6): Plans
+            // STEP 2 (3 of 6): Plan Manager Dropdown Menu (Flush 0px cutout around the open menu)
             if (stepIndex === 2) {
-                const btnEl = document.getElementById("tour-plan-btn");
                 const menuEl = document.getElementById("tour-plan-menu-card");
-                const bRect = btnEl ? btnEl.getBoundingClientRect() : null;
-                const mRect = menuEl ? menuEl.getBoundingClientRect() : null;
-
-                if (bRect && mRect) {
-                    setSpotlightRect(computeUnionRect([bRect, mRect]));
-                    setScribbleRect(mRect);
-                } else if (mRect) {
-                    setSpotlightRect(mRect);
-                    setScribbleRect(mRect);
-                } else if (bRect) {
-                    setSpotlightRect(bRect);
-                    setScribbleRect(bRect);
-                } else {
-                    setSpotlightRect(null);
-                    setScribbleRect(null);
-                }
+                const btnEl = document.getElementById("tour-plan-btn");
+                const target = menuEl || btnEl;
+                const rect = target ? target.getBoundingClientRect() : null;
+                setSpotlightRect(rect);
+                setScribbleRect(rect);
                 return;
             }
 
-            // STEP 3 (4 of 6): Course Catalog Sidebar
+            // STEP 3 (4 of 6): Course Catalog Sidebar (Flush 0px cutout around the entire sidebar)
             if (stepIndex === 3) {
                 const sidebarEl = document.getElementById("tour-course-panel");
                 const searchEl = document.getElementById("tour-catalog-search-area");
@@ -285,7 +283,6 @@ export function InteractiveTour({
                 if (topAreaRects.length > 0) {
                     setScribbleRect(computeUnionRect(topAreaRects));
                 } else if (sRect) {
-                    // Fallback to top portion of sidebar
                     setScribbleRect({
                         left: sRect.left + 8,
                         top: sRect.top + 80,
@@ -300,30 +297,16 @@ export function InteractiveTour({
                 return;
             }
 
-            // STEP 4 (5 of 6): Grid Active Node & Ghost Drop-Zones
+            // STEP 4 (5 of 6): Grid Course Node (Flush 0px cutout around the course card)
             if (stepIndex === 4) {
                 const nodeEl = document.getElementById("tour-first-node");
-                const ghostEls = Array.from(document.querySelectorAll('[data-tour="ghost-dropzone"]'));
                 const nRect = nodeEl ? nodeEl.getBoundingClientRect() : null;
-
+                setSpotlightRect(nRect);
                 setScribbleRect(nRect);
-
-                const spotRects: SimpleRect[] = [];
-                if (nRect) spotRects.push(nRect);
-                ghostEls.forEach((el) => {
-                    spotRects.push(el.getBoundingClientRect());
-                });
-
-                if (spotRects.length > 0) {
-                    setSpotlightRect(computeUnionRect(spotRects));
-                } else {
-                    const canvasEl = document.getElementById("krs-grid-capture");
-                    setSpotlightRect(canvasEl ? canvasEl.getBoundingClientRect() : nRect);
-                }
                 return;
             }
 
-            // STEP 5 (6 of 6): Solver Controls Bar
+            // STEP 5 (6 of 6): Solver Controls Bar (Pill cutout with +8px padding)
             if (stepIndex === 5) {
                 const solverEl = document.getElementById("tour-solver-bar") || document.getElementById("tour-auto-schedule-btn");
                 const sRect = solverEl ? solverEl.getBoundingClientRect() : null;
@@ -507,25 +490,25 @@ export function InteractiveTour({
 
     if (!isOpen || typeof document === "undefined") return null;
 
-    // Dimensions for organic hand-drawn scribble highlight with 6px padding offset
-    const PAD = 6;
-    const scribbleW = scribbleRect ? Math.round(scribbleRect.width + PAD * 2) : 0;
-    const scribbleH = scribbleRect ? Math.round(scribbleRect.height + PAD * 2) : 0;
-    const scribbleTop = scribbleRect ? Math.round(scribbleRect.top - PAD) : 0;
-    const scribbleLeft = scribbleRect ? Math.round(scribbleRect.left - PAD) : 0;
+    // Dimensions for organic hand-drawn scribble highlight (flush along border with 2px padding offset)
+    const scribblePad = stepCutoutConfig.scribblePad;
+    const scribbleW = scribbleRect ? Math.round(scribbleRect.width + scribblePad * 2) : 0;
+    const scribbleH = scribbleRect ? Math.round(scribbleRect.height + scribblePad * 2) : 0;
+    const scribbleTop = scribbleRect ? Math.round(scribbleRect.top - scribblePad) : 0;
+    const scribbleLeft = scribbleRect ? Math.round(scribbleRect.left - scribblePad) : 0;
 
     return createPortal(
         <div className="fixed inset-0 z-[10000] pointer-events-none animate-in fade-in duration-150">
-            {/* Cutout Spotlight (100% Bright & Interactive Inside, Dimmed Outside via Box-Shadow, Zero Blocking Backdrop!) */}
-            {spotlightRect && (
+            {/* Cutout Spotlight (100% Bright & Interactive Inside, Zero Gap around self-contained containers!) */}
+            {spotlightRect && !stepCutoutConfig.omitCutout && (
                 <div
                     className="fixed pointer-events-none transition-all duration-200"
                     style={{
-                        top: `${Math.round(spotlightRect.top - 8)}px`,
-                        left: `${Math.round(spotlightRect.left - 8)}px`,
-                        width: `${Math.round(spotlightRect.width + 16)}px`,
-                        height: `${Math.round(spotlightRect.height + 16)}px`,
-                        borderRadius: "14px",
+                        top: `${Math.round(spotlightRect.top - stepCutoutConfig.offset)}px`,
+                        left: `${Math.round(spotlightRect.left - stepCutoutConfig.offset)}px`,
+                        width: `${Math.round(spotlightRect.width + stepCutoutConfig.offset * 2)}px`,
+                        height: `${Math.round(spotlightRect.height + stepCutoutConfig.offset * 2)}px`,
+                        borderRadius: stepCutoutConfig.borderRadius,
                         boxShadow: "0 0 0 9999px rgba(20, 20, 19, 0.25)",
                         zIndex: 10000
                     }}
@@ -552,7 +535,7 @@ export function InteractiveTour({
                     >
                         <path
                             key={stepIndex}
-                            d={generateOrganicScribblePath(scribbleW, scribbleH)}
+                            d={generateOrganicScribblePath(scribbleW, scribbleH, scribblePad)}
                             stroke="#5b82a6"
                             strokeWidth="1.75"
                             strokeLinecap="round"
