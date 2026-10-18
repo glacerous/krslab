@@ -104,10 +104,12 @@ export function ScheduleGrid({
 
     const totalHeight = TOP_OFFSET + (SLOTS.length / 2) * rowHeight + 28;
 
-    // Trigger grid pulse when selectedClasses change
+    // Trigger grid pulse and clear optimistic picks when selectedClasses change (e.g. Shuffle)
     const signature = JSON.stringify(selectedClasses.map((c) => c?.classId));
     useEffect(() => {
         setPulse((p) => p + 1);
+        setDroppedOptimisticPicks({});
+        setJustDroppedSubjectId(null);
     }, [signature]);
 
     // Close focus on Escape key
@@ -186,31 +188,48 @@ export function ScheduleGrid({
         return map;
     }, [ghostSections, selectedClasses, activeGhostSubjectId]);
 
-    // Calculate active meeting slots with day overlap clustering for side-by-side positioning
-    interface ActiveMeetingSlot {
+    // Layout computation: Decouple coordinate calculation from render order
+    interface ComputedSlotLayout {
         cls: any;
-        clsIndex: number;
-        subject: Subject | undefined;
         meeting: Meeting;
         mIdx: number;
         day: string;
         dayIdx: number;
-        startMin: number;
-        endMin: number;
-        durationMin: number;
         pos: { dayIndex: number; top: number; height: number };
+        durationMin: number;
         subColIndex: number;
         clusterSize: number;
         hasDayConflict: boolean;
+        top: number;
+        height: number;
+        left: string;
+        width: string;
+        isCompact: boolean;
+        isMedium: boolean;
+        isFull: boolean;
     }
 
-    const activeMeetingSlots = useMemo(() => {
-        const slotsByDay: Record<string, ActiveMeetingSlot[]> = {};
+    // Step A: Calculate all slot coordinates and store in a lookup Map keyed by `${subjectId}-${meetingIdx}`
+    const computedSlotMap = useMemo(() => {
+        const map = new Map<string, ComputedSlotLayout>();
+        const slotsByDay: Record<string, {
+            key: string;
+            cls: any;
+            meeting: Meeting;
+            mIdx: number;
+            day: string;
+            dayIdx: number;
+            startMin: number;
+            endMin: number;
+            durationMin: number;
+            pos: { dayIndex: number; top: number; height: number };
+        }[]> = {};
+
         DAYS.forEach((d) => {
             slotsByDay[d] = [];
         });
 
-        selectedClasses.forEach((propCls, clsIndex) => {
+        selectedClasses.forEach((propCls) => {
             if (!propCls) return;
             const subject = allSubjects.find((s) => s.subjectId === propCls.subjectId);
             const optimisticClassId = droppedOptimisticPicks[propCls.subjectId];
@@ -239,10 +258,10 @@ export function ScheduleGrid({
                 const endMin = endH * 60 + endM;
                 const durationMin = endMin - startMin;
 
-                const slotItem: ActiveMeetingSlot = {
+                const key = `${cls.subjectId}-${mIdx}`;
+                slotsByDay[m.day].push({
+                    key,
                     cls,
-                    clsIndex,
-                    subject,
                     meeting: m,
                     mIdx,
                     day: m.day,
@@ -250,32 +269,20 @@ export function ScheduleGrid({
                     startMin,
                     endMin,
                     durationMin,
-                    pos,
-                    subColIndex: 0,
-                    clusterSize: 1,
-                    hasDayConflict: false
-                };
-
-                if (!slotsByDay[m.day]) {
-                    slotsByDay[m.day] = [];
-                }
-                slotsByDay[m.day].push(slotItem);
+                    pos
+                });
             });
         });
 
-        const allSlots: ActiveMeetingSlot[] = [];
-
-        // Process each day to detect overlapping clusters and assign sub-columns
+        // Detect overlapping clusters per day and compute sub-column layout
         DAYS.forEach((day) => {
             const daySlots = slotsByDay[day] || [];
             if (daySlots.length === 0) return;
 
-            // Sort by startMin ASC, then endMin DESC
             daySlots.sort((a, b) => a.startMin - b.startMin || b.endMin - a.endMin);
 
-            // Group into clusters of overlapping intervals
-            const clusters: ActiveMeetingSlot[][] = [];
-            let currentCluster: ActiveMeetingSlot[] = [];
+            const clusters: typeof daySlots[] = [];
+            let currentCluster: typeof daySlots = [];
             let clusterEnd = -1;
 
             for (const slot of daySlots) {
@@ -295,17 +302,10 @@ export function ScheduleGrid({
                 clusters.push(currentCluster);
             }
 
-            // Within each cluster, assign subColIndex greedily
             for (const cluster of clusters) {
-                if (cluster.length === 1) {
-                    cluster[0].subColIndex = 0;
-                    cluster[0].clusterSize = 1;
-                    cluster[0].hasDayConflict = false;
-                    allSlots.push(cluster[0]);
-                    continue;
-                }
-
                 const columnEndTimes: number[] = [];
+                const subColAssignments: number[] = [];
+
                 for (const slot of cluster) {
                     let assignedCol = -1;
                     for (let c = 0; c < columnEndTimes.length; c++) {
@@ -319,20 +319,101 @@ export function ScheduleGrid({
                         assignedCol = columnEndTimes.length;
                         columnEndTimes.push(slot.endMin);
                     }
-                    slot.subColIndex = assignedCol;
-                    slot.hasDayConflict = true;
+                    subColAssignments.push(assignedCol);
                 }
 
-                const numCols = Math.max(1, columnEndTimes.length);
-                for (const slot of cluster) {
-                    slot.clusterSize = numCols;
-                    allSlots.push(slot);
-                }
+                const clusterSize = Math.max(1, columnEndTimes.length);
+                const hasDayConflict = cluster.length > 1;
+
+                cluster.forEach((slot, idx) => {
+                    const subColIndex = subColAssignments[idx];
+                    const dayLeftPercent = (slot.dayIdx * 100) / DAYS.length;
+                    const dayWidthPercent = 100 / DAYS.length;
+                    const subWidthPercent = dayWidthPercent / clusterSize;
+                    const subLeftPercent = dayLeftPercent + subColIndex * subWidthPercent;
+
+                    const left = clusterSize > 1
+                        ? `calc(${subLeftPercent}% + 2px)`
+                        : `calc(${subLeftPercent}% + 4px)`;
+                    const width = clusterSize > 1
+                        ? `calc(${subWidthPercent}% - 4px)`
+                        : `calc(${subWidthPercent}% - 8px)`;
+
+                    const durationMin = slot.durationMin;
+                    const isCompact = durationMin <= 75;
+                    const isMedium = durationMin > 75 && durationMin <= 110;
+                    const isFull = durationMin > 110;
+
+                    map.set(slot.key, {
+                        cls: slot.cls,
+                        meeting: slot.meeting,
+                        mIdx: slot.mIdx,
+                        day: slot.day,
+                        dayIdx: slot.dayIdx,
+                        pos: slot.pos,
+                        durationMin,
+                        subColIndex,
+                        clusterSize,
+                        hasDayConflict,
+                        top: slot.pos.top + 2,
+                        height: slot.pos.height - 4,
+                        left,
+                        width,
+                        isCompact,
+                        isMedium,
+                        isFull
+                    });
+                });
             }
         });
 
-        return allSlots;
+        return map;
     }, [selectedClasses, allSubjects, droppedOptimisticPicks, getPosition]);
+
+    // Step B: Build an immutable, strictly deterministic array sorted by subjectId
+    // The DOM tree order NEVER changes when days or times change!
+    const stableCourseEntries = useMemo(() => {
+        const list: {
+            cls: any;
+            subjectId: string;
+            meetings: { m: Meeting; mIdx: number; key: string }[];
+        }[] = [];
+
+        const sortedClasses = [...selectedClasses].filter(Boolean).sort((a, b) =>
+            (a.subjectId || "").localeCompare(b.subjectId || "")
+        );
+
+        sortedClasses.forEach((propCls) => {
+            const subject = allSubjects.find((s) => s.subjectId === propCls.subjectId);
+            const optimisticClassId = droppedOptimisticPicks[propCls.subjectId];
+            const optimisticClass = optimisticClassId && subject
+                ? subject.classes.find((c) => c.classId === optimisticClassId)
+                : null;
+            const cls = optimisticClass
+                ? {
+                      ...propCls,
+                      classId: optimisticClass.classId,
+                      className: optimisticClass.className,
+                      meetings: optimisticClass.meetings,
+                      lecturers: optimisticClass.lecturers
+                  }
+                : propCls;
+
+            const meetings = (cls.meetings || []).map((m: Meeting, mIdx: number) => ({
+                m,
+                mIdx,
+                key: `${cls.subjectId}-${mIdx}`
+            }));
+
+            list.push({
+                cls,
+                subjectId: cls.subjectId,
+                meetings
+            });
+        });
+
+        return list;
+    }, [selectedClasses, allSubjects, droppedOptimisticPicks]);
 
     // =========================================================
     // POINTER DRAG HANDLERS (Butter-smooth, 60fps, no browser ghost)
@@ -678,87 +759,134 @@ export function ScheduleGrid({
                                     ))}
                                 </div>
 
-                                {/* ACTIVE COURSE NODES (Positioned by day percentage + sub-column offsets for side-by-side overlaps) */}
+                                {/* ACTIVE COURSE NODES (Deterministic, immutable DOM order by subjectId) */}
                                 <div className="absolute inset-0 pointer-events-none">
-                                    {activeMeetingSlots.map((slot, slotIdx) => {
-                                        const { cls, meeting: m, mIdx, dayIdx, pos, durationMin } = slot;
-                                        const isConflicting = conflicts[cls.classId] || slot.hasDayConflict;
-                                        const isFrozen = frozenSubjectIds.includes(cls.subjectId);
-                                        const isFocused = focusedSubjectId === cls.subjectId;
+                                    {/* IMPORTANT: DO NOT sort rendered nodes by day/time or change key—DOM reordering cancels CSS transitions in Chromium! */}
+                                    {stableCourseEntries.map((entry, entryIdx) => {
+                                        const { cls, subjectId, meetings } = entry;
+                                        const isFrozen = frozenSubjectIds.includes(subjectId);
+                                        const isFocused = focusedSubjectId === subjectId;
+                                        const isThisCardJustDropped = justDroppedSubjectId === subjectId;
 
-                                        const isThisCardDragging =
-                                            activeDraggingCard?.subjectId === cls.subjectId &&
-                                            activeDraggingCard?.classId === cls.classId &&
-                                            activeDraggingCard?.meetingIdx === mIdx &&
-                                            isDragging;
+                                        return meetings.map(({ m, mIdx, key }) => {
+                                            const layout = computedSlotMap.get(key);
+                                            if (!layout) return null;
 
-                                        const isThisCardJustDropped = justDroppedSubjectId === cls.subjectId;
+                                            const isConflicting = conflicts[cls.classId] || layout.hasDayConflict;
+                                            const isThisCardDragging =
+                                                activeDraggingCard?.subjectId === subjectId &&
+                                                activeDraggingCard?.classId === cls.classId &&
+                                                activeDraggingCard?.meetingIdx === mIdx &&
+                                                isDragging;
 
-                                        // Sub-column layout for side-by-side display of overlapping classes
-                                        const dayLeftPercent = (dayIdx * 100) / DAYS.length;
-                                        const dayWidthPercent = 100 / DAYS.length;
-                                        const subWidthPercent = dayWidthPercent / slot.clusterSize;
-                                        const subLeftPercent = dayLeftPercent + slot.subColIndex * subWidthPercent;
+                                            return (
+                                                <div
+                                                    key={key}
+                                                    id={entryIdx === 0 && mIdx === 0 ? "tour-first-node" : undefined}
+                                                    data-subject-id={subjectId}
+                                                    data-class-id={cls.classId}
+                                                    onPointerDown={(e) => handlePointerDown(e, cls, mIdx)}
+                                                    onPointerMove={handlePointerMove}
+                                                    onPointerUp={handlePointerUp}
+                                                    onPointerCancel={handlePointerCancel}
+                                                    className={cn(
+                                                        // Clean solid white card, flowing naturally from top
+                                                        "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
+                                                        "bg-white border border-[#dcdcd6] border-b-[2px] border-b-[#c6c6be] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0]",
+                                                        layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
+                                                        isFocused && "border-[#141413] ring-1 ring-[#141413] shadow-md -translate-y-[1px] z-30",
+                                                        isThisCardDragging
+                                                            ? "z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
+                                                            : "cursor-grab active:cursor-grabbing hover:shadow-md",
+                                                        isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70",
+                                                        // Hover-to-expand for short duration nodes
+                                                        !isThisCardDragging && layout.durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40"
+                                                    )}
+                                                    style={{
+                                                        top: `${layout.top}px`,
+                                                        height: `${layout.height}px`,
+                                                        minHeight: `${layout.height}px`,
+                                                        left: layout.left,
+                                                        width: layout.width,
+                                                        opacity: 1, // ALWAYS 100% OPAQUE
+                                                        willChange: isThisCardDragging ? "transform" : "left, top, height, width",
+                                                        transition: isThisCardDragging || isThisCardJustDropped
+                                                            ? (isSpringingBack ? "transform 200ms ease-out" : "none")
+                                                            : "left 340ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), width 340ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
+                                                        ...(isThisCardDragging
+                                                            ? {
+                                                                  transform: `translate3d(${dragDelta.dx}px, ${dragDelta.dy}px, 0) scale(1.02)`,
+                                                                  transition: isSpringingBack
+                                                                      ? "transform 200ms ease-out"
+                                                                      : "none"
+                                                              }
+                                                            : {})
+                                                    }}
+                                                >
+                                                    {/* 1. Compact Mode (durationMin <= 75, e.g. 1 SKS) */}
+                                                    {layout.isCompact ? (
+                                                        <div className="flex flex-col h-full justify-between">
+                                                            {/* Row 1: Course Name on left + [Badge] + Lock on right */}
+                                                            <div className="flex items-center justify-between gap-1.5 min-w-0">
+                                                                <h4 className="text-[12px] font-semibold text-[#141413] truncate group-hover:whitespace-normal group-hover:line-clamp-none leading-tight min-w-0 flex-1">
+                                                                    {cls.subjectName}
+                                                                </h4>
+                                                                <div className="flex items-center gap-1 shrink-0">
+                                                                    <span className="px-1 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[9.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                        {cls.className}
+                                                                    </span>
+                                                                    {onToggleFreeze && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onPointerDown={(e) => e.stopPropagation()}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                onToggleFreeze(cls.subjectId);
+                                                                            }}
+                                                                            className={cn(
+                                                                                "w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 transition-colors",
+                                                                                isFrozen
+                                                                                    ? "text-[#141413] bg-neutral-100"
+                                                                                    : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                            )}
+                                                                            title={isFrozen ? "Click to unlock" : "Click to lock"}
+                                                                        >
+                                                                            {isFrozen ? (
+                                                                                <Lock className="w-2.5 h-2.5 text-[#141413]" />
+                                                                            ) : (
+                                                                                <Unlock className="w-2.5 h-2.5" />
+                                                                            )}
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
 
-                                        const isCompact = durationMin <= 75;
-                                        const isMedium = durationMin > 75 && durationMin <= 110;
+                                                            {/* Row 2: Time + Room */}
+                                                            <div className="text-[10px] text-[#6e6e77] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight">
+                                                                <span>{m.start}–{m.end}</span>
+                                                                {m.room && <span className="font-sans">· {m.room}</span>}
+                                                            </div>
 
-                                        return (
-                                            <div
-                                                key={`${cls.subjectId}-${mIdx}`}
-                                                id={slotIdx === 0 ? "tour-first-node" : undefined}
-                                                data-subject-id={cls.subjectId}
-                                                data-class-id={cls.classId}
-                                                onPointerDown={(e) => handlePointerDown(e, cls, mIdx)}
-                                                onPointerMove={handlePointerMove}
-                                                onPointerUp={handlePointerUp}
-                                                onPointerCancel={handlePointerCancel}
-                                                className={cn(
-                                                    // Clean solid white card, flowing naturally from top
-                                                    "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
-                                                    "bg-white border border-[#dcdcd6] border-b-[2px] border-b-[#c6c6be] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0]",
-                                                    isCompact ? "px-2.5 py-1.5" : isMedium ? "p-2" : "p-3",
-                                                    isFocused && "border-[#141413] ring-1 ring-[#141413] shadow-md -translate-y-[1px] z-30",
-                                                    isThisCardDragging
-                                                        ? "z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
-                                                        : "cursor-grab active:cursor-grabbing hover:shadow-md",
-                                                    isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70",
-                                                    // Hover-to-expand for short duration nodes
-                                                    !isThisCardDragging && durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40"
-                                                )}
-                                                style={{
-                                                    top: `${pos.top + 2}px`,
-                                                    height: `${pos.height - 4}px`,
-                                                    minHeight: `${pos.height - 4}px`,
-                                                    left: slot.clusterSize > 1 ? `calc(${subLeftPercent}% + 2px)` : `calc(${subLeftPercent}% + 4px)`,
-                                                    width: slot.clusterSize > 1 ? `calc(${subWidthPercent}% - 4px)` : `calc(${subWidthPercent}% - 8px)`,
-                                                    opacity: 1, // ALWAYS 100% OPAQUE
-                                                    willChange: isThisCardDragging ? "transform" : "left, top, height, width",
-                                                    transition: isThisCardDragging || isThisCardJustDropped
-                                                        ? (isSpringingBack ? "transform 200ms ease-out" : "none")
-                                                        : "left 340ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), width 340ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
-                                                    ...(isThisCardDragging
-                                                        ? {
-                                                              transform: `translate3d(${dragDelta.dx}px, ${dragDelta.dy}px, 0) scale(1.02)`,
-                                                              transition: isSpringingBack
-                                                                  ? "transform 200ms ease-out"
-                                                                  : "none"
-                                                          }
-                                                        : {})
-                                                }}
-                                            >
-                                                {/* 1. Compact Mode (durationMin <= 75, e.g. 1 SKS) */}
-                                                {isCompact ? (
-                                                    <div className="flex flex-col h-full justify-between">
-                                                        {/* Row 1: Course Name on left + [Badge] + Lock on right */}
-                                                        <div className="flex items-center justify-between gap-1.5 min-w-0">
-                                                            <h4 className="text-[12px] font-semibold text-[#141413] truncate group-hover:whitespace-normal group-hover:line-clamp-none leading-tight min-w-0 flex-1">
-                                                                {cls.subjectName}
-                                                            </h4>
-                                                            <div className="flex items-center gap-1 shrink-0">
-                                                                <span className="px-1 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[9.5px] font-semibold text-[#141413] shrink-0 leading-none">
-                                                                    {cls.className}
-                                                                </span>
+                                                            {/* Hidden expandable details on hover (reveals full room & lecturer) */}
+                                                            {cls.lecturers?.[0] && (
+                                                                <div className="hidden group-hover:block text-[10px] text-[#71717a] truncate mt-1 pt-1 border-t border-[#e6e6e3] font-sans">
+                                                                    {cls.lecturers[0]}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : layout.isMedium ? (
+                                                        /* 2. Medium Mode (75 < durationMin <= 110, e.g. 2 SKS) */
+                                                        <div className="flex flex-col h-full justify-start">
+                                                            {/* Row 1: Section + Time + Lock */}
+                                                            <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
+                                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                        {cls.className}
+                                                                    </span>
+                                                                    <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
+                                                                        {m.start}–{m.end}
+                                                                    </span>
+                                                                </div>
                                                                 {onToggleFreeze && (
                                                                     <button
                                                                         type="button"
@@ -768,7 +896,7 @@ export function ScheduleGrid({
                                                                             onToggleFreeze(cls.subjectId);
                                                                         }}
                                                                         className={cn(
-                                                                            "w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 transition-colors",
+                                                                            "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
                                                                             isFrozen
                                                                                 ? "text-[#141413] bg-neutral-100"
                                                                                 : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
@@ -776,143 +904,92 @@ export function ScheduleGrid({
                                                                         title={isFrozen ? "Click to unlock" : "Click to lock"}
                                                                     >
                                                                         {isFrozen ? (
-                                                                            <Lock className="w-2.5 h-2.5 text-[#141413]" />
+                                                                            <Lock className="w-3 h-3 text-[#141413]" />
                                                                         ) : (
-                                                                            <Unlock className="w-2.5 h-2.5" />
+                                                                            <Unlock className="w-3 h-3" />
                                                                         )}
                                                                     </button>
                                                                 )}
                                                             </div>
-                                                        </div>
 
-                                                        {/* Row 2: Time + Room */}
-                                                        <div className="text-[10px] text-[#6e6e77] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight">
-                                                            <span>{m.start}–{m.end}</span>
-                                                            {m.room && <span className="font-sans">· {m.room}</span>}
-                                                        </div>
+                                                            {/* Row 2: Course Name */}
+                                                            <h4 className="text-[12.5px] font-semibold text-[#141413] line-clamp-1 group-hover:line-clamp-none mt-0.5 leading-snug">
+                                                                {cls.subjectName}
+                                                            </h4>
 
-                                                        {/* Hidden expandable details on hover (reveals full room & lecturer) */}
-                                                        {cls.lecturers?.[0] && (
-                                                            <div className="hidden group-hover:block text-[10px] text-[#71717a] truncate mt-1 pt-1 border-t border-[#e6e6e3] font-sans">
-                                                                {cls.lecturers[0]}
+                                                            {/* Row 3: Room and Lecturer */}
+                                                            <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-[#4a4a52] truncate mt-0.5 leading-tight">
+                                                                {m.room && <span>{m.room}</span>}
+                                                                {m.room && cls.lecturers?.[0] && <span className="text-[#a1a1aa]">·</span>}
+                                                                {cls.lecturers?.[0] && (
+                                                                    <span className="text-[10px] text-[#71717a] font-normal truncate">
+                                                                        {cls.lecturers[0]}
+                                                                    </span>
+                                                                )}
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                ) : isMedium ? (
-                                                    /* 2. Medium Mode (75 < durationMin <= 110, e.g. 2 SKS) */
-                                                    <div className="flex flex-col h-full justify-start">
-                                                        {/* Row 1: Section + Time + Lock */}
-                                                        <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
-                                                            <div className="flex items-center gap-1.5 min-w-0">
-                                                                <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
-                                                                    {cls.className}
-                                                                </span>
-                                                                <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
-                                                                    {m.start}–{m.end}
-                                                                </span>
+                                                        </div>
+                                                    ) : (
+                                                        /* 3. Full Mode (> 110 min, e.g. 3+ SKS) */
+                                                        <div className="flex flex-col h-full justify-start">
+                                                            {/* Row 1: Section & Time + Lock Icon */}
+                                                            <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
+                                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                        {cls.className}
+                                                                    </span>
+                                                                    <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
+                                                                        {m.start}–{m.end}
+                                                                    </span>
+                                                                </div>
+
+                                                                {onToggleFreeze && (
+                                                                    <button
+                                                                        type="button"
+                                                                        onPointerDown={(e) => e.stopPropagation()}
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            onToggleFreeze(cls.subjectId);
+                                                                        }}
+                                                                        className={cn(
+                                                                            "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
+                                                                            isFrozen
+                                                                                ? "text-[#141413] bg-neutral-100"
+                                                                                : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                        )}
+                                                                        title={isFrozen ? "Click to unlock class in solver" : "Click to lock this class"}
+                                                                    >
+                                                                        {isFrozen ? (
+                                                                            <Lock className="w-3 h-3 text-[#141413]" />
+                                                                        ) : (
+                                                                            <Unlock className="w-3 h-3" />
+                                                                        )}
+                                                                    </button>
+                                                                )}
                                                             </div>
-                                                            {onToggleFreeze && (
-                                                                <button
-                                                                    type="button"
-                                                                    onPointerDown={(e) => e.stopPropagation()}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        onToggleFreeze(cls.subjectId);
-                                                                    }}
-                                                                    className={cn(
-                                                                        "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
-                                                                        isFrozen
-                                                                            ? "text-[#141413] bg-neutral-100"
-                                                                            : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
-                                                                    )}
-                                                                    title={isFrozen ? "Click to unlock" : "Click to lock"}
-                                                                >
-                                                                    {isFrozen ? (
-                                                                        <Lock className="w-3 h-3 text-[#141413]" />
-                                                                    ) : (
-                                                                        <Unlock className="w-3 h-3" />
-                                                                    )}
-                                                                </button>
+
+                                                            {/* Row 2: Course Name (mt-1.5) */}
+                                                            <h4 className="text-[13.5px] font-semibold text-[#141413] leading-snug line-clamp-2 mt-1.5">
+                                                                {cls.subjectName}
+                                                            </h4>
+
+                                                            {/* Row 3: Room (mt-1 directly below Course Name) */}
+                                                            {m.room && (
+                                                                <div className="text-[11.5px] font-medium text-[#4a4a52] leading-tight truncate mt-1">
+                                                                    {m.room}
+                                                                </div>
                                                             )}
-                                                        </div>
 
-                                                        {/* Row 2: Course Name */}
-                                                        <h4 className="text-[12.5px] font-semibold text-[#141413] line-clamp-1 group-hover:line-clamp-none mt-0.5 leading-snug">
-                                                            {cls.subjectName}
-                                                        </h4>
-
-                                                        {/* Row 3: Room and Lecturer */}
-                                                        <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-[#4a4a52] truncate mt-0.5 leading-tight">
-                                                            {m.room && <span>{m.room}</span>}
-                                                            {m.room && cls.lecturers?.[0] && <span className="text-[#a1a1aa]">·</span>}
+                                                            {/* Row 4: Lecturer (mt-0.5 directly below Room) */}
                                                             {cls.lecturers?.[0] && (
-                                                                <span className="text-[10px] text-[#71717a] font-normal truncate">
+                                                                <div className="text-[11px] text-[#71717a] leading-tight truncate mt-0.5">
                                                                     {cls.lecturers[0]}
-                                                                </span>
+                                                                </div>
                                                             )}
                                                         </div>
-                                                    </div>
-                                                ) : (
-                                                    /* 3. Full Mode (> 110 min, e.g. 3+ SKS) */
-                                                    <div className="flex flex-col h-full justify-start">
-                                                        {/* Row 1: Section & Time + Lock Icon */}
-                                                        <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
-                                                            <div className="flex items-center gap-1.5 min-w-0">
-                                                                <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
-                                                                    {cls.className}
-                                                                </span>
-                                                                <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
-                                                                    {m.start}–{m.end}
-                                                                </span>
-                                                            </div>
-
-                                                            {onToggleFreeze && (
-                                                                <button
-                                                                    type="button"
-                                                                    onPointerDown={(e) => e.stopPropagation()}
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        onToggleFreeze(cls.subjectId);
-                                                                    }}
-                                                                    className={cn(
-                                                                        "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
-                                                                        isFrozen
-                                                                            ? "text-[#141413] bg-neutral-100"
-                                                                            : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
-                                                                    )}
-                                                                    title={isFrozen ? "Click to unlock class in solver" : "Click to lock this class"}
-                                                                >
-                                                                    {isFrozen ? (
-                                                                        <Lock className="w-3 h-3 text-[#141413]" />
-                                                                    ) : (
-                                                                        <Unlock className="w-3 h-3" />
-                                                                    )}
-                                                                </button>
-                                                            )}
-                                                        </div>
-
-                                                        {/* Row 2: Course Name (mt-1.5) */}
-                                                        <h4 className="text-[13.5px] font-semibold text-[#141413] leading-snug line-clamp-2 mt-1.5">
-                                                            {cls.subjectName}
-                                                        </h4>
-
-                                                        {/* Row 3: Room (mt-1 directly below Course Name) */}
-                                                        {m.room && (
-                                                            <div className="text-[11.5px] font-medium text-[#4a4a52] leading-tight truncate mt-1">
-                                                                {m.room}
-                                                            </div>
-                                                        )}
-
-                                                        {/* Row 4: Lecturer (mt-0.5 directly below Room) */}
-                                                        {cls.lecturers?.[0] && (
-                                                            <div className="text-[11px] text-[#71717a] leading-tight truncate mt-0.5">
-                                                                {cls.lecturers[0]}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
+                                                    )}
+                                                </div>
+                                            );
+                                        });
                                     })}
                                 </div>
                             </div>

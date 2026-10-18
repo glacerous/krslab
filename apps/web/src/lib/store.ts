@@ -611,14 +611,25 @@ export const useAppStore = create<AppStore>()(
                         }
                     }
 
-                    // Pick a random variant that differs from current displayed mapping
+                    // Pick a variant that differs from current displayed mapping
                     const currentMapping = currentDisplayedMapping ?? plan.selectedClassBySubjectId;
                     const differingVariants = uniqueVariants.filter((m) =>
                         Object.entries(m).some(([sId, cId]) => currentMapping[sId] !== cId)
                     );
-                    const chosen = differingVariants.length > 0
-                        ? differingVariants[Math.floor(Math.random() * differingVariants.length)]
-                        : uniqueVariants[0] || null;
+
+                    let chosen: Record<string, string> | null = null;
+                    if (differingVariants.length > 0) {
+                        // Sort by count of moved courses DESC to favor high visual reshuffling
+                        differingVariants.sort((a, b) => {
+                            const diffA = Object.entries(a).filter(([sId, cId]) => currentMapping[sId] !== cId).length;
+                            const diffB = Object.entries(b).filter(([sId, cId]) => currentMapping[sId] !== cId).length;
+                            return diffB - diffA;
+                        });
+                        const poolSize = Math.max(1, Math.ceil(differingVariants.length / 2));
+                        chosen = differingVariants[Math.floor(Math.random() * poolSize)];
+                    } else {
+                        chosen = uniqueVariants[0] || null;
+                    }
 
                     return {
                         success: true,
