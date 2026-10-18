@@ -1,15 +1,30 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Gaegu, Space_Mono } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
-import { Sidebar } from "@/components/Sidebar";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
 // @ts-ignore
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800", "900"] });
+const inter = Inter({
+    subsets: ["latin"],
+    weight: ["400", "500", "600"],
+    variable: "--font-sans",
+});
+
+const gaegu = Gaegu({
+    subsets: ["latin"],
+    weight: ["400", "700"],
+    variable: "--font-doodle",
+});
+
+const spaceMono = Space_Mono({
+    subsets: ["latin"],
+    weight: ["400", "700"],
+    variable: "--font-mono",
+});
 
 export const metadata: Metadata = {
     title: {
@@ -72,11 +87,11 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" suppressHydrationWarning>
-            <body className={`${inter.className} bg-background text-foreground transition-colors duration-200 antialiased`}>
+        <html lang="en" suppressHydrationWarning className={`${inter.variable} ${gaegu.variable} ${spaceMono.variable}`}>
+            <body className="font-sans bg-[#f9f9f8] text-[#141413] antialiased selection:bg-amber-100 selection:text-[#141413]">
                 <ThemeProvider
                     attribute="class"
-                    defaultTheme="dark"
+                    defaultTheme="light"
                     enableSystem={false}
                     disableTransitionOnChange
                 >

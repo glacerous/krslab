@@ -8,6 +8,11 @@ module.exports = {
     ],
     theme: {
     	extend: {
+    		fontFamily: {
+    			sans: ['var(--font-sans)', 'Inter', '-apple-system', 'sans-serif'],
+    			doodle: ['var(--font-doodle)', 'Gaegu', 'cursive'],
+    			mono: ['var(--font-mono)', 'Space Mono', 'monospace'],
+    		},
     		borderRadius: {
     			lg: 'var(--radius)',
     			md: 'calc(var(--radius) - 2px)',
