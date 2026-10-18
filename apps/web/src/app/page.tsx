@@ -268,35 +268,15 @@ function WorkspaceContent() {
 
         const currentlyDisplayed = previewMapping ?? activePlan.selectedClassBySubjectId;
 
-        const countDiff = (cand: Record<string, string>, base: Record<string, string>) => {
-            let diff = 0;
-            const frozenSet = new Set(activePlan?.frozenSubjectIds ?? []);
-            for (const [sId, cId] of Object.entries(cand)) {
-                if (!frozenSet.has(sId) && base[sId] !== cId) {
-                    diff++;
-                }
-            }
-            return diff;
-        };
-
-        // Calculate maximum possible displacement (all unfrozen courses with > 1 class)
-        const mutableWithAlternatives = (activePlan.selectedSubjectIds ?? []).filter(sId => {
-            if (activePlan.frozenSubjectIds?.includes(sId)) return false;
-            const sub = activeDatasource?.subjects.find(s => s.subjectId === sId);
-            return (sub?.classes.length ?? 0) > 1;
-        });
-        const maxTargetDiff = mutableWithAlternatives.length;
-
-        // 1. Cycle through cached candidates ONLY if they move ALL mutable courses
+        // 1. Cycle through unseen cached candidates in the pool to guarantee distinct movement
         if (candidatePoolRef.current.length > 0) {
-            candidatePoolRef.current.sort((a, b) => countDiff(b, currentlyDisplayed) - countDiff(a, currentlyDisplayed));
+            const differingIdx = candidatePoolRef.current.findIndex(cand =>
+                Object.entries(cand).some(([sId, cId]) => currentlyDisplayed[sId] !== cId)
+            );
 
-            const bestCand = candidatePoolRef.current[0];
-            const maxDiff = countDiff(bestCand, currentlyDisplayed);
-
-            if (maxDiff >= maxTargetDiff && maxDiff > 0) {
-                candidatePoolRef.current.shift();
-                setPreviewMapping(bestCand);
+            if (differingIdx !== -1) {
+                const [nextCandidate] = candidatePoolRef.current.splice(differingIdx, 1);
+                setPreviewMapping(nextCandidate);
                 toast.success("Schedule Candidate Shuffled", {
                     id: "solver-toast",
                     description: "Accept to apply or Shuffle to try another."
@@ -305,18 +285,18 @@ function WorkspaceContent() {
             }
         }
 
-        // 2. Pool empty or candidate left a course behind: generate a fresh batch of candidates avoiding currentlyDisplayed
+        // 2. Pool empty or exhausted: generate a fresh batch of random candidates
         setSolverDiagnostics(null);
         toast.loading("Finding conflict-free schedule...", { id: "solver-toast" });
 
         const result = generateCandidateSchedule(activePlan.id, currentlyDisplayed);
 
         if (result.success && result.candidate) {
-            // Populate pool with remaining distinct candidates, sorted descending by displacement
+            // Populate pool with remaining distinct candidates
             if (result.allCandidates && result.allCandidates.length > 0) {
-                const remaining = result.allCandidates
-                    .filter(c => c !== result.candidate && countDiff(c, result.candidate!) > 0)
-                    .sort((a, b) => countDiff(b, result.candidate!) - countDiff(a, result.candidate!));
+                const remaining = result.allCandidates.filter(c =>
+                    Object.entries(c).some(([sId, cId]) => result.candidate![sId] !== cId)
+                );
                 candidatePoolRef.current = remaining;
             } else {
                 candidatePoolRef.current = [];
@@ -340,7 +320,7 @@ function WorkspaceContent() {
                     : "Try adjusting or relaxing your active rules."
             });
         }
-    }, [activePlan, isGenerating, generateCandidateSchedule, previewMapping, activeDatasource]);
+    }, [activePlan, isGenerating, generateCandidateSchedule, previewMapping]);
 
     // Handler: Explicitly Accept Candidate Preview
     const handleAcceptPreview = useCallback(() => {

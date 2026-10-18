@@ -556,10 +556,9 @@ export const useAppStore = create<AppStore>()(
                         mutableCourses as any,
                         rules,
                         {
-                            target: 35,
-                            maxAttempts: 3500,
-                            seed: freshSeed,
-                            avoidMapping: currentDisplayedMapping
+                            target: 20,
+                            maxAttempts: 2000,
+                            seed: freshSeed
                         },
                         {
                             sectionsConflict: checkClassConflict,
@@ -612,24 +611,18 @@ export const useAppStore = create<AppStore>()(
                         }
                     }
 
-                    // Calculate displacement (Hamming distance) against current displayed schedule
+                    // Pick one that differs from current displayed mapping if possible
                     const currentMapping = currentDisplayedMapping ?? plan.selectedClassBySubjectId;
-                    const countDiff = (candidate: Record<string, string>) => {
-                        let diff = 0;
-                        for (const [sId, cId] of Object.entries(candidate)) {
-                            if (!initialPicksIds.has(sId) && currentMapping[sId] !== cId) {
-                                diff++;
-                            }
-                        }
-                        return diff;
+                    const differingVariants = uniqueVariants.filter((m) =>
+                        Object.entries(m).some(([sId, cId]) => currentMapping[sId] !== cId)
+                    );
+                    const chosen = differingVariants[0] || uniqueVariants[0] || null;
+
+                    return {
+                        success: true,
+                        candidate: chosen,
+                        allCandidates: differingVariants.length > 0 ? differingVariants : uniqueVariants
                     };
-
-                    // Sort unique variants by maximum displacement (most courses moved first)
-                    uniqueVariants.sort((a, b) => countDiff(b) - countDiff(a));
-
-                    const chosen = uniqueVariants[0] || null;
-
-                    return { success: true, candidate: chosen, allCandidates: uniqueVariants };
                 } finally {
                     set({ isGenerating: false });
                 }
