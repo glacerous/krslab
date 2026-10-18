@@ -185,4 +185,20 @@
     width: var(--node-day-width) !important;
     z-index: 50 !important;
   }
+
+  /* Hand-Drawn Tour Scribble Highlight Animation */
+  @keyframes scribble-draw {
+    from {
+      stroke-dashoffset: 1400;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .animate-scribble {
+    stroke-dasharray: 1400;
+    stroke-dashoffset: 0;
+    animation: scribble-draw 450ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }

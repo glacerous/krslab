@@ -1212,11 +1212,13 @@ function WorkspaceContent() {
                 editSourceId={dataModalEditSourceId}
             />
 
-            {/* Interactive 5-Step Spotlight Tour */}
+            {/* Interactive 6-Step Spotlight Tour */}
             <InteractiveTour
                 isOpen={activeOverlay === "tour"}
                 onClose={closeOverlay}
                 onOpenImport={() => openOverlay("bima-import")}
+                onOpenSourceMenu={handleToggleSourceMenu}
+                onOpenPlanMenu={handleTogglePlanMenu}
                 onFocusFirstCourse={() => {
                     const firstSubId = selectedClasses[0]?.subjectId || activePlan.selectedSubjectIds[0];
                     if (firstSubId) {
