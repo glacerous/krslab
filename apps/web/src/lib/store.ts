@@ -83,6 +83,7 @@ interface AppStore {
     addPlan: (plan: Omit<Plan, "id" | "createdAt">) => string;
     updatePlan: (id: string, updates: Partial<Plan>) => void;
     deletePlan: (id: string) => void;
+    duplicatePlan: (planId: string) => string;
     toggleSubjectInPlan: (planId: string, subjectId: string) => void;
     removeSubjectFromPlan: (planId: string, subjectId: string) => void;
     setSelectedClassForSubject: (planId: string, subjectId: string, classId: string) => void;
@@ -412,6 +413,25 @@ export const useAppStore = create<AppStore>()(
                         activePlanId: nextActivePlanId,
                     };
                 });
+            },
+
+            duplicatePlan: (planId) => {
+                const sourcePlan = get().plans.find((p: Plan) => p.id === planId);
+                if (!sourcePlan) return "";
+                const id = crypto.randomUUID();
+                const newPlan: Plan = {
+                    ...JSON.parse(JSON.stringify(sourcePlan)),
+                    id,
+                    name: `${sourcePlan.name} (Copy)`,
+                    createdAt: new Date().toISOString(),
+                    savedVariants: [],
+                    previewOverrides: {},
+                };
+                set((state: AppStore) => ({
+                    plans: [newPlan, ...state.plans],
+                    activePlanId: id,
+                }));
+                return id;
             },
 
             toggleSubjectInPlan: (planId, subjectId) => {

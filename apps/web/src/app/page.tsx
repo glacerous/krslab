@@ -47,6 +47,7 @@ function WorkspaceContent() {
         addPlan,
         updatePlan,
         deletePlan,
+        duplicatePlan,
         updateDatasource,
         duplicateDatasource,
         deleteDatasource,
@@ -72,11 +73,20 @@ function WorkspaceContent() {
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
     const [activeOverlay, setActiveOverlay] = useState<ActiveOverlay>("none");
-    const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
     const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
+    const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
+    const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
+    const [editingPlanIdInMenu, setEditingPlanIdInMenu] = useState<string | null>(null);
+    const [menuPlanNameInput, setMenuPlanNameInput] = useState("");
+    const [isRenamingTopBar, setIsRenamingTopBar] = useState(false);
+    const [topBarPlanName, setTopBarPlanName] = useState("");
+    const topBarInputRef = useRef<HTMLInputElement>(null);
+
     const [dataModalEditSourceId, setDataModalEditSourceId] = useState<string | null>(null);
     const sourceTriggerRef = useRef<HTMLButtonElement>(null);
+    const planTriggerRef = useRef<HTMLButtonElement>(null);
     const [sourceMenuCoords, setSourceMenuCoords] = useState<{ top: number; left: number } | null>(null);
+    const [planMenuCoords, setPlanMenuCoords] = useState<{ top: number; left: number } | null>(null);
 
     const updateSourceMenuCoords = useCallback(() => {
         if (sourceTriggerRef.current) {
@@ -90,12 +100,37 @@ function WorkspaceContent() {
         }
     }, []);
 
+    const updatePlanMenuCoords = useCallback(() => {
+        if (planTriggerRef.current) {
+            const rect = planTriggerRef.current.getBoundingClientRect();
+            const menuWidth = 340;
+            const left = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+            setPlanMenuCoords({
+                top: rect.bottom + 6,
+                left,
+            });
+        }
+    }, []);
+
     const handleToggleSourceMenu = () => {
         if (!isSourceMenuOpen) {
             updateSourceMenuCoords();
             setIsSourceMenuOpen(true);
+            setIsPlanMenuOpen(false);
         } else {
             setIsSourceMenuOpen(false);
+        }
+    };
+
+    const handleTogglePlanMenu = () => {
+        if (!isPlanMenuOpen) {
+            updatePlanMenuCoords();
+            setIsPlanMenuOpen(true);
+            setIsSourceMenuOpen(false);
+            setConfirmDeletePlanId(null);
+            setEditingPlanIdInMenu(null);
+        } else {
+            setIsPlanMenuOpen(false);
         }
     };
 
@@ -112,6 +147,16 @@ function WorkspaceContent() {
             window.removeEventListener("scroll", updateSourceMenuCoords, true);
         };
     }, [isSourceMenuOpen, updateSourceMenuCoords]);
+
+    useEffect(() => {
+        if (!isPlanMenuOpen) return;
+        window.addEventListener("resize", updatePlanMenuCoords);
+        window.addEventListener("scroll", updatePlanMenuCoords, true);
+        return () => {
+            window.removeEventListener("resize", updatePlanMenuCoords);
+            window.removeEventListener("scroll", updatePlanMenuCoords, true);
+        };
+    }, [isPlanMenuOpen, updatePlanMenuCoords]);
 
     const [activeTab, setActiveTab] = useState<"selected" | "catalog">("selected");
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
@@ -164,6 +209,14 @@ function WorkspaceContent() {
                 if (isSourceMenuOpen) {
                     setIsSourceMenuOpen(false);
                 }
+                if (isPlanMenuOpen) {
+                    setIsPlanMenuOpen(false);
+                    setConfirmDeletePlanId(null);
+                    setEditingPlanIdInMenu(null);
+                }
+                if (isRenamingTopBar) {
+                    setIsRenamingTopBar(false);
+                }
                 if (isMobileCoursesOpen) {
                     setIsMobileCoursesOpen(false);
                 }
@@ -174,7 +227,34 @@ function WorkspaceContent() {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [activeOverlay, closeOverlay, isMobileCoursesOpen, isSourceMenuOpen]);
+    }, [activeOverlay, closeOverlay, isMobileCoursesOpen, isSourceMenuOpen, isPlanMenuOpen, isRenamingTopBar]);
+
+    const handleSaveTopBarRename = () => {
+        if (!activePlan) return;
+        const trimmed = topBarPlanName.trim();
+        if (trimmed && trimmed !== activePlan.name) {
+            updatePlan(activePlan.id, { name: trimmed });
+            toast.success("Plan renamed");
+        }
+        setIsRenamingTopBar(false);
+    };
+
+    const handleSaveMenuRename = (planId: string) => {
+        const trimmed = menuPlanNameInput.trim();
+        if (trimmed) {
+            updatePlan(planId, { name: trimmed });
+            toast.success("Plan renamed");
+        }
+        setEditingPlanIdInMenu(null);
+    };
+
+    const handleDuplicatePlan = (planId: string) => {
+        const newPlanId = duplicatePlan(planId);
+        if (newPlanId) {
+            toast.success("Plan duplicated");
+            setIsPlanMenuOpen(false);
+        }
+    };
 
     const handleSwitchDatasource = (dsId: string) => {
         setActiveDatasourceId(dsId);
@@ -725,55 +805,54 @@ function WorkspaceContent() {
                         </button>
                     </div>
 
-                    <span className="text-[#d8d8d4] text-xs shrink-0 select-none">|</span>
+                    <span className="text-[#d8d8d4] text-sm shrink-0 font-light">/</span>
 
-                    {/* Visible Plan Tabs + + New Plan Button */}
-                    <div className="flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar py-0.5">
-                        {sourcePlans.map((p) => {
-                            const isActive = p.id === activePlan.id;
-                            return (
-                                <div
-                                    key={p.id}
-                                    onClick={() => {
-                                        setActivePlanId(p.id);
-                                        const hasCourses = (p.selectedSubjectIds ?? []).length > 0;
-                                        setActiveTab(hasCourses ? "selected" : "catalog");
+                    {/* Plan Switcher Dropdown Trigger */}
+                    <div className="relative shrink-0">
+                        {isRenamingTopBar ? (
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    handleSaveTopBarRename();
+                                }}
+                                className="flex items-center gap-1"
+                            >
+                                <input
+                                    ref={topBarInputRef}
+                                    type="text"
+                                    value={topBarPlanName}
+                                    onChange={(e) => setTopBarPlanName(e.target.value)}
+                                    onBlur={handleSaveTopBarRename}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Escape") {
+                                            setIsRenamingTopBar(false);
+                                        }
                                     }}
-                                    className={cn(
-                                        "flex items-center gap-1 px-2.5 py-1 rounded-md text-[13px] cursor-pointer transition-all shrink-0 select-none group",
-                                        isActive
-                                            ? "nexvyn-dash font-semibold text-[#141413] bg-neutral-100/60"
-                                            : "font-medium text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-100/50"
-                                    )}
-                                    title={`Plan: ${p.name}`}
-                                >
-                                    <span className="truncate max-w-[100px]">{p.name}</span>
-                                    {sourcePlans.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDeletePlan(p.id, p.name);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-neutral-200/80 hover:text-rose-600 rounded text-neutral-400 transition-all ml-0.5"
-                                            title={`Delete ${p.name}`}
-                                        >
-                                            <X className="w-2.5 h-2.5" />
-                                        </button>
-                                    )}
-                                </div>
-                            );
-                        })}
-
-                        {/* Explicit, always-visible + New Plan button */}
-                        <button
-                            onClick={handleCreateNewPlan}
-                            className="px-2 py-1 rounded-md text-[12.5px] font-medium text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-100 transition-colors flex items-center gap-1 shrink-0 select-none"
-                            title="Create a new schedule plan"
-                        >
-                            <Plus className="w-3 h-3 text-[#6e6e77]" />
-                            <span>New Plan</span>
-                        </button>
+                                    className="px-2 py-0.5 text-[13.5px] font-semibold text-[#141413] bg-white border border-[#141413] rounded-md outline-none max-w-[150px] shadow-xs"
+                                    autoFocus
+                                />
+                            </form>
+                        ) : (
+                            <button
+                                id="tour-plan-btn"
+                                ref={planTriggerRef}
+                                type="button"
+                                onClick={handleTogglePlanMenu}
+                                onDoubleClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsPlanMenuOpen(false);
+                                    setTopBarPlanName(activePlan.name);
+                                    setIsRenamingTopBar(true);
+                                }}
+                                className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 text-[13.5px] text-[#141413] flex items-center gap-1.5 transition-colors select-none group"
+                                title="Click to switch plans, duplicate, or manage (double click to rename)"
+                            >
+                                <span className="nexvyn-dash font-semibold max-w-[130px] sm:max-w-[180px] truncate">
+                                    {activePlan.name}
+                                </span>
+                                <ChevronDown className={cn("w-3 h-3 text-[#a1a1aa] shrink-0 transition-transform duration-150", isPlanMenuOpen && "rotate-180")} />
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -1278,6 +1357,225 @@ function WorkspaceContent() {
                                 className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-50 flex items-center gap-2 transition-colors select-none"
                             >
                                 <span>Load sample Informatics data</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Portaled Plan Manager Dropdown (z-[9999] in document.body) */}
+            {mounted && isPlanMenuOpen && planMenuCoords && createPortal(
+                <div className="fixed inset-0 z-[9998] pointer-events-auto">
+                    {/* Full-screen invisible click-away backdrop */}
+                    <div
+                        className="fixed inset-0 z-[9998] bg-transparent"
+                        onClick={() => {
+                            setIsPlanMenuOpen(false);
+                            setConfirmDeletePlanId(null);
+                            setEditingPlanIdInMenu(null);
+                        }}
+                    />
+
+                    {/* Popover Card */}
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: `${planMenuCoords.top}px`,
+                            left: `${planMenuCoords.left}px`,
+                        }}
+                        className="w-[300px] sm:w-[340px] bg-white border border-[#e2e2de] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] select-none flex items-center justify-between">
+                            <span>schedule plans</span>
+                            <span className="text-[11px] font-sans font-normal text-[#a1a1aa]">
+                                {sourcePlans.length} {sourcePlans.length === 1 ? "plan" : "plans"}
+                            </span>
+                        </div>
+
+                        <div className="max-h-[260px] overflow-y-auto custom-scrollbar space-y-0.5 my-1">
+                            {sourcePlans.map((p) => {
+                                const isActive = p.id === activePlan.id;
+                                const isConfirmingDelete = confirmDeletePlanId === p.id;
+                                const isEditing = editingPlanIdInMenu === p.id;
+
+                                if (isConfirmingDelete) {
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            className="bg-rose-50/90 border border-rose-200 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2 animate-in fade-in duration-150 select-none"
+                                        >
+                                            <div className="flex items-center gap-1.5 min-w-0">
+                                                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                                <span className="text-[12px] font-medium text-rose-900 truncate">
+                                                    Delete &quot;{p.name}&quot;?
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setConfirmDeletePlanId(null)}
+                                                    className="text-[11.5px] text-[#6e6e77] hover:text-[#141413] px-2 py-0.5 rounded transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        handleDeletePlan(p.id, p.name);
+                                                        setConfirmDeletePlanId(null);
+                                                    }}
+                                                    className="bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-[11.5px] font-medium px-2.5 py-0.5 rounded-md transition-colors"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                }
+
+                                if (isEditing) {
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            className="p-1.5 rounded-lg bg-neutral-100/90 border border-[#d8d8d4] flex items-center gap-1.5"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <input
+                                                type="text"
+                                                value={menuPlanNameInput}
+                                                onChange={(e) => setMenuPlanNameInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        e.preventDefault();
+                                                        handleSaveMenuRename(p.id);
+                                                    } else if (e.key === "Escape") {
+                                                        setEditingPlanIdInMenu(null);
+                                                    }
+                                                }}
+                                                className="flex-1 min-w-0 px-2 py-1 text-[13px] font-medium bg-white border border-[#d8d8d4] rounded-md outline-none focus:border-[#141413]"
+                                                autoFocus
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleSaveMenuRename(p.id)}
+                                                className="px-2 py-1 text-[11.5px] font-medium bg-[#141413] text-white rounded-md hover:bg-neutral-800 transition-colors"
+                                            >
+                                                Save
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditingPlanIdInMenu(null)}
+                                                className="px-1.5 py-1 text-[11.5px] text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    );
+                                }
+
+                                const courseCount = p.selectedSubjectIds?.length || 0;
+                                const sksCount = activeDatasource.subjects
+                                    .filter(s => (p.selectedSubjectIds || []).includes(s.subjectId))
+                                    .reduce((sum, s) => sum + s.sks, 0);
+
+                                return (
+                                    <div
+                                        key={p.id}
+                                        onClick={() => {
+                                            setActivePlanId(p.id);
+                                            const hasCourses = (p.selectedSubjectIds ?? []).length > 0;
+                                            setActiveTab(hasCourses ? "selected" : "catalog");
+                                            setIsPlanMenuOpen(false);
+                                        }}
+                                        className={cn(
+                                            "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
+                                            isActive ? "bg-neutral-100/80 font-medium" : "hover:bg-neutral-50"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={cn("text-[13px] text-[#141413] truncate", isActive && "font-semibold")}>
+                                                        {p.name}
+                                                    </span>
+                                                    {isActive && (
+                                                        <Check className="w-3.5 h-3.5 text-[#141413] shrink-0" />
+                                                    )}
+                                                </div>
+                                                <div className="text-[11px] text-[#6e6e77] truncate">
+                                                    {courseCount} courses · {sksCount} SKS
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Inline management actions on each row */}
+                                        <div
+                                            className="flex items-center gap-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {/* Rename */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingPlanIdInMenu(p.id);
+                                                    setMenuPlanNameInput(p.name);
+                                                    setConfirmDeletePlanId(null);
+                                                }}
+                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                title="Rename plan"
+                                            >
+                                                <Pencil className="w-3.5 h-3.5" />
+                                            </button>
+
+                                            {/* Duplicate */}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDuplicatePlan(p.id);
+                                                }}
+                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                title="Duplicate plan"
+                                            >
+                                                <Copy className="w-3.5 h-3.5" />
+                                            </button>
+
+                                            {/* Delete (only when sourcePlans.length > 1) */}
+                                            {sourcePlans.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setConfirmDeletePlanId(p.id);
+                                                        setEditingPlanIdInMenu(null);
+                                                    }}
+                                                    className="p-1 rounded hover:bg-rose-100 text-[#a1a1aa] hover:text-rose-600 transition-colors"
+                                                    title="Delete plan"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Popover Footer Actions */}
+                        <div className="border-t border-[#e6e6e3] mt-1 pt-1.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    handleCreateNewPlan();
+                                    setIsPlanMenuOpen(false);
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
+                            >
+                                <Plus className="w-3.5 h-3.5 text-[#5b82a6]" />
+                                <span>+ Create new plan</span>
                             </button>
                         </div>
                     </div>
