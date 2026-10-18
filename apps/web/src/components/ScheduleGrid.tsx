@@ -707,6 +707,7 @@ export function ScheduleGrid({
                                                             return (
                                                                 <div
                                                                     key={`ghost-${sec.classId}-${mIdx}`}
+                                                                    data-tour="ghost-dropzone"
                                                                     data-ghost-class-id={sec.classId}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();

@@ -16,7 +16,6 @@ interface InteractiveTourProps {
 }
 
 interface StepConfig {
-    targetId: string;
     label: string;
     title: string;
     body: string;
@@ -25,64 +24,103 @@ interface StepConfig {
 
 const STEPS: StepConfig[] = [
     {
-        targetId: "tour-datasource-btn",
         label: "1 of 6",
         title: "Manage schedule sources",
         body: "Switch between semester datasets, duplicate or rename a source, or add a new BIMA schedule from the live menu."
     },
     {
-        targetId: "tour-data-modal",
         label: "2 of 6",
         title: "Importing BIMA table data",
         body: "In bima.upnyk.ac.id (Menu Perkuliahan → Dosen → Jadwal Dosen), copy the table rows (Ctrl+C) and paste into the box. Lecturers and rooms parse automatically.",
         actionType: "bima-preview"
     },
     {
-        targetId: "tour-plan-btn",
         label: "3 of 6",
         title: "Create & switch plans",
         body: "Build multiple schedule backups (Plan 1, Plan 2) for the same source. Switch, rename, duplicate, or create a new plan here."
     },
     {
-        targetId: "tour-course-panel",
         label: "4 of 6",
         title: "Pick your semester courses",
         body: "Browse the course catalog and check the subjects you need. Every selected course is placed onto the timetable grid automatically."
     },
     {
-        targetId: "tour-first-node",
         label: "5 of 6",
         title: "Drag or click to swap classes",
         body: "Drag any course block (or click the dashed amber slots on the grid) to switch to a different day, time, or lecturer."
     },
     {
-        targetId: "tour-solver-bar",
         label: "6 of 6",
         title: "Lock, set rules & auto-schedule",
         body: "Lock favorite classes on the grid, add day/gap constraints in Rules, and press Space to shuffle conflict-free combinations."
     }
 ];
 
-// Generates a single organic hand-drawn doodle frame with subtle natural curvature
-function generateSingleScribblePath(w: number, h: number): string {
-    const r = Math.min(10, Math.min(w, h) / 4);
-    const x0 = 2;
-    const y0 = 2;
-    const x1 = w - 2;
-    const y1 = h - 2;
+// Helper to compute union bounding box of multiple rects
+interface SimpleRect {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    height: number;
+}
+
+function computeUnionRect(rects: SimpleRect[]): SimpleRect | null {
+    if (rects.length === 0) return null;
+    let minLeft = rects[0].left;
+    let minTop = rects[0].top;
+    let maxRight = rects[0].right;
+    let maxBottom = rects[0].bottom;
+
+    for (let i = 1; i < rects.length; i++) {
+        minLeft = Math.min(minLeft, rects[i].left);
+        minTop = Math.min(minTop, rects[i].top);
+        maxRight = Math.max(maxRight, rects[i].right);
+        maxBottom = Math.max(maxBottom, rects[i].bottom);
+    }
+
+    return {
+        left: minLeft,
+        top: minTop,
+        right: maxRight,
+        bottom: maxBottom,
+        width: maxRight - minLeft,
+        height: maxBottom - minTop
+    };
+}
+
+// Generates an authentic hand-drawn organic scribble loop using cubic Beziers with natural wobble, corner overshoot, and overlapping tail
+function generateOrganicScribblePath(w: number, h: number): string {
+    const pad = 6;
+    const x0 = pad;
+    const y0 = pad;
+    const x1 = w - pad;
+    const y1 = h - pad;
+    const rx = Math.min(14, Math.max(6, w * 0.08));
+    const ry = Math.min(14, Math.max(6, h * 0.08));
     const midX = (x0 + x1) / 2;
     const midY = (y0 + y1) / 2;
 
     return [
-        `M ${x0 + r} ${y0 + 0.5}`,
-        `C ${midX - 8} ${y0 - 0.7}, ${midX + 8} ${y0 + 0.5}, ${x1 - r} ${y0}`,
-        `C ${x1} ${y0 + 0.4}, ${x1 + 0.7} ${y0 + r}, ${x1} ${y0 + r + 2}`,
-        `C ${x1 + 0.5} ${midY - 6}, ${x1 - 0.6} ${midY + 6}, ${x1} ${y1 - r}`,
-        `C ${x1 + 0.4} ${y1}, ${x1 - 0.8} ${y1 + 0.7}, ${x1 - r} ${y1}`,
-        `C ${midX + 8} ${y1 + 0.7}, ${midX - 8} ${y1 - 0.5}, ${x0 + r} ${y1}`,
-        `C ${x0} ${y1 - 0.4}, ${x0 - 0.7} ${y1 - r}, ${x0} ${y1 - r - 2}`,
-        `C ${x0 - 0.6} ${midY + 6}, ${x0 + 0.5} ${midY - 6}, ${x0} ${y0 + r}`,
-        `C ${x0 - 0.3} ${y0 + 2}, ${x0 + 1.5} ${y0 - 0.4}, ${x0 + r + 3} ${y0 + 0.2}`
+        // Start on top edge, slightly right of top-left corner
+        `M ${x0 + rx + 6} ${y0 + 1.2}`,
+        // Top edge: subtle organic bow with slight upward arch
+        `C ${midX - 14} ${y0 - 2.2}, ${midX + 18} ${y0 + 0.6}, ${x1 - rx} ${y0 - 0.4}`,
+        // Top-right corner: curves around and slightly overshoots
+        `C ${x1 + 3.8} ${y0 - 0.6}, ${x1 + 4.8} ${y0 + ry * 0.8}, ${x1 + 1.6} ${y0 + ry + 4}`,
+        // Right edge: slight inward wobble
+        `C ${x1 - 1.8} ${midY - 12}, ${x1 + 2.4} ${midY + 14}, ${x1 + 0.8} ${y1 - ry - 2}`,
+        // Bottom-right corner: organic turn
+        `C ${x1 + 1.4} ${y1 + 3.2}, ${x1 - rx * 0.6} ${y1 + 3.8}, ${x1 - rx - 4} ${y1 + 1.6}`,
+        // Bottom edge: gentle curve
+        `C ${midX + 16} ${y1 + 2.4}, ${midX - 18} ${y1 - 1.4}, ${x0 + rx + 2} ${y1 + 0.8}`,
+        // Bottom-left corner: organic turn
+        `C ${x0 - 3.2} ${y1 + 1.6}, ${x0 - 4.2} ${y1 - ry * 0.8}, ${x0 - 1.8} ${y1 - ry - 4}`,
+        // Left edge: slight natural bow
+        `C ${x0 + 1.6} ${midY + 12}, ${x0 - 2.4} ${midY - 14}, ${x0 - 0.8} ${y0 + ry + 2}`,
+        // Top-left corner: curves past start with authentic loop-closure overshoot tail
+        `C ${x0 - 1.4} ${y0 - 1.8}, ${x0 + rx * 0.5} ${y0 - 2.8}, ${x0 + rx + 16} ${y0 - 0.8}`
     ].join(" ");
 }
 
@@ -95,7 +133,8 @@ export function InteractiveTour({
     onClearFocus
 }: InteractiveTourProps) {
     const [stepIndex, setStepIndex] = useState(0);
-    const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+    const [spotlightRect, setSpotlightRect] = useState<SimpleRect | null>(null);
+    const [scribbleRect, setScribbleRect] = useState<SimpleRect | null>(null);
     const [showImage, setShowImage] = useState(false);
 
     // Sync external tourStep if provided
@@ -165,47 +204,154 @@ export function InteractiveTour({
         }
     }, [stepIndex, isOpen, onFocusFirstCourse, onClearFocus]);
 
-    // Measure target element with resilient fallbacks
+    // Continuous dynamic measurement of spotlightRect (cutout) and scribbleRect (hand-drawn highlight)
     useEffect(() => {
-        if (!isOpen || !step) return;
+        if (!isOpen) return;
 
-        const updateRect = () => {
-            let el = document.getElementById(step.targetId);
-            if (!el && stepIndex === 1) {
-                el = document.getElementById("tour-data-modal");
+        const measureTargets = () => {
+            // STEP 0 (1 of 6): Sources
+            if (stepIndex === 0) {
+                const btnEl = document.getElementById("tour-datasource-btn");
+                const menuEl = document.getElementById("tour-source-menu-card");
+                const bRect = btnEl ? btnEl.getBoundingClientRect() : null;
+                const mRect = menuEl ? menuEl.getBoundingClientRect() : null;
+
+                if (bRect && mRect) {
+                    setSpotlightRect(computeUnionRect([bRect, mRect]));
+                    setScribbleRect(mRect);
+                } else if (mRect) {
+                    setSpotlightRect(mRect);
+                    setScribbleRect(mRect);
+                } else if (bRect) {
+                    setSpotlightRect(bRect);
+                    setScribbleRect(bRect);
+                } else {
+                    setSpotlightRect(null);
+                    setScribbleRect(null);
+                }
+                return;
             }
-            if (!el && stepIndex === 3) {
-                el = document.getElementById("tour-course-panel") || document.getElementById("tour-add-course-btn");
+
+            // STEP 1 (2 of 6): BIMA Import Modal
+            if (stepIndex === 1) {
+                const modalEl = document.getElementById("tour-data-modal");
+                const pasteAreaEl = document.getElementById("tour-bima-paste-area");
+                const mRect = modalEl ? modalEl.getBoundingClientRect() : null;
+                const pRect = pasteAreaEl ? pasteAreaEl.getBoundingClientRect() : null;
+
+                setSpotlightRect(mRect);
+                setScribbleRect(pRect || mRect);
+                return;
             }
-            if (!el && stepIndex === 4) {
-                el = document.getElementById("tour-first-node") || document.getElementById("krs-grid-capture");
+
+            // STEP 2 (3 of 6): Plans
+            if (stepIndex === 2) {
+                const btnEl = document.getElementById("tour-plan-btn");
+                const menuEl = document.getElementById("tour-plan-menu-card");
+                const bRect = btnEl ? btnEl.getBoundingClientRect() : null;
+                const mRect = menuEl ? menuEl.getBoundingClientRect() : null;
+
+                if (bRect && mRect) {
+                    setSpotlightRect(computeUnionRect([bRect, mRect]));
+                    setScribbleRect(mRect);
+                } else if (mRect) {
+                    setSpotlightRect(mRect);
+                    setScribbleRect(mRect);
+                } else if (bRect) {
+                    setSpotlightRect(bRect);
+                    setScribbleRect(bRect);
+                } else {
+                    setSpotlightRect(null);
+                    setScribbleRect(null);
+                }
+                return;
             }
-            if (!el && stepIndex === 5) {
-                el = document.getElementById("tour-auto-schedule-btn") || document.getElementById("tour-solver-bar");
+
+            // STEP 3 (4 of 6): Course Catalog Sidebar
+            if (stepIndex === 3) {
+                const sidebarEl = document.getElementById("tour-course-panel");
+                const searchEl = document.getElementById("tour-catalog-search-area");
+                const row1El = document.getElementById("tour-catalog-first-row");
+                const row2El = document.getElementById("tour-catalog-second-row");
+
+                const sRect = sidebarEl ? sidebarEl.getBoundingClientRect() : null;
+                setSpotlightRect(sRect);
+
+                const topAreaRects: SimpleRect[] = [];
+                if (searchEl) topAreaRects.push(searchEl.getBoundingClientRect());
+                if (row1El) topAreaRects.push(row1El.getBoundingClientRect());
+                if (row2El) topAreaRects.push(row2El.getBoundingClientRect());
+
+                if (topAreaRects.length > 0) {
+                    setScribbleRect(computeUnionRect(topAreaRects));
+                } else if (sRect) {
+                    // Fallback to top portion of sidebar
+                    setScribbleRect({
+                        left: sRect.left + 8,
+                        top: sRect.top + 80,
+                        right: sRect.right - 8,
+                        bottom: sRect.top + 280,
+                        width: sRect.width - 16,
+                        height: 200
+                    });
+                } else {
+                    setScribbleRect(null);
+                }
+                return;
             }
-            if (el) {
-                setTargetRect(el.getBoundingClientRect());
-            } else {
-                setTargetRect(null);
+
+            // STEP 4 (5 of 6): Grid Active Node & Ghost Drop-Zones
+            if (stepIndex === 4) {
+                const nodeEl = document.getElementById("tour-first-node");
+                const ghostEls = Array.from(document.querySelectorAll('[data-tour="ghost-dropzone"]'));
+                const nRect = nodeEl ? nodeEl.getBoundingClientRect() : null;
+
+                setScribbleRect(nRect);
+
+                const spotRects: SimpleRect[] = [];
+                if (nRect) spotRects.push(nRect);
+                ghostEls.forEach((el) => {
+                    spotRects.push(el.getBoundingClientRect());
+                });
+
+                if (spotRects.length > 0) {
+                    setSpotlightRect(computeUnionRect(spotRects));
+                } else {
+                    const canvasEl = document.getElementById("krs-grid-capture");
+                    setSpotlightRect(canvasEl ? canvasEl.getBoundingClientRect() : nRect);
+                }
+                return;
             }
+
+            // STEP 5 (6 of 6): Solver Controls Bar
+            if (stepIndex === 5) {
+                const solverEl = document.getElementById("tour-solver-bar") || document.getElementById("tour-auto-schedule-btn");
+                const sRect = solverEl ? solverEl.getBoundingClientRect() : null;
+                setSpotlightRect(sRect);
+                setScribbleRect(sRect);
+                return;
+            }
+
+            setSpotlightRect(null);
+            setScribbleRect(null);
         };
 
-        updateRect();
-        const interval = setInterval(updateRect, 150);
-        window.addEventListener("resize", updateRect);
-        window.addEventListener("scroll", updateRect, true);
+        measureTargets();
+        const interval = setInterval(measureTargets, 150);
+        window.addEventListener("resize", measureTargets);
+        window.addEventListener("scroll", measureTargets, true);
 
         return () => {
             clearInterval(interval);
-            window.removeEventListener("resize", updateRect);
-            window.removeEventListener("scroll", updateRect, true);
+            window.removeEventListener("resize", measureTargets);
+            window.removeEventListener("scroll", measureTargets, true);
         };
-    }, [stepIndex, isOpen, step]);
+    }, [stepIndex, isOpen]);
 
-    // Card position calculation: intelligent per-step placement
+    // Intelligent per-step tour card position calculation
     const CARD_WIDTH = 315;
     const popoverCoords = useMemo(() => {
-        if (!targetRect) {
+        if (!scribbleRect) {
             return {
                 top: Math.max(20, window.innerHeight / 2 - 130),
                 left: Math.max(16, window.innerWidth / 2 - CARD_WIDTH / 2)
@@ -215,16 +361,8 @@ export function InteractiveTour({
         // Step 1 (1 of 6): Manage schedule sources
         // Position directly to the right of the open source dropdown menu card
         if (stepIndex === 0) {
-            const menuEl = document.getElementById("tour-source-menu-card");
-            if (menuEl) {
-                const menuRect = menuEl.getBoundingClientRect();
-                const left = Math.min(window.innerWidth - CARD_WIDTH - 16, menuRect.right + 16);
-                const top = Math.max(16, Math.min(window.innerHeight - 300, menuRect.top + 8));
-                return { top, left };
-            }
-            // Fallback if menu card is mounting
-            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, 360);
-            const top = Math.max(16, targetRect.bottom + 10);
+            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, scribbleRect.right + 18);
+            const top = Math.max(16, Math.min(window.innerHeight - 300, scribbleRect.top + 8));
             return { top, left };
         }
 
@@ -232,7 +370,7 @@ export function InteractiveTour({
         // Position to the right of the modal if space permits, else bottom-right pinned
         if (stepIndex === 1) {
             const modalEl = document.getElementById("tour-data-modal");
-            const mRect = modalEl ? modalEl.getBoundingClientRect() : targetRect;
+            const mRect = modalEl ? modalEl.getBoundingClientRect() : scribbleRect;
             const spaceOnRight = window.innerWidth - mRect.right;
             if (spaceOnRight >= CARD_WIDTH + 20) {
                 const left = mRect.right + 18;
@@ -248,16 +386,8 @@ export function InteractiveTour({
         // Step 3 (3 of 6): Create & switch plans
         // Position directly to the right of the open plan manager dropdown menu card
         if (stepIndex === 2) {
-            const menuEl = document.getElementById("tour-plan-menu-card");
-            if (menuEl) {
-                const menuRect = menuEl.getBoundingClientRect();
-                const left = Math.min(window.innerWidth - CARD_WIDTH - 16, menuRect.right + 16);
-                const top = Math.max(16, Math.min(window.innerHeight - 300, menuRect.top + 8));
-                return { top, left };
-            }
-            // Fallback
-            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.right + 20);
-            const top = Math.max(16, targetRect.bottom + 10);
+            const left = Math.min(window.innerWidth - CARD_WIDTH - 16, scribbleRect.right + 18);
+            const top = Math.max(16, Math.min(window.innerHeight - 300, scribbleRect.top + 8));
             return { top, left };
         }
 
@@ -265,52 +395,51 @@ export function InteractiveTour({
         // Position to the right of the Left Sidebar (left: 340px)
         if (stepIndex === 3) {
             const left = Math.min(window.innerWidth - CARD_WIDTH - 16, 340);
-            const top = Math.max(80, Math.min(window.innerHeight - 320, 140));
+            const top = Math.max(80, Math.min(window.innerHeight - 320, 130));
             return { top, left };
         }
 
         // Step 5 (5 of 6): Drag or click to swap classes (Grid node)
         // CRITICAL: NEVER cover ghost drop-zones!
-        // Ghost drop-zones are typically in columns to the right.
         if (stepIndex === 4) {
-            const availableLeft = targetRect.left - 340;
+            const availableLeft = scribbleRect.left - 340;
             if (availableLeft >= CARD_WIDTH + 16) {
                 // Place cleanly to the LEFT of the course node
-                const left = targetRect.left - CARD_WIDTH - 16;
-                const top = Math.max(80, Math.min(window.innerHeight - 300, targetRect.top));
+                const left = scribbleRect.left - CARD_WIDTH - 16;
+                const top = Math.max(80, Math.min(window.innerHeight - 300, scribbleRect.top));
                 return { top, left };
             } else {
                 // Course is in Monday/Tuesday; position at bottom-left of grid canvas
-                // well below the node so both the node and any ghost slots across all columns are uncovered!
+                // well below daytime slots so both the node and any ghost slots across all columns are uncovered!
                 const left = 340;
-                const top = Math.min(window.innerHeight - 290, Math.max(targetRect.bottom + 40, window.innerHeight - 310));
+                const top = Math.min(window.innerHeight - 290, Math.max(scribbleRect.bottom + 40, window.innerHeight - 310));
                 return { top, left };
             }
         }
 
         // Step 6 (6 of 6): Lock, set rules & auto-schedule
         if (stepIndex === 5) {
-            const top = Math.min(window.innerHeight - 300, targetRect.bottom + 16);
-            const left = Math.max(16, Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.left - 40));
+            const top = Math.min(window.innerHeight - 300, scribbleRect.bottom + 16);
+            const left = Math.max(16, Math.min(window.innerWidth - CARD_WIDTH - 16, scribbleRect.left - 40));
             return { top, left };
         }
 
         // Default fallback
-        const top = Math.min(window.innerHeight - 300, targetRect.bottom + 20);
-        const left = Math.max(16, Math.min(window.innerWidth - CARD_WIDTH - 16, targetRect.left - 6));
+        const top = Math.min(window.innerHeight - 300, scribbleRect.bottom + 20);
+        const left = Math.max(16, Math.min(window.innerWidth - CARD_WIDTH - 16, scribbleRect.left - 6));
         return { top, left };
-    }, [targetRect, stepIndex]);
+    }, [scribbleRect, stepIndex]);
 
-    // Connector arrow path calculation (only rendered if distance >= 28px)
+    // Connector arrow path calculation (Connects between NEAREST EDGES so it NEVER cuts across open menus!)
     const connectorArrow = useMemo(() => {
-        if (!targetRect) return null;
+        if (!scribbleRect) return null;
 
         const popoverRight = popoverCoords.left + CARD_WIDTH;
         const popoverBottom = popoverCoords.top + 220; // estimated card height
 
-        // Calculate edge-to-edge distance between target and popover card
-        const dx = Math.max(0, Math.max(targetRect.left - popoverRight, popoverCoords.left - targetRect.right));
-        const dy = Math.max(0, Math.max(targetRect.top - popoverBottom, popoverCoords.top - targetRect.bottom));
+        // Calculate edge-to-edge distance between scribbleRect and popover card
+        const dx = Math.max(0, Math.max(scribbleRect.left - popoverRight, popoverCoords.left - scribbleRect.right));
+        const dy = Math.max(0, Math.max(scribbleRect.top - popoverBottom, popoverCoords.top - scribbleRect.bottom));
         const distance = Math.hypot(dx, dy);
 
         // Suppress arrow if distance is less than 28px
@@ -323,37 +452,41 @@ export function InteractiveTour({
         let ctrlX = 0;
         let ctrlY = 0;
 
-        if (popoverCoords.left >= targetRect.right) {
-            // Popover is to the RIGHT of target
+        if (popoverCoords.left >= scribbleRect.right) {
+            // Popover is to the RIGHT of scribble target:
+            // Connect from the LEFT edge of the popover card to the RIGHT edge of the scribble loop!
             startX = popoverCoords.left;
-            startY = Math.min(popoverCoords.top + 36, popoverCoords.top + 100);
-            endX = targetRect.right + 6;
-            endY = Math.max(targetRect.top + 6, Math.min(targetRect.bottom - 6, startY));
+            startY = Math.max(popoverCoords.top + 24, Math.min(popoverCoords.top + 80, scribbleRect.top + scribbleRect.height / 2));
+            endX = scribbleRect.right + 4;
+            endY = Math.max(scribbleRect.top + 10, Math.min(scribbleRect.bottom - 10, startY));
             ctrlX = (startX + endX) / 2;
             ctrlY = (startY + endY) / 2 - 12;
-        } else if (popoverRight <= targetRect.left) {
-            // Popover is to the LEFT of target
+        } else if (popoverRight <= scribbleRect.left) {
+            // Popover is to the LEFT of scribble target:
+            // Connect from the RIGHT edge of the popover card to the LEFT edge of the scribble loop!
             startX = popoverRight;
-            startY = Math.min(popoverCoords.top + 36, popoverCoords.top + 100);
-            endX = targetRect.left - 6;
-            endY = Math.max(targetRect.top + 6, Math.min(targetRect.bottom - 6, startY));
+            startY = Math.max(popoverCoords.top + 24, Math.min(popoverCoords.top + 80, scribbleRect.top + scribbleRect.height / 2));
+            endX = scribbleRect.left - 4;
+            endY = Math.max(scribbleRect.top + 10, Math.min(scribbleRect.bottom - 10, startY));
             ctrlX = (startX + endX) / 2;
             ctrlY = (startY + endY) / 2 - 12;
-        } else if (popoverCoords.top >= targetRect.bottom) {
-            // Popover is BELOW target
-            startX = popoverCoords.left + 50;
+        } else if (popoverCoords.top >= scribbleRect.bottom) {
+            // Popover is BELOW scribble target:
+            // Connect from the TOP edge of the popover card to the BOTTOM edge of the scribble loop!
+            startX = Math.max(popoverCoords.left + 30, Math.min(popoverRight - 30, scribbleRect.left + scribbleRect.width / 2));
             startY = popoverCoords.top;
-            endX = Math.min(popoverCoords.left + 65, Math.max(targetRect.left + 15, targetRect.left + targetRect.width / 2));
-            endY = targetRect.bottom + 6;
-            ctrlX = (startX + endX) / 2 + 16;
+            endX = Math.max(scribbleRect.left + 15, Math.min(scribbleRect.right - 15, startX));
+            endY = scribbleRect.bottom + 4;
+            ctrlX = (startX + endX) / 2 + 14;
             ctrlY = (startY + endY) / 2;
         } else {
-            // Popover is ABOVE target
-            startX = popoverCoords.left + 50;
+            // Popover is ABOVE scribble target:
+            // Connect from the BOTTOM edge of the popover card to the TOP edge of the scribble loop!
+            startX = Math.max(popoverCoords.left + 30, Math.min(popoverRight - 30, scribbleRect.left + scribbleRect.width / 2));
             startY = popoverBottom;
-            endX = Math.min(popoverCoords.left + 65, Math.max(targetRect.left + 15, targetRect.left + targetRect.width / 2));
-            endY = targetRect.top - 6;
-            ctrlX = (startX + endX) / 2 - 16;
+            endX = Math.max(scribbleRect.left + 15, Math.min(scribbleRect.right - 15, startX));
+            endY = scribbleRect.top - 4;
+            ctrlX = (startX + endX) / 2 - 14;
             ctrlY = (startY + endY) / 2;
         }
 
@@ -370,27 +503,37 @@ export function InteractiveTour({
             pathD: `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`,
             arrowPoints: `${endX},${endY} ${x1},${y1} ${x2},${y2}`
         };
-    }, [targetRect, popoverCoords]);
+    }, [scribbleRect, popoverCoords]);
 
     if (!isOpen || typeof document === "undefined") return null;
 
-    // Dimensions for single hand-drawn scribble highlight with 6px padding offset
+    // Dimensions for organic hand-drawn scribble highlight with 6px padding offset
     const PAD = 6;
-    const scribbleW = targetRect ? Math.round(targetRect.width + PAD * 2) : 0;
-    const scribbleH = targetRect ? Math.round(targetRect.height + PAD * 2) : 0;
-    const scribbleTop = targetRect ? Math.round(targetRect.top - PAD) : 0;
-    const scribbleLeft = targetRect ? Math.round(targetRect.left - PAD) : 0;
+    const scribbleW = scribbleRect ? Math.round(scribbleRect.width + PAD * 2) : 0;
+    const scribbleH = scribbleRect ? Math.round(scribbleRect.height + PAD * 2) : 0;
+    const scribbleTop = scribbleRect ? Math.round(scribbleRect.top - PAD) : 0;
+    const scribbleLeft = scribbleRect ? Math.round(scribbleRect.left - PAD) : 0;
 
     return createPortal(
-        <div className="fixed inset-0 z-[10000] animate-in fade-in duration-150">
-            {/* Subtle Dim Backdrop */}
-            <div
-                className="absolute inset-0 bg-black/15 cursor-pointer pointer-events-auto"
-                onClick={handleClose}
-            />
+        <div className="fixed inset-0 z-[10000] pointer-events-none animate-in fade-in duration-150">
+            {/* Cutout Spotlight (100% Bright & Interactive Inside, Dimmed Outside via Box-Shadow, Zero Blocking Backdrop!) */}
+            {spotlightRect && (
+                <div
+                    className="fixed pointer-events-none transition-all duration-200"
+                    style={{
+                        top: `${Math.round(spotlightRect.top - 8)}px`,
+                        left: `${Math.round(spotlightRect.left - 8)}px`,
+                        width: `${Math.round(spotlightRect.width + 16)}px`,
+                        height: `${Math.round(spotlightRect.height + 16)}px`,
+                        borderRadius: "14px",
+                        boxShadow: "0 0 0 9999px rgba(20, 20, 19, 0.25)",
+                        zIndex: 10000
+                    }}
+                />
+            )}
 
-            {/* Hand-Drawn SVG Scribble Loop Highlight (Single 1.35px Slate-Blue Stroke) */}
-            {targetRect && (
+            {/* Hand-Drawn SVG Organic Scribble Loop Highlight (Freehand Cubic Beziers in #5b82a6) */}
+            {scribbleRect && (
                 <div
                     className="fixed pointer-events-none z-[10001] transition-all duration-200"
                     style={{
@@ -409,9 +552,9 @@ export function InteractiveTour({
                     >
                         <path
                             key={stepIndex}
-                            d={generateSingleScribblePath(scribbleW, scribbleH)}
-                            stroke="#6488a8"
-                            strokeWidth="1.35"
+                            d={generateOrganicScribblePath(scribbleW, scribbleH)}
+                            stroke="#5b82a6"
+                            strokeWidth="1.75"
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             vectorEffect="non-scaling-stroke"
@@ -421,13 +564,13 @@ export function InteractiveTour({
                 </div>
             )}
 
-            {/* Hand-Drawn Curved Pointer Arrow (Only if distance >= 28px) */}
+            {/* Hand-Drawn Curved Pointer Arrow (Only to Nearest Edge if distance >= 28px) */}
             {connectorArrow && (
                 <svg className="fixed inset-0 w-full h-full pointer-events-none z-[10001]">
                     <path
                         key={`arrow-${stepIndex}`}
                         d={connectorArrow.pathD}
-                        stroke="#6488a8"
+                        stroke="#5b82a6"
                         strokeWidth="1.25"
                         strokeDasharray="4 3"
                         vectorEffect="non-scaling-stroke"
@@ -437,7 +580,7 @@ export function InteractiveTour({
                     <polygon
                         key={`arrowhead-${stepIndex}`}
                         points={connectorArrow.arrowPoints}
-                        fill="#6488a8"
+                        fill="#5b82a6"
                     />
                 </svg>
             )}

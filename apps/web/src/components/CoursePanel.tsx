@@ -292,7 +292,7 @@ export function CoursePanel({
             ) : (
                 /* Course Search & Catalog View */
                 <div className="flex-1 flex flex-col min-h-0">
-                    <div className="relative mb-3">
+                    <div id="tour-catalog-search-area" className="relative mb-3">
                         <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a1aa]" />
                         <input
                             type="text"
@@ -312,12 +312,13 @@ export function CoursePanel({
                     </div>
 
                     <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
-                        {filteredCatalog.map((sub) => {
+                        {filteredCatalog.map((sub, idx) => {
                             const isSelected = (plan.selectedSubjectIds ?? []).includes(sub.subjectId);
 
                             return (
                                 <div
                                     key={sub.subjectId}
+                                    id={idx === 0 ? "tour-catalog-first-row" : idx === 1 ? "tour-catalog-second-row" : undefined}
                                     onMouseEnter={() => onHoverSubject?.(sub.subjectId)}
                                     onMouseLeave={() => onHoverSubject?.(null)}
                                     onClick={() => toggleSubjectInPlan(plan.id, sub.subjectId)}

@@ -323,7 +323,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                     </div>
 
                     {/* 3. Raw BIMA Textarea + Live Feedback */}
-                    <div className="space-y-2">
+                    <div id="tour-bima-paste-area" className="space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="font-doodle text-[17px] font-bold text-[#5b82a6] select-none">
                                 bima table data
