@@ -97,7 +97,7 @@ export function CoursePanel({
             </p>
 
             {/* 2. Section Header & Mode Toggle */}
-            <div className="flex items-baseline justify-between mb-3 shrink-0">
+            <div className="flex items-baseline justify-between mb-1.5 shrink-0">
                 <h3 className="font-doodle text-[19px] font-bold text-[#6e6e77] tracking-tight">
                     {activeTab === "selected" ? "selected courses" : "add courses"}
                 </h3>
@@ -109,6 +109,20 @@ export function CoursePanel({
                 >
                     {activeTab === "selected" ? "+ add course" : "← view selected"}
                 </button>
+            </div>
+
+            {/* Subtle Active Source Context Header */}
+            <div
+                key={datasource.id}
+                className="flex items-center gap-1.5 text-[12px] text-[#6e6e77] mb-3 px-0.5 shrink-0 animate-in fade-in duration-200"
+            >
+                <span className="font-medium text-[#141413] truncate max-w-[170px]" title={datasource.name}>
+                    {datasource.name}
+                </span>
+                <span className="text-[#a1a1aa]">·</span>
+                <span className="whitespace-nowrap">
+                    {datasource.subjects.length} courses available
+                </span>
             </div>
 
             {/* 3. Course List Rows (Clean Typography-First with Doodle Index Numbers) */}

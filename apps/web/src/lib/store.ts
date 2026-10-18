@@ -213,29 +213,49 @@ export const useAppStore = create<AppStore>()(
                     const sampleSources = state.datasources.filter(
                         (d) => d.id.startsWith("sample") || d.name.toLowerCase().includes("sample")
                     );
-                    if (sampleSources.length <= 1) return state;
 
-                    // Keep the first sample source
-                    const primarySample = sampleSources[0];
-                    const duplicateIds = new Set(sampleSources.slice(1).map((d) => d.id));
+                    let cleanedDatasources = state.datasources;
+                    let duplicateIds = new Set<string>();
 
-                    const cleanedDatasources = state.datasources.filter((d) => !duplicateIds.has(d.id));
-                    const cleanedPlans = state.plans.map((p) => {
-                        if (duplicateIds.has(p.datasourceId)) {
-                            return { ...p, datasourceId: primarySample.id };
+                    if (sampleSources.length > 1) {
+                        const primarySample = sampleSources[0];
+                        duplicateIds = new Set(sampleSources.slice(1).map((d) => d.id));
+                        cleanedDatasources = state.datasources.filter((d) => !duplicateIds.has(d.id));
+                    }
+
+                    // Remove plans belonging to duplicate or non-existent datasources
+                    const validDsIds = new Set(cleanedDatasources.map((d) => d.id));
+                    const nonOrphanedPlans = state.plans.filter(
+                        (p) => !duplicateIds.has(p.datasourceId) && validDsIds.has(p.datasourceId)
+                    );
+
+                    // Deduplicate identical duplicate plans with the same name and subject set within the same datasource
+                    const seenKeys = new Set<string>();
+                    const deduplicatedPlans: Plan[] = [];
+                    for (const p of nonOrphanedPlans) {
+                        const subKey = (p.selectedSubjectIds || []).slice().sort().join(",");
+                        const key = `${p.datasourceId}:${p.name}:${subKey}`;
+                        if (!seenKeys.has(key)) {
+                            seenKeys.add(key);
+                            deduplicatedPlans.push(p);
                         }
-                        return p;
-                    });
+                    }
 
                     let nextActiveDsId = state.activeDatasourceId;
                     if (nextActiveDsId && duplicateIds.has(nextActiveDsId)) {
-                        nextActiveDsId = primarySample.id;
+                        nextActiveDsId = sampleSources[0]?.id ?? cleanedDatasources[0]?.id ?? null;
+                    }
+
+                    let nextActivePlanId = state.activePlanId;
+                    if (!deduplicatedPlans.some((p) => p.id === nextActivePlanId)) {
+                        nextActivePlanId = deduplicatedPlans.find((p) => p.datasourceId === nextActiveDsId)?.id ?? deduplicatedPlans[0]?.id ?? null;
                     }
 
                     return {
                         datasources: cleanedDatasources,
-                        plans: cleanedPlans,
+                        plans: deduplicatedPlans,
                         activeDatasourceId: nextActiveDsId,
+                        activePlanId: nextActivePlanId,
                     };
                 });
             },
@@ -378,10 +398,20 @@ export const useAppStore = create<AppStore>()(
             },
 
             deletePlan: (id) => {
-                set((state: AppStore) => ({
-                    plans: state.plans.filter((p: Plan) => p.id !== id),
-                    activePlanId: state.activePlanId === id ? (state.plans.find(p => p.id !== id)?.id ?? null) : state.activePlanId,
-                }));
+                const planToDelete = get().plans.find((p: Plan) => p.id === id);
+                const dsId = planToDelete?.datasourceId;
+                set((state: AppStore) => {
+                    const nextPlans = state.plans.filter((p: Plan) => p.id !== id);
+                    let nextActivePlanId = state.activePlanId;
+                    if (state.activePlanId === id) {
+                        const sameDsPlan = nextPlans.find((p: Plan) => p.datasourceId === dsId);
+                        nextActivePlanId = sameDsPlan ? sameDsPlan.id : (nextPlans[0]?.id ?? null);
+                    }
+                    return {
+                        plans: nextPlans,
+                        activePlanId: nextActivePlanId,
+                    };
+                });
             },
 
             toggleSubjectInPlan: (planId, subjectId) => {

@@ -178,9 +178,16 @@ function WorkspaceContent() {
 
     const handleSwitchDatasource = (dsId: string) => {
         setActiveDatasourceId(dsId);
-        const existingPlan = plans.find(p => p.datasourceId === dsId);
-        if (existingPlan) {
-            setActivePlanId(existingPlan.id);
+        const targetDs = datasources.find(d => d.id === dsId);
+        const existingPlans = plans
+            .filter(p => p.datasourceId === dsId)
+            .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+
+        if (existingPlans.length > 0) {
+            const firstPlan = existingPlans[0];
+            setActivePlanId(firstPlan.id);
+            const hasCourses = (firstPlan.selectedSubjectIds ?? []).length > 0;
+            setActiveTab(hasCourses ? "selected" : "catalog");
         } else {
             const newPlanId = addPlan({
                 name: "Plan 1",
@@ -193,8 +200,10 @@ function WorkspaceContent() {
                 previewOverrides: {},
             });
             setActivePlanId(newPlanId);
+            setActiveTab("catalog");
         }
-        toast.success("Switched Schedule Data");
+        const count = targetDs?.subjects?.length ?? 0;
+        toast.success(`Switched to "${targetDs?.name || 'Schedule'}" (${count} courses)`);
         setIsSourceMenuOpen(false);
     };
 
@@ -217,7 +226,6 @@ function WorkspaceContent() {
         );
         if (existingSample) {
             handleSwitchDatasource(existingSample.id);
-            toast.info("Switched to existing Sample Schedule");
             return;
         }
         const { parseBimaMasterWithDebug } = require("@krs/engine");
@@ -225,10 +233,10 @@ function WorkspaceContent() {
         const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
         const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
         updatePlan(planId, {
-            name: "Semester 4",
+            name: "Plan 1",
             selectedSubjectIds: sampleSubIds
         });
-        toast.success("Sample Data Loaded!");
+        toast.success(`Switched to "Sample UPNYK Informatics" (${parsed.subjects.length} courses)`);
         setIsSourceMenuOpen(false);
     };
 
@@ -259,11 +267,14 @@ function WorkspaceContent() {
         }
 
         // Find plans for this datasource
-        const dsPlans = plans.filter(p => p.datasourceId === currentDsId);
+        const dsPlans = plans
+            .filter(p => p.datasourceId === currentDsId)
+            .sort((a, b) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+
         if (dsPlans.length === 0) {
             // Auto-create Plan 1 for this datasource
             const newPlanId = addPlan({
-                name: "Semester 4",
+                name: "Plan 1",
                 datasourceId: currentDsId,
                 selectedSubjectIds: [],
                 selectedClassBySubjectId: {},
@@ -271,8 +282,13 @@ function WorkspaceContent() {
                 savedVariants: []
             });
             setActivePlanId(newPlanId);
+            setActiveTab("catalog");
         } else if (!activePlanId || !dsPlans.some(p => p.id === activePlanId)) {
-            setActivePlanId(dsPlans[0].id);
+            const firstPlan = dsPlans[0];
+            setActivePlanId(firstPlan.id);
+            if ((firstPlan.selectedSubjectIds ?? []).length === 0) {
+                setActiveTab("catalog");
+            }
         }
     }, [_hasHydrated, datasources, activeDatasourceId, plans, activePlanId, setActiveDatasourceId, setActivePlanId, addPlan]);
 
@@ -293,10 +309,31 @@ function WorkspaceContent() {
         return datasources.find(d => d.id === activePlan.datasourceId) || null;
     }, [activePlan, datasources, activeDatasourceId]);
 
-    // Plans belonging to current datasource
-    const currentDatasourcePlans = useMemo(() => {
+    // Auto-switch sidebar view: if plan has 0 courses, auto-open catalog; else show selected
+    const prevPlanIdRef = useRef<string | null>(null);
+    useEffect(() => {
+        if (!activePlan) return;
+        if (prevPlanIdRef.current !== activePlan.id) {
+            prevPlanIdRef.current = activePlan.id;
+            if ((activePlan.selectedSubjectIds ?? []).length === 0) {
+                setActiveTab("catalog");
+            } else {
+                setActiveTab("selected");
+            }
+        }
+    }, [activePlan]);
+
+    // Filter Plan Tabs Strictly by Active Datasource in stable creation order
+    const sourcePlans = useMemo(() => {
         if (!activeDatasource) return [];
-        return plans.filter(p => p.datasourceId === activeDatasource.id);
+        return plans
+            .filter((p) => p.datasourceId === activeDatasource.id)
+            .sort((a, b) => {
+                const timeA = new Date(a.createdAt || 0).getTime();
+                const timeB = new Date(b.createdAt || 0).getTime();
+                if (timeA !== timeB) return timeA - timeB;
+                return a.name.localeCompare(b.name);
+            });
     }, [plans, activeDatasource]);
 
     // Effective Mapping calculation (renders candidate preview when active, else active plan)
@@ -485,17 +522,20 @@ function WorkspaceContent() {
     // Handler: Create New Plan
     const handleCreateNewPlan = () => {
         if (!activeDatasource) return;
-        const count = currentDatasourcePlans.length + 1;
+        const newPlanName = `Plan ${sourcePlans.length + 1}`;
         const newPlanId = addPlan({
-            name: `Plan ${count}`,
+            name: newPlanName,
             datasourceId: activeDatasource.id,
             selectedSubjectIds: [],
             selectedClassBySubjectId: {},
             rules: [],
-            savedVariants: []
+            savedVariants: [],
+            frozenSubjectIds: [],
+            previewOverrides: {},
         });
         setActivePlanId(newPlanId);
-        toast.success(`Created Plan ${count}`);
+        setActiveTab("catalog");
+        toast.success(`Created ${newPlanName}`);
     };
 
     // Handler: Rename Plan
@@ -511,11 +551,20 @@ function WorkspaceContent() {
 
     // Handler: Delete Plan
     const handleDeletePlan = (planId: string, planName: string) => {
-        if (currentDatasourcePlans.length <= 1) {
+        if (sourcePlans.length <= 1) {
             toast.error("Cannot delete the only plan", {
                 description: "You must have at least one plan."
             });
             return;
+        }
+
+        if (activePlanId === planId) {
+            const nextPlan = sourcePlans.find(p => p.id !== planId);
+            if (nextPlan) {
+                setActivePlanId(nextPlan.id);
+                const hasCourses = (nextPlan.selectedSubjectIds ?? []).length > 0;
+                setActiveTab(hasCourses ? "selected" : "catalog");
+            }
         }
         deletePlan(planId);
         toast.info(`Deleted ${planName}`);
@@ -680,12 +729,16 @@ function WorkspaceContent() {
 
                     {/* Visible Plan Tabs + + New Plan Button */}
                     <div className="flex items-center gap-1 min-w-0 overflow-x-auto no-scrollbar py-0.5">
-                        {currentDatasourcePlans.slice(0, 4).map((p) => {
+                        {sourcePlans.map((p) => {
                             const isActive = p.id === activePlan.id;
                             return (
                                 <div
                                     key={p.id}
-                                    onClick={() => setActivePlanId(p.id)}
+                                    onClick={() => {
+                                        setActivePlanId(p.id);
+                                        const hasCourses = (p.selectedSubjectIds ?? []).length > 0;
+                                        setActiveTab(hasCourses ? "selected" : "catalog");
+                                    }}
                                     className={cn(
                                         "flex items-center gap-1 px-2.5 py-1 rounded-md text-[13px] cursor-pointer transition-all shrink-0 select-none group",
                                         isActive
@@ -694,18 +747,18 @@ function WorkspaceContent() {
                                     )}
                                     title={`Plan: ${p.name}`}
                                 >
-                                    <span className="truncate max-w-[90px]">{p.name}</span>
-                                    {isActive && currentDatasourcePlans.length > 1 && (
+                                    <span className="truncate max-w-[100px]">{p.name}</span>
+                                    {sourcePlans.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleDeletePlan(p.id, p.name);
                                             }}
-                                            className="opacity-0 group-hover:opacity-100 p-0.5 hover:text-rose-600 rounded text-neutral-400 transition-opacity ml-0.5"
-                                            title="Delete plan"
+                                            className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-neutral-200/80 hover:text-rose-600 rounded text-neutral-400 transition-all ml-0.5"
+                                            title={`Delete ${p.name}`}
                                         >
-                                            <Trash2 className="w-2.5 h-2.5" />
+                                            <X className="w-2.5 h-2.5" />
                                         </button>
                                     )}
                                 </div>
