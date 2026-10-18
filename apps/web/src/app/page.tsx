@@ -728,6 +728,7 @@ function WorkspaceContent() {
                 <div id="tour-solver-bar" className="flex items-center gap-2.5 shrink-0">
                     {/* Rules Button */}
                     <button
+                        id="tour-rules-btn"
                         onClick={() => openOverlay("rules")}
                         className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] flex items-center gap-1.5 transition-all"
                         title="Configure Solver Rules"
@@ -765,6 +766,7 @@ function WorkspaceContent() {
                     {/* Auto-Schedule / Shuffle Button (Static width & position, never expands) */}
                     <div className="flex items-center gap-2">
                         <button
+                            id="tour-auto-schedule-btn"
                             onClick={handleGenerateOrShuffle}
                             disabled={isGenerating}
                             className={cn(
@@ -807,14 +809,14 @@ function WorkspaceContent() {
 
                 {/* 3. Right Group: Compact Tutorial Pill, SKS Status & Export */}
                 <div className="flex items-center gap-2.5 shrink-0">
-                    {/* Compact ? Tutorial Pill */}
+                    {/* Tutorial Doodle Button */}
                     <button
                         type="button"
                         onClick={() => openOverlay("tour")}
-                        className="w-7 h-7 rounded-lg border border-[#e2e2df] hover:border-[#d8d8d4] bg-white hover:bg-neutral-100 text-[#5b82a6] hover:text-[#141413] flex items-center justify-center transition-colors select-none font-bold text-[13px]"
-                        title="Restart 4-step interactive tutorial"
+                        className="font-doodle text-[17.5px] font-bold text-[#5b82a6] hover:text-[#141413] px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 transition-colors flex items-center gap-1 shrink-0 select-none"
+                        title="Restart 5-step interactive tutorial"
                     >
-                        <span>?</span>
+                        <span>↻ tutorial</span>
                     </button>
 
                     <span className="text-[#d8d8d4] text-xs select-none">·</span>
@@ -1078,7 +1080,7 @@ function WorkspaceContent() {
                 editSourceId={dataModalEditSourceId}
             />
 
-            {/* Interactive 4-Step Spotlight Tour */}
+            {/* Interactive 5-Step Spotlight Tour */}
             <InteractiveTour
                 isOpen={activeOverlay === "tour"}
                 onClose={closeOverlay}
@@ -1092,6 +1094,7 @@ function WorkspaceContent() {
                 onClearFocus={() => {
                     setGridFocusedSubjectId(null);
                 }}
+                selectedClasses={selectedClasses}
             />
 
             {/* Portaled Source Switcher Dropdown (z-[9999] in document.body) */}

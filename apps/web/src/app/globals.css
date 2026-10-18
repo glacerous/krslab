@@ -185,4 +185,79 @@
     width: var(--node-day-width) !important;
     z-index: 50 !important;
   }
+
+  /* Interactive Tour Demos Keyframes */
+  @keyframes select-sweep {
+    0%, 100% {
+      top: 18%;
+      height: 38%;
+      opacity: 0.85;
+    }
+    50% {
+      top: 48%;
+      height: 48%;
+      opacity: 0.95;
+    }
+  }
+
+  .animate-select-sweep {
+    animation: select-sweep 2.4s ease-in-out infinite;
+  }
+
+  @keyframes scale-check {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.18);
+    }
+  }
+
+  .animate-scale-check {
+    animation: scale-check 2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  }
+
+  @keyframes bounce-short {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+
+  .animate-bounce-short {
+    animation: bounce-short 1.8s ease-in-out infinite;
+  }
+
+  @keyframes key-press {
+    0%, 100% {
+      transform: translateY(0);
+      box-shadow: 0 3px 0 #c2c2bc;
+    }
+    50% {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #c2c2bc;
+    }
+  }
+
+  .animate-key-press {
+    animation: key-press 1.6s ease-in-out infinite;
+  }
+
+  @keyframes wiggle {
+    0%, 100% {
+      transform: rotate(0deg);
+    }
+    25% {
+      transform: rotate(-8deg);
+    }
+    75% {
+      transform: rotate(8deg);
+    }
+  }
+
+  .animate-wiggle {
+    animation: wiggle 2.2s ease-in-out infinite;
+  }
 }

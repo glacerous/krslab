@@ -103,6 +103,7 @@ export function CoursePanel({
                 </h3>
 
                 <button
+                    id="tour-add-course-btn"
                     onClick={() => onTabChange(activeTab === "selected" ? "catalog" : "selected")}
                     className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] transition-colors"
                 >
