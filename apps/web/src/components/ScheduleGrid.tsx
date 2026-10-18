@@ -200,10 +200,14 @@ export function ScheduleGrid({
         subColIndex: number;
         clusterSize: number;
         hasDayConflict: boolean;
+        isOverlapping: boolean;
+        zIndex: number;
         top: number;
         height: number;
         left: string;
         width: string;
+        dayLeft: string;
+        dayWidth: string;
         isCompact: boolean;
         isMedium: boolean;
         isFull: boolean;
@@ -324,20 +328,35 @@ export function ScheduleGrid({
 
                 const clusterSize = Math.max(1, columnEndTimes.length);
                 const hasDayConflict = cluster.length > 1;
+                const isOverlapping = cluster.length > 1 && clusterSize > 1;
 
                 cluster.forEach((slot, idx) => {
                     const subColIndex = subColAssignments[idx];
                     const dayLeftPercent = (slot.dayIdx * 100) / DAYS.length;
                     const dayWidthPercent = 100 / DAYS.length;
-                    const subWidthPercent = dayWidthPercent / clusterSize;
-                    const subLeftPercent = dayLeftPercent + subColIndex * subWidthPercent;
 
-                    const left = clusterSize > 1
-                        ? `calc(${subLeftPercent}% + 2px)`
-                        : `calc(${subLeftPercent}% + 4px)`;
-                    const width = clusterSize > 1
-                        ? `calc(${subWidthPercent}% - 4px)`
-                        : `calc(${subWidthPercent}% - 8px)`;
+                    // Standard full day dimensions
+                    const dayLeft = `calc(${dayLeftPercent}% + 4px)`;
+                    const dayWidth = `calc(${dayWidthPercent}% - 8px)`;
+
+                    let left = dayLeft;
+                    let width = dayWidth;
+                    const zIndex = isOverlapping ? 15 + subColIndex : 10;
+
+                    if (isOverlapping) {
+                        // Cascading Overlap:
+                        // Each overlapping card gets 76% of the column width (colWidth * 0.76)
+                        // Stagger horizontal offset across the remaining 24%
+                        const cardWidthPercent = dayWidthPercent * 0.76;
+                        const remainingWidthPercent = dayWidthPercent * 0.24;
+                        const offsetPercent = clusterSize > 1
+                            ? (subColIndex / (clusterSize - 1)) * remainingWidthPercent
+                            : 0;
+                        const subLeftPercent = dayLeftPercent + offsetPercent;
+
+                        left = `calc(${subLeftPercent}% + 2px)`;
+                        width = `calc(${cardWidthPercent}% - 4px)`;
+                    }
 
                     const durationMin = slot.durationMin;
                     const isCompact = durationMin <= 75;
@@ -355,10 +374,14 @@ export function ScheduleGrid({
                         subColIndex,
                         clusterSize,
                         hasDayConflict,
+                        isOverlapping,
+                        zIndex,
                         top: slot.pos.top + 2,
                         height: slot.pos.height - 4,
                         left,
                         width,
+                        dayLeft,
+                        dayWidth,
                         isCompact,
                         isMedium,
                         isFull
@@ -796,9 +819,11 @@ export function ScheduleGrid({
                                                         layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
                                                         isFocused && "border-[#141413] ring-1 ring-[#141413] shadow-md -translate-y-[1px] z-30",
                                                         isThisCardDragging
-                                                            ? "z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
+                                                            ? "!z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
                                                             : "cursor-grab active:cursor-grabbing hover:shadow-md",
                                                         isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70",
+                                                        // Cascading overlap expansion on hover
+                                                        layout.isOverlapping && !isThisCardDragging && "krs-cascading-node hover:!z-50 hover:shadow-xl hover:border-[#141413]/40",
                                                         // Hover-to-expand for short duration nodes
                                                         !isThisCardDragging && layout.durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40"
                                                     )}
@@ -806,13 +831,27 @@ export function ScheduleGrid({
                                                         top: `${layout.top}px`,
                                                         height: `${layout.height}px`,
                                                         minHeight: `${layout.height}px`,
-                                                        left: layout.left,
-                                                        width: layout.width,
+                                                        ...(layout.isOverlapping && !isThisCardDragging
+                                                            ? {
+                                                                  left: "var(--node-left)",
+                                                                  width: "var(--node-width)",
+                                                                  zIndex: layout.zIndex,
+                                                                  ["--node-left" as any]: layout.left,
+                                                                  ["--node-width" as any]: layout.width,
+                                                                  ["--node-day-left" as any]: layout.dayLeft,
+                                                                  ["--node-day-width" as any]: layout.dayWidth,
+                                                                  ["--node-z" as any]: layout.zIndex,
+                                                              }
+                                                            : {
+                                                                  left: layout.left,
+                                                                  width: layout.width,
+                                                                  zIndex: isFocused ? 30 : layout.zIndex,
+                                                              }),
                                                         opacity: 1, // ALWAYS 100% OPAQUE
                                                         willChange: isThisCardDragging ? "transform" : "left, top, height, width",
                                                         transition: isThisCardDragging || isThisCardJustDropped
                                                             ? (isSpringingBack ? "transform 200ms ease-out" : "none")
-                                                            : "left 340ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), width 340ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
+                                                            : "left 300ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), width 300ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
                                                         ...(isThisCardDragging
                                                             ? {
                                                                   transform: `translate3d(${dragDelta.dx}px, ${dragDelta.dy}px, 0) scale(1.02)`,
@@ -862,9 +901,12 @@ export function ScheduleGrid({
                                                             </div>
 
                                                             {/* Row 2: Time + Room */}
-                                                            <div className="text-[10px] text-[#6e6e77] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight">
+                                                            <div className={cn(
+                                                                "text-[#6e6e77] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight",
+                                                                layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10px]"
+                                                            )}>
                                                                 <span>{m.start}–{m.end}</span>
-                                                                {m.room && <span className="font-sans">· {m.room}</span>}
+                                                                {m.room && <span className="font-sans font-medium text-[#4a4a52]">· {m.room}</span>}
                                                             </div>
 
                                                             {/* Hidden expandable details on hover (reveals full room & lecturer) */}
@@ -883,7 +925,10 @@ export function ScheduleGrid({
                                                                     <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
-                                                                    <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
+                                                                    <span className={cn(
+                                                                        "font-mono text-[#6e6e77] whitespace-nowrap tabular-nums",
+                                                                        layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10.5px]"
+                                                                    )}>
                                                                         {m.start}–{m.end}
                                                                     </span>
                                                                 </div>
@@ -912,21 +957,29 @@ export function ScheduleGrid({
                                                                 )}
                                                             </div>
 
-                                                            {/* Row 2: Course Name */}
-                                                            <h4 className="text-[12.5px] font-semibold text-[#141413] line-clamp-1 group-hover:line-clamp-none mt-0.5 leading-snug">
+                                                            {/* Row 2: Course Name (wrapped onto 2 lines, never single-line truncate) */}
+                                                            <h4 className={cn(
+                                                                "font-semibold text-[#141413] mt-1 leading-tight",
+                                                                layout.isOverlapping
+                                                                    ? "text-[12px] line-clamp-2"
+                                                                    : "text-[12.5px] line-clamp-2 group-hover:line-clamp-none"
+                                                            )}>
                                                                 {cls.subjectName}
                                                             </h4>
 
-                                                            {/* Row 3: Room and Lecturer */}
-                                                            <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-[#4a4a52] truncate mt-0.5 leading-tight">
-                                                                {m.room && <span>{m.room}</span>}
-                                                                {m.room && cls.lecturers?.[0] && <span className="text-[#a1a1aa]">·</span>}
-                                                                {cls.lecturers?.[0] && (
-                                                                    <span className="text-[10px] text-[#71717a] font-normal truncate">
-                                                                        {cls.lecturers[0]}
-                                                                    </span>
-                                                                )}
-                                                            </div>
+                                                            {/* Row 3: Room */}
+                                                            {m.room && (
+                                                                <div className="text-[10.5px] font-medium text-[#4a4a52] truncate mt-0.5 leading-tight">
+                                                                    {m.room}
+                                                                </div>
+                                                            )}
+
+                                                            {/* Row 4: Lecturer */}
+                                                            {cls.lecturers?.[0] && (
+                                                                <div className="text-[10px] text-[#71717a] font-normal truncate mt-0.5 leading-tight">
+                                                                    {cls.lecturers[0]}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ) : (
                                                         /* 3. Full Mode (> 110 min, e.g. 3+ SKS) */
@@ -937,7 +990,10 @@ export function ScheduleGrid({
                                                                     <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
-                                                                    <span className="font-mono text-[10.5px] text-[#6e6e77] whitespace-nowrap tabular-nums">
+                                                                    <span className={cn(
+                                                                        "font-mono text-[#6e6e77] whitespace-nowrap tabular-nums",
+                                                                        layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10.5px]"
+                                                                    )}>
                                                                         {m.start}–{m.end}
                                                                     </span>
                                                                 </div>
@@ -967,21 +1023,24 @@ export function ScheduleGrid({
                                                                 )}
                                                             </div>
 
-                                                            {/* Row 2: Course Name (mt-1.5) */}
-                                                            <h4 className="text-[13.5px] font-semibold text-[#141413] leading-snug line-clamp-2 mt-1.5">
+                                                            {/* Row 2: Course Name */}
+                                                            <h4 className={cn(
+                                                                "font-semibold text-[#141413] leading-tight line-clamp-2 mt-1.5",
+                                                                layout.isOverlapping ? "text-[12px]" : "text-[13.5px] leading-snug"
+                                                            )}>
                                                                 {cls.subjectName}
                                                             </h4>
 
-                                                            {/* Row 3: Room (mt-1 directly below Course Name) */}
+                                                            {/* Row 3: Room */}
                                                             {m.room && (
-                                                                <div className="text-[11.5px] font-medium text-[#4a4a52] leading-tight truncate mt-1">
+                                                                <div className="text-[11px] font-medium text-[#4a4a52] leading-tight truncate mt-1">
                                                                     {m.room}
                                                                 </div>
                                                             )}
 
-                                                            {/* Row 4: Lecturer (mt-0.5 directly below Room) */}
+                                                            {/* Row 4: Lecturer */}
                                                             {cls.lecturers?.[0] && (
-                                                                <div className="text-[11px] text-[#71717a] leading-tight truncate mt-0.5">
+                                                                <div className="text-[10.5px] text-[#71717a] leading-tight truncate mt-0.5">
                                                                     {cls.lecturers[0]}
                                                                 </div>
                                                             )}

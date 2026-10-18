@@ -650,7 +650,7 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             <header className="h-14 border-b border-[#e6e6e3] bg-white/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-2.5 shrink-0 min-w-0">
                     {/* Minimal Dark Squircle Mark + Brand Wordmark */}
                     <div className="flex items-center gap-2 select-none shrink-0">
                         <div className="w-6 h-6 rounded-[7px] bg-[#141413] text-white flex items-center justify-center font-bold text-[12px] shadow-sm">
@@ -762,87 +762,59 @@ function WorkspaceContent() {
 
                     <span className="text-[#d8d8d4] text-xs select-none">|</span>
 
-                    {/* Auto-Schedule OR Candidate Confirmation Controls */}
-                    {previewMapping !== null ? (
-                        <div className="flex items-center gap-2 animate-in fade-in zoom-in-95 duration-150">
-                            {/* [✓ Accept] */}
-                            <button
-                                onClick={handleAcceptPreview}
-                                className="px-3 py-1.5 rounded-lg text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 border border-emerald-700 shadow-sm flex items-center gap-1.5 transition-all select-none"
-                                title="Accept schedule candidate (Enter)"
-                            >
-                                <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                                <span>Accept</span>
-                                <span className="text-[10px] font-mono opacity-80 bg-emerald-700/60 px-1 py-0.2 rounded ml-0.5 hidden sm:inline">↵</span>
-                            </button>
-
-                            {/* [↻ Shuffle] */}
-                            <button
-                                onClick={handleGenerateOrShuffle}
-                                disabled={isGenerating}
-                                className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] flex items-center gap-1.5 transition-all select-none shadow-2xs"
-                                title="Shuffle candidate (Space)"
-                            >
+                    {/* Auto-Schedule / Shuffle Button (Static width & position, never expands) */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={handleGenerateOrShuffle}
+                            disabled={isGenerating}
+                            className={cn(
+                                "px-3.5 py-1.5 rounded-lg text-[13px] font-medium flex items-center gap-1.5 transition-all select-none shadow-sm",
+                                previewMapping !== null
+                                    ? "btn-tactile-light text-[#141413] border-[#d8d8d4]"
+                                    : "btn-tactile-dark text-white",
+                                isGenerating && "opacity-75 cursor-not-allowed"
+                            )}
+                            title={previewMapping !== null ? "Shuffle candidate (Space)" : "Generate conflict-free schedule (Space)"}
+                        >
+                            {previewMapping !== null ? (
                                 <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6]", isGenerating && "animate-spin")} />
-                                <span>Shuffle</span>
-                                <span className="text-[10px] font-mono text-[#6e6e77] bg-neutral-200/60 px-1 py-0.2 rounded ml-0.5 hidden sm:inline">Space</span>
-                            </button>
-
-                            {/* [✕ Cancel] */}
-                            <button
-                                onClick={handleCancelPreview}
-                                className="px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-100 transition-colors flex items-center gap-1 select-none"
-                                title="Discard preview (Esc)"
-                            >
-                                <X className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Cancel</span>
-                            </button>
-
-                            {/* Margin Note: Hints for preview actions */}
-                            <div className="hidden xl:flex items-center gap-1.5 select-none text-[#5b82a6] font-doodle font-bold text-[16px] -rotate-2 ml-1">
-                                <span>↵ accept · space shuffle · esc cancel</span>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2.5">
-                            {/* Primary Auto-Schedule Button (Directly next to the doodle arrow!) */}
-                            <button
-                                onClick={handleGenerateOrShuffle}
-                                disabled={isGenerating}
-                                className={cn(
-                                    "btn-tactile-dark px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-white flex items-center gap-1.5 transition-all select-none shadow-sm",
-                                    isGenerating && "opacity-75 cursor-not-allowed"
-                                )}
-                                title="Generate conflict-free schedule (or press Space)"
-                            >
+                            ) : (
                                 <svg className={cn("w-3.5 h-3.5 fill-current opacity-90", isGenerating && "animate-spin")} viewBox="0 0 24 24">
                                     <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" />
                                 </svg>
-                                <span>{isGenerating ? "Solving..." : "Auto-Schedule"}</span>
-                            </button>
+                            )}
+                            <span>
+                                {isGenerating
+                                    ? "Solving..."
+                                    : previewMapping !== null
+                                        ? "Shuffle"
+                                        : "Auto-Schedule"}
+                            </span>
+                        </button>
 
-                            {/* Margin Note: Doodle arrow & text pointing directly at Auto-Schedule */}
-                            <div className="hidden xl:flex items-center gap-1.5 select-none text-[#5b82a6] font-doodle font-bold text-[16.5px] -rotate-2 ml-1">
+                        {/* Margin Note: Doodle arrow & text pointing directly at Auto-Schedule */}
+                        {previewMapping === null && (
+                            <div className="hidden 2xl:flex items-center gap-1.5 select-none text-[#5b82a6] font-doodle font-bold text-[16.5px] -rotate-2 ml-1">
                                 <svg className="w-6 h-4 text-[#5b82a6] stroke-current fill-none stroke-[2] -scale-x-100" viewBox="0 0 32 20">
                                     <path d="M4 16 C 14 16, 22 12, 28 4" strokeLinecap="round" />
                                     <path d="M22 4 L28 4 L28 10" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                                <span>psst, press space to shuffle</span>
+                                <span>← space to shuffle</span>
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
-                {/* 3. Right Group: Tutorial Restart, SKS Status & Export */}
-                <div className="flex items-center gap-3 shrink-0">
-                    {/* Always-Visible Restart Tutorial Button */}
+                {/* 3. Right Group: Compact Tutorial Pill, SKS Status & Export */}
+                <div className="flex items-center gap-2.5 shrink-0">
+                    {/* Compact ? Tutorial Pill */}
                     <button
                         type="button"
                         onClick={() => openOverlay("tour")}
-                        className="font-doodle text-[17px] font-bold text-[#5b82a6] hover:text-[#141413] px-2 py-1 rounded-md hover:bg-neutral-100 transition-colors flex items-center gap-1 select-none"
+                        className="w-7 h-7 rounded-lg border border-[#e2e2df] hover:border-[#d8d8d4] bg-white hover:bg-neutral-100 text-[#5b82a6] hover:text-[#141413] flex items-center justify-center transition-colors select-none font-bold text-[13px]"
                         title="Restart 4-step interactive tutorial"
                     >
-                        <span>↻ tutorial</span>
+                        <span>?</span>
                     </button>
 
                     <span className="text-[#d8d8d4] text-xs select-none">·</span>
@@ -987,6 +959,49 @@ function WorkspaceContent() {
                         onFocusSubject={setGridFocusedSubjectId}
                     />
                 </div>
+
+                {/* Floating Preview Confirmation Bar */}
+                {previewMapping !== null && (
+                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md border border-[#d8d8d4] shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl px-4 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
+                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] pr-1 select-none">
+                            previewing schedule
+                        </span>
+
+                        {/* [ ✓ Accept ↵ ] */}
+                        <button
+                            onClick={handleAcceptPreview}
+                            className="btn-tactile-dark px-3.5 py-1.5 rounded-xl text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 border border-emerald-700 shadow-sm flex items-center gap-1.5 transition-all select-none cursor-pointer"
+                            title="Accept schedule candidate (Enter)"
+                        >
+                            <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                            <span>Accept</span>
+                            <span className="text-[10px] font-mono opacity-80 bg-emerald-700/60 px-1 py-0.2 rounded ml-0.5">↵</span>
+                        </button>
+
+                        {/* [ ↻ Shuffle Space ] */}
+                        <button
+                            onClick={handleGenerateOrShuffle}
+                            disabled={isGenerating}
+                            className="btn-tactile-light px-3.5 py-1.5 rounded-xl text-[13px] font-medium text-[#141413] flex items-center gap-1.5 transition-all select-none shadow-2xs cursor-pointer"
+                            title="Shuffle candidate (Space)"
+                        >
+                            <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6]", isGenerating && "animate-spin")} />
+                            <span>Shuffle</span>
+                            <span className="text-[10px] font-mono text-[#6e6e77] bg-neutral-200/60 px-1.5 py-0.2 rounded ml-0.5">Space</span>
+                        </button>
+
+                        {/* [ ✕ Cancel Esc ] */}
+                        <button
+                            onClick={handleCancelPreview}
+                            className="px-3 py-1.5 rounded-xl text-[13px] font-medium text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-100 transition-colors flex items-center gap-1 select-none cursor-pointer"
+                            title="Discard preview (Esc)"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                            <span>Cancel</span>
+                            <span className="text-[10px] font-mono text-[#a1a1aa] ml-0.5">Esc</span>
+                        </button>
+                    </div>
+                )}
 
                 {/* Mobile/Tablet (< lg) Floating Pill Button to toggle Courses Drawer */}
                 <div className="lg:hidden fixed bottom-5 left-5 z-40">

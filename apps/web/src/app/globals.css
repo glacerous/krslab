@@ -174,4 +174,15 @@
   .animate-node-settle {
     animation: node-settle 200ms cubic-bezier(0.22, 1, 0.36, 1);
   }
+
+  /* Cascading Overlapping Nodes (ScheduleGrid) */
+  .krs-cascading-node {
+    /* Base positioning is set by inline CSS variables */
+  }
+
+  .krs-cascading-node:hover {
+    left: var(--node-day-left) !important;
+    width: var(--node-day-width) !important;
+    z-index: 50 !important;
+  }
 }
