@@ -75,6 +75,23 @@ export function ScheduleGrid({
     const [hoveredGhostClassId, setHoveredGhostClassId] = useState<string | null>(null);
     const [isSpringingBack, setIsSpringingBack] = useState(false);
     const [justDroppedSubjectId, setJustDroppedSubjectId] = useState<string | null>(null);
+    const [droppedOptimisticPicks, setDroppedOptimisticPicks] = useState<Record<string, string>>({});
+
+    // Clean up optimistic picks once parent selectedClasses catches up
+    useEffect(() => {
+        setDroppedOptimisticPicks((prev) => {
+            const next = { ...prev };
+            let changed = false;
+            for (const [subId, classId] of Object.entries(next)) {
+                const current = selectedClasses.find((c) => c?.subjectId === subId);
+                if (current && current.classId === classId) {
+                    delete next[subId];
+                    changed = true;
+                }
+            }
+            return changed ? next : prev;
+        });
+    }, [selectedClasses]);
     const [activeDraggingCard, setActiveDraggingCard] = useState<{
         subjectId: string;
         classId: string;
@@ -245,17 +262,21 @@ export function ScheduleGrid({
         if (state.isMoved) {
             if (hoveredGhostClassId) {
                 const droppedSubId = state.subjectId;
+                const targetClassId = hoveredGhostClassId;
+
                 setJustDroppedSubjectId(droppedSubId);
-                onSelectClass?.(droppedSubId, hoveredGhostClassId);
+                setDroppedOptimisticPicks((prev) => ({ ...prev, [droppedSubId]: targetClassId }));
+                onSelectClass?.(droppedSubId, targetClassId);
                 setFocusedSubjectId(null);
                 setIsDragging(false);
                 setDragDelta({ dx: 0, dy: 0 });
                 setHoveredGhostClassId(null);
                 setActiveDraggingCard(null);
                 pointerDragRef.current = null;
+
                 setTimeout(() => {
                     setJustDroppedSubjectId((prev) => (prev === droppedSubId ? null : prev));
-                }, 200);
+                }, 300);
             } else {
                 setIsSpringingBack(true);
                 setDragDelta({ dx: 0, dy: 0 });
@@ -481,13 +502,27 @@ export function ScheduleGrid({
 
                                 {/* ACTIVE COURSE NODES (Positioned by day percentage + top offset, with smooth CSS gliding transition) */}
                                 <div className="absolute inset-0 pointer-events-none">
-                                    {selectedClasses.map((cls, clsIndex) => {
-                                        if (!cls) return null;
+                                    {selectedClasses.map((propCls, clsIndex) => {
+                                        if (!propCls) return null;
+                                        const subject = allSubjects.find((s) => s.subjectId === propCls.subjectId);
+                                        const optimisticClassId = droppedOptimisticPicks[propCls.subjectId];
+                                        const optimisticClass = optimisticClassId && subject
+                                            ? subject.classes.find((c) => c.classId === optimisticClassId)
+                                            : null;
+                                        const cls = optimisticClass
+                                            ? {
+                                                  ...propCls,
+                                                  classId: optimisticClass.classId,
+                                                  className: optimisticClass.className,
+                                                  meetings: optimisticClass.meetings,
+                                                  lecturers: optimisticClass.lecturers
+                                              }
+                                            : propCls;
+
                                         const isConflicting = conflicts[cls.classId];
                                         const isFrozen = frozenSubjectIds.includes(cls.subjectId);
                                         const isFocused = focusedSubjectId === cls.subjectId;
                                         const subjectColor = getSubjectColor(cls.subjectId, clsIndex);
-                                        const subject = allSubjects.find((s) => s.subjectId === cls.subjectId);
                                         const sks = subject?.sks || 3;
                                         const classOptionsCount = subject?.classes?.length || 1;
 
@@ -505,6 +540,8 @@ export function ScheduleGrid({
 
                                             const leftPercent = (dayIdx * 100) / DAYS.length;
                                             const widthPercent = 100 / DAYS.length;
+
+                                            const isThisCardJustDropped = justDroppedSubjectId === cls.subjectId;
 
                                             return (
                                                 <div
@@ -524,8 +561,7 @@ export function ScheduleGrid({
                                                         isThisCardDragging
                                                             ? "z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
                                                             : "cursor-grab active:cursor-grabbing hover:shadow-md",
-                                                        isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70",
-                                                        justDroppedSubjectId === cls.subjectId && "animate-node-settle"
+                                                        isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70"
                                                     )}
                                                     style={{
                                                         top: `${pos.top + 2}px`,
@@ -534,7 +570,7 @@ export function ScheduleGrid({
                                                         width: `calc(${widthPercent}% - 8px)`,
                                                         opacity: 1, // ALWAYS 100% OPAQUE
                                                         willChange: isThisCardDragging ? "transform" : "left, top, height",
-                                                        transition: isThisCardDragging
+                                                        transition: isThisCardDragging || isThisCardJustDropped
                                                             ? (isSpringingBack ? "transform 200ms ease-out" : "none")
                                                             : "left 340ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
                                                         ...(isThisCardDragging

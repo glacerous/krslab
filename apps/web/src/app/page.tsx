@@ -57,7 +57,8 @@ function WorkspaceContent() {
         isDataModalOpen,
         setIsDataModalOpen,
         isGenerating,
-        _hasHydrated
+        _hasHydrated,
+        setHasHydrated
     } = useAppStore();
 
     type ActiveOverlay = "none" | "bima-import" | "rules" | "saved" | "tour";
@@ -129,7 +130,8 @@ function WorkspaceContent() {
     // Initial hydration and plan resolution
     useEffect(() => {
         setMounted(true);
-    }, []);
+        setHasHydrated(true);
+    }, [setHasHydrated]);
 
     // Ensure there is always an active plan and datasource if data exists
     useEffect(() => {
@@ -266,15 +268,27 @@ function WorkspaceContent() {
 
         const currentlyDisplayed = previewMapping ?? activePlan.selectedClassBySubjectId;
 
-        // 1. Cycle through unseen cached candidates in the pool to guarantee instantaneous distinct movement
-        if (candidatePoolRef.current.length > 0) {
-            const differingIdx = candidatePoolRef.current.findIndex(cand =>
-                Object.entries(cand).some(([sId, cId]) => currentlyDisplayed[sId] !== cId)
-            );
+        const countDiff = (cand: Record<string, string>, base: Record<string, string>) => {
+            let diff = 0;
+            const frozenSet = new Set(activePlan?.frozenSubjectIds ?? []);
+            for (const [sId, cId] of Object.entries(cand)) {
+                if (!frozenSet.has(sId) && base[sId] !== cId) {
+                    diff++;
+                }
+            }
+            return diff;
+        };
 
-            if (differingIdx !== -1) {
-                const [nextCandidate] = candidatePoolRef.current.splice(differingIdx, 1);
-                setPreviewMapping(nextCandidate);
+        // 1. Cycle through unseen cached candidates in the pool, picking the one with MAXIMUM displacement
+        if (candidatePoolRef.current.length > 0) {
+            candidatePoolRef.current.sort((a, b) => countDiff(b, currentlyDisplayed) - countDiff(a, currentlyDisplayed));
+
+            const bestCand = candidatePoolRef.current[0];
+            const maxDiff = countDiff(bestCand, currentlyDisplayed);
+
+            if (maxDiff > 0) {
+                candidatePoolRef.current.shift();
+                setPreviewMapping(bestCand);
                 toast.success("Schedule Candidate Shuffled", {
                     id: "solver-toast",
                     description: "Accept to apply or Shuffle to try another."
@@ -283,18 +297,18 @@ function WorkspaceContent() {
             }
         }
 
-        // 2. Pool empty or exhausted: generate a fresh batch of 15 candidates
+        // 2. Pool empty or exhausted: generate a fresh batch of candidates
         setSolverDiagnostics(null);
         toast.loading("Finding conflict-free schedule...", { id: "solver-toast" });
 
         const result = generateCandidateSchedule(activePlan.id, currentlyDisplayed);
 
         if (result.success && result.candidate) {
-            // Populate pool with remaining distinct candidates
+            // Populate pool with remaining distinct candidates, sorted descending by displacement
             if (result.allCandidates && result.allCandidates.length > 0) {
-                const remaining = result.allCandidates.filter(c =>
-                    Object.entries(c).some(([sId, cId]) => result.candidate![sId] !== cId)
-                );
+                const remaining = result.allCandidates
+                    .filter(c => countDiff(c, result.candidate!) > 0)
+                    .sort((a, b) => countDiff(b, result.candidate!) - countDiff(a, result.candidate!));
                 candidatePoolRef.current = remaining;
             } else {
                 candidatePoolRef.current = [];

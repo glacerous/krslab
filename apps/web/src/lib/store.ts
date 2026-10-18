@@ -556,8 +556,8 @@ export const useAppStore = create<AppStore>()(
                         mutableCourses as any,
                         rules,
                         {
-                            target: 15,
-                            maxAttempts: 1500,
+                            target: 35,
+                            maxAttempts: 3500,
                             seed: freshSeed
                         },
                         {
@@ -611,12 +611,22 @@ export const useAppStore = create<AppStore>()(
                         }
                     }
 
-                    // Pick one that differs from current displayed mapping if possible
+                    // Calculate displacement (Hamming distance) against current displayed schedule
                     const currentMapping = currentDisplayedMapping ?? plan.selectedClassBySubjectId;
-                    const differingVariant = uniqueVariants.find((m) =>
-                        Object.entries(m).some(([sId, cId]) => currentMapping[sId] !== cId)
-                    );
-                    const chosen = differingVariant || uniqueVariants[0];
+                    const countDiff = (candidate: Record<string, string>) => {
+                        let diff = 0;
+                        for (const [sId, cId] of Object.entries(candidate)) {
+                            if (!initialPicksIds.has(sId) && currentMapping[sId] !== cId) {
+                                diff++;
+                            }
+                        }
+                        return diff;
+                    };
+
+                    // Sort unique variants by maximum displacement (most courses moved first)
+                    uniqueVariants.sort((a, b) => countDiff(b) - countDiff(a));
+
+                    const chosen = uniqueVariants[0] || null;
 
                     return { success: true, candidate: chosen, allCandidates: uniqueVariants };
                 } finally {
@@ -1000,10 +1010,8 @@ export const useAppStore = create<AppStore>()(
         }),
         {
             name: "krs-plan-next-gen",
-            onRehydrateStorage: (state) => {
-                return () => {
-                    state?.setHasHydrated(true);
-                };
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
             },
         }
     )
