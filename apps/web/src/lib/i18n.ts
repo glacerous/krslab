@@ -187,7 +187,7 @@ export const translations: Record<Language, Translations> = {
         plansCount: "plans",
 
         // Sources switcher
-        importNewBima: "+ Import new BIMA source...",
+        importNewBima: "Import new BIMA source...",
         loadSample: "Load sample Informatics data",
         coursesAndClasses: "courses · classes",
 
@@ -308,7 +308,7 @@ export const translations: Record<Language, Translations> = {
         plansCount: "rencana",
 
         // Sources switcher
-        importNewBima: "+ Impor sumber BIMA baru...",
+        importNewBima: "Impor sumber BIMA baru...",
         loadSample: "Muat data contoh Informatika",
         coursesAndClasses: "matkul · kelas",
 

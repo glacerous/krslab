@@ -393,9 +393,22 @@ function WorkspaceContent() {
         const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
         const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
         const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
+        const sampleClasses: Record<string, string> = {};
+        const assignedClasses: any[] = [];
+        for (const subId of sampleSubIds) {
+            const sub = parsed.subjects.find((s: any) => s.subjectId === subId);
+            if (!sub?.classes?.length) continue;
+            let picked = sub.classes.find((candidate: any) =>
+                !assignedClasses.some((assigned: any) => checkClassConflict(candidate, assigned))
+            );
+            if (!picked) picked = sub.classes[0];
+            sampleClasses[subId] = picked.classId;
+            assignedClasses.push(picked);
+        }
         updatePlan(planId, {
             name: "Plan 1",
-            selectedSubjectIds: sampleSubIds
+            selectedSubjectIds: sampleSubIds,
+            selectedClassBySubjectId: sampleClasses
         });
         toast.success(`Switched to "Sample UPNYK Informatics" (${parsed.subjects.length} courses)`);
         setIsSourceMenuOpen(false);
@@ -483,6 +496,58 @@ function WorkspaceContent() {
             }
         }
     }, [activePlan]);
+
+    // Safety auto-assign: ensure selected courses in activePlan always have a valid class section assigned
+    useEffect(() => {
+        if (!_hasHydrated || !activePlan || !activeDatasource) return;
+        const selectedIds = activePlan.selectedSubjectIds ?? [];
+        if (selectedIds.length === 0) return;
+
+        const currentMapping = { ...(activePlan.selectedClassBySubjectId || {}) };
+        let hasChanges = false;
+
+        const assignedClassesSoFar = selectedIds
+            .filter((subId) => {
+                const classId = currentMapping[subId];
+                if (!classId) return false;
+                const sub = activeDatasource.subjects.find((s) => s.subjectId === subId);
+                return sub?.classes.some((c) => c.classId === classId);
+            })
+            .map((subId) => {
+                const sub = activeDatasource.subjects.find((s) => s.subjectId === subId)!;
+                return sub.classes.find((c) => c.classId === currentMapping[subId])!;
+            });
+
+        for (const subId of selectedIds) {
+            const currentClassId = currentMapping[subId];
+            const sub = activeDatasource.subjects.find((s) => s.subjectId === subId);
+            if (!sub || !sub.classes || sub.classes.length === 0) continue;
+
+            const isValid = currentClassId && sub.classes.some((c) => c.classId === currentClassId);
+            if (isValid) continue;
+
+            // Pick non-conflicting class if possible, or fallback to first available
+            let pickedClass = sub.classes.find((candidate) => {
+                return !assignedClassesSoFar.some((assigned) => checkClassConflict(candidate, assigned));
+            });
+
+            if (!pickedClass) {
+                pickedClass = sub.classes[0];
+            }
+
+            if (pickedClass) {
+                currentMapping[subId] = pickedClass.classId;
+                assignedClassesSoFar.push(pickedClass);
+                hasChanges = true;
+            }
+        }
+
+        if (hasChanges) {
+            updatePlan(activePlan.id, {
+                selectedClassBySubjectId: currentMapping
+            });
+        }
+    }, [_hasHydrated, activePlan, activeDatasource, updatePlan]);
 
     // Filter Plan Tabs Strictly by Active Datasource in stable creation order
     const sourcePlans = useMemo(() => {
@@ -810,9 +875,22 @@ function WorkspaceContent() {
                                 const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
                                 const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
                                 const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
+                                const sampleClasses: Record<string, string> = {};
+                                const assignedClasses: any[] = [];
+                                for (const subId of sampleSubIds) {
+                                    const sub = parsed.subjects.find((s: any) => s.subjectId === subId);
+                                    if (!sub?.classes?.length) continue;
+                                    let picked = sub.classes.find((candidate: any) =>
+                                        !assignedClasses.some((assigned: any) => checkClassConflict(candidate, assigned))
+                                    );
+                                    if (!picked) picked = sub.classes[0];
+                                    sampleClasses[subId] = picked.classId;
+                                    assignedClasses.push(picked);
+                                }
                                 useAppStore.getState().updatePlan(planId, {
                                     name: "Semester 4",
-                                    selectedSubjectIds: sampleSubIds
+                                    selectedSubjectIds: sampleSubIds,
+                                    selectedClassBySubjectId: sampleClasses
                                 });
                                 toast.success("Sample Data Loaded!", {
                                     id: "sample-toast",
@@ -1459,7 +1537,7 @@ function WorkspaceContent() {
                                 className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors select-none"
                             >
                                 <Plus className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc]" />
-                                <span>+ {t.importNewBima}</span>
+                                <span>{t.importNewBima}</span>
                             </button>
 
                             <button
@@ -1890,9 +1968,22 @@ function WorkspaceContent() {
                         const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
                         const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
                         const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
+                        const sampleClasses: Record<string, string> = {};
+                        const assignedClasses: any[] = [];
+                        for (const subId of sampleSubIds) {
+                            const sub = parsed.subjects.find((s: any) => s.subjectId === subId);
+                            if (!sub?.classes?.length) continue;
+                            let picked = sub.classes.find((candidate: any) =>
+                                !assignedClasses.some((assigned: any) => checkClassConflict(candidate, assigned))
+                            );
+                            if (!picked) picked = sub.classes[0];
+                            sampleClasses[subId] = picked.classId;
+                            assignedClasses.push(picked);
+                        }
                         useAppStore.getState().updatePlan(planId, {
                             name: "Semester 4",
-                            selectedSubjectIds: sampleSubIds
+                            selectedSubjectIds: sampleSubIds,
+                            selectedClassBySubjectId: sampleClasses
                         });
                         setActiveTab("selected");
                         toast.success("Loaded Sample Informatics Schedule!");
