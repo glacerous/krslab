@@ -392,16 +392,6 @@ export function CoursePanel({
                                         </div>
                                     );
                                 })}
-
-                                <div className="pt-2 pb-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsCustomCourseModalOpen(true)}
-                                        className="w-full py-2 px-3 rounded-xl border border-dashed border-[#e6e6e3] dark:border-[#2e2e34] hover:border-[#141413] dark:hover:border-[#f4f4f6] text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors flex items-center justify-center gap-1.5"
-                                    >
-                                        <span>{language === "id" ? "+ Tambah matkul manual" : "+ Add custom course"}</span>
-                                    </button>
-                                </div>
                             </>
                         )}
                     </div>
