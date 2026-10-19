@@ -85,27 +85,32 @@ export interface Translations {
     exploreSampleBtn: string;
     tryStudioNote: string;
 
-    // Step-by-Step Onboarding Flow (nexvyn editorial style)
+    // Step-by-Step Onboarding Flow (warm nexvyn editorial style)
     onboardingStep: string;
     skipSetup: string;
     continueBtn: string;
     backBtn: string;
-    welcomeTitle: string;
-    welcomeSubtitle: string;
-    welcomeDescPre: string;
-    welcomeDescHighlight: string;
-    welcomeDescPost: string;
-    languageInline: string;
-    appearanceInline: string;
+    greetingDoodle: string;
+    step1Headline: string;
+    step1IntroPre: string;
+    step1IntroHighlight: string;
+    step1IntroPost: string;
+    languageLabelDoodle: string;
+    appearanceLabelDoodle: string;
     switchesLiveLine1: string;
     switchesLiveLine2: string;
-    step2Title: string;
+    step2Doodle: string;
+    step2Headline: string;
     step2Desc: string;
     step2Cap20: string;
     step2Cap24: string;
     step2CapUnlimited: string;
     selectedDoodle: string;
     defaultDoodle: string;
+    recommendedDoodle: string;
+    step3Doodle: string;
+    step3Headline: string;
+    step3Subtitle: string;
     step3Header: string;
     step3ImportTitle: string;
     step3ImportDesc: string;
@@ -203,27 +208,32 @@ export const translations: Record<Language, Translations> = {
         exploreSampleBtn: "Explore with sample courses",
         tryStudioNote: "← try the studio first",
 
-        // Step-by-Step Onboarding Flow (nexvyn editorial style)
+        // Step-by-Step Onboarding Flow (warm nexvyn editorial style)
         onboardingStep: "step",
         skipSetup: "Skip →",
         continueBtn: "Continue →",
         backBtn: "← Back",
-        welcomeTitle: "Welcome to KRSlab",
-        welcomeSubtitle: "Academic Schedule Studio",
-        welcomeDescPre: "I built this workspace to take the headache out of planning your semester KRS. Paste your raw course table, drag classes on the grid, and find every ",
-        welcomeDescHighlight: "conflict-free",
-        welcomeDescPost: " combination.",
-        languageInline: "Language —",
-        appearanceInline: "Appearance —",
-        switchesLiveLine1: "switches live",
+        greetingDoodle: "👋 hey there, welcome!",
+        step1Headline: "Let's set up your semester desk.",
+        step1IntroPre: "I built this workspace to take the headache out of planning your semester KRS. Paste your raw course table, drag classes on the grid, and find every ",
+        step1IntroHighlight: "conflict-free",
+        step1IntroPost: " combination.",
+        languageLabelDoodle: "language / bahasa",
+        appearanceLabelDoodle: "canvas theme / tampilan kanvas",
+        switchesLiveLine1: "updates live",
         switchesLiveLine2: "as you click",
-        step2Title: "How heavy is your semester?",
+        step2Doodle: "semester workload",
+        step2Headline: "How many SKS are you planning?",
         step2Desc: "Pick a credit cap so the studio can track your load as you add courses.",
         step2Cap20: "balanced load, 6–7 courses",
         step2Cap24: "standard maximum semester load",
         step2CapUnlimited: "free exploration with no cap",
         selectedDoodle: "selected ✓",
         defaultDoodle: "default",
+        recommendedDoodle: "recommended ✓",
+        step3Doodle: "all set, let's go!",
+        step3Headline: "How would you like to start?",
+        step3Subtitle: "Choose how you'd like to load your courses into the planner.",
         step3Header: "start scheduling",
         step3ImportTitle: "Import BIMA / SIAKAD table",
         step3ImportDesc: "Copy rows from Jadwal Dosen and paste them straight in.",
@@ -319,27 +329,32 @@ export const translations: Record<Language, Translations> = {
         exploreSampleBtn: "Coba dengan matkul contoh",
         tryStudioNote: "← coba studio langsung",
 
-        // Step-by-Step Onboarding Flow (nexvyn editorial style)
+        // Step-by-Step Onboarding Flow (warm nexvyn editorial style)
         onboardingStep: "langkah",
         skipSetup: "Lewati →",
         continueBtn: "Lanjut →",
         backBtn: "← Kembali",
-        welcomeTitle: "Selamat datang di KRSlab",
-        welcomeSubtitle: "Studio Jadwal Kuliah",
-        welcomeDescPre: "Ruang kerja ini dibuat agar menyusun KRS tidak lagi memusingkan. Tempel tabel jadwal dari portal kampus, geser kelas di kanvas, dan temukan kombinasi ",
-        welcomeDescHighlight: "bebas bentrok",
-        welcomeDescPost: ".",
-        languageInline: "Bahasa —",
-        appearanceInline: "Tampilan —",
+        greetingDoodle: "👋 halo, selamat datang!",
+        step1Headline: "Mari siapkan meja jadwal semestermu.",
+        step1IntroPre: "Ruang kerja ini dibuat agar menyusun KRS tidak lagi memusingkan. Tempel tabel jadwal dari portal kampus, geser kelas di kanvas, dan temukan kombinasi ",
+        step1IntroHighlight: "bebas bentrok",
+        step1IntroPost: ".",
+        languageLabelDoodle: "language / bahasa",
+        appearanceLabelDoodle: "canvas theme / tampilan kanvas",
         switchesLiveLine1: "berubah langsung",
         switchesLiveLine2: "saat diklik",
-        step2Title: "Berapa batas SKS semestermu?",
+        step2Doodle: "sks & beban kuliah",
+        step2Headline: "Berapa target SKS semester ini?",
         step2Desc: "Pilih batas SKS agar studio dapat memantau beban kredit saat kamu memilih mata kuliah.",
         step2Cap20: "beban seimbang, 6–7 matkul",
         step2Cap24: "batas maksimum standar semester",
         step2CapUnlimited: "eksplorasi bebas tanpa batas",
         selectedDoodle: "terpilih ✓",
         defaultDoodle: "standar",
+        recommendedDoodle: "disarankan ✓",
+        step3Doodle: "siap mulai!",
+        step3Headline: "Bagaimana kamu ingin memulai?",
+        step3Subtitle: "Pilih cara memulai penyusunan rencana jadwalmu.",
         step3Header: "mulai menyusun",
         step3ImportTitle: "Impor tabel BIMA / SIAKAD",
         step3ImportDesc: "Salin baris dari Jadwal Dosen dan tempel langsung.",

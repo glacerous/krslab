@@ -49,344 +49,374 @@ export function WelcomeScreen({ isOpen, onImportTable, onExploreSample, onSkip }
 
     const isDarkMode = theme === "dark";
 
+    // Primary CTA button styles: dark ink in light mode, crisp warm white with glow in dark mode
+    const primaryCtaClass = "bg-[#141413] text-white hover:bg-[#27272a] dark:bg-[#f4f4f6] dark:text-[#141413] dark:hover:bg-white dark:shadow-[0_2px_12px_rgba(255,255,255,0.12)] transition-all px-4 py-2 rounded-xl text-[13.5px] font-medium shadow-xs cursor-pointer";
+
     return (
-        <div className="fixed inset-0 z-[200] overflow-y-auto bg-[#f9f9f8] dark:bg-[#121214] bg-dot-matrix flex flex-col justify-between py-8 px-6 animate-in fade-in duration-200 select-none">
-            {/* Top Navigation Bar — aligned to the same max-w-[500px] vertical column */}
-            <header className="max-w-[500px] w-full mx-auto flex items-center justify-between shrink-0">
-                {/* Custom Brand Logo */}
-                <BrandLogo />
+        <div className="fixed inset-0 z-[200] overflow-y-auto bg-[#f9f9f8] dark:bg-[#121214] bg-dot-matrix flex flex-col justify-center items-center py-12 px-6 animate-in fade-in duration-200 select-none">
+            {/* Unified Max-Width Container (No 300px Empty Gap!) */}
+            <div className="w-full max-w-[520px] mx-auto flex flex-col my-auto">
+                {/* Top Navigation Bar — sits directly 32px (mb-8) above the step content */}
+                <header className="flex items-center justify-between mb-8">
+                    {/* Custom Brand Logo */}
+                    <BrandLogo />
 
-                {/* Step indicator & Skip */}
-                <div className="flex items-center gap-4">
-                    <span className="font-mono text-[13px] text-[#6e6e77] dark:text-[#a1a1aa]">
-                        0{currentStep} / 03
-                    </span>
-                    <button
-                        type="button"
-                        onClick={handleComplete}
-                        className="text-[13px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
-                    >
-                        {t.skipSetup}
-                    </button>
-                </div>
-            </header>
-
-            {/* Main Stage: Single Centered Editorial Column (max-w-[500px]) */}
-            <main className="max-w-[500px] w-full mx-auto my-auto py-8 flex flex-col justify-center">
-                {/* Step 1 of 3: Editorial Welcome + Language & Paper Style */}
-                {currentStep === 1 && (
-                    <div key="step-1" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                        {/* Paragraph 1: Title & Subtitle */}
-                        <div>
-                            <h1 className="text-[15px] font-medium text-[#141413] dark:text-[#f4f4f6]">
-                                {t.welcomeTitle}
-                            </h1>
-                            <div className="text-[14.5px] text-[#6e6e77] dark:text-[#a1a1aa] mt-0.5">
-                                {t.welcomeSubtitle}
-                            </div>
-                        </div>
-
-                        {/* Paragraph 2: Editorial Intro with nexvyn-dash */}
-                        <p className="text-[14.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
-                            {t.welcomeDescPre}
-                            <span className="text-[#141413] dark:text-[#f4f4f6] font-medium nexvyn-dash">
-                                {t.welcomeDescHighlight}
-                            </span>
-                            {t.welcomeDescPost}
-                        </p>
-
-                        {/* Unboxed Inline Preference Rows with Nexvyn's Right-Hand Bracket `]` */}
-                        <div className="pt-2 flex items-center justify-between sm:justify-start gap-4 sm:gap-6">
-                            <div className="space-y-2.5 text-[14.5px]">
-                                {/* Line 1: Language */}
-                                <div>
-                                    <span className="text-[#6e6e77] dark:text-[#a1a1aa]">{t.languageInline} </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setLanguage("en")}
-                                        className={cn(
-                                            "transition-colors cursor-pointer",
-                                            language === "en"
-                                                ? "nexvyn-dash text-[#141413] dark:text-[#f4f4f6] font-medium"
-                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
-                                        )}
-                                    >
-                                        English
-                                    </button>
-                                    <span className="text-[#a1a1aa] dark:text-[#52525b]"> / </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setLanguage("id")}
-                                        className={cn(
-                                            "transition-colors cursor-pointer",
-                                            language === "id"
-                                                ? "nexvyn-dash text-[#141413] dark:text-[#f4f4f6] font-medium"
-                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
-                                        )}
-                                    >
-                                        Bahasa Indonesia
-                                    </button>
-                                </div>
-
-                                {/* Line 2: Appearance */}
-                                <div>
-                                    <span className="text-[#6e6e77] dark:text-[#a1a1aa]">{t.appearanceInline} </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTheme("light")}
-                                        className={cn(
-                                            "transition-colors cursor-pointer",
-                                            !isDarkMode
-                                                ? "nexvyn-dash text-[#141413] dark:text-[#f4f4f6] font-medium"
-                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
-                                        )}
-                                    >
-                                        Warm Paper
-                                    </button>
-                                    <span className="text-[#a1a1aa] dark:text-[#52525b]"> / </span>
-                                    <button
-                                        type="button"
-                                        onClick={() => setTheme("dark")}
-                                        className={cn(
-                                            "transition-colors cursor-pointer",
-                                            isDarkMode
-                                                ? "nexvyn-dash text-[#141413] dark:text-[#f4f4f6] font-medium"
-                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
-                                        )}
-                                    >
-                                        Dark Ink
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Hand-drawn closing bracket `]` and Gaegu doodle note */}
-                            <div className="flex items-center gap-1.5 shrink-0 pl-1">
-                                <svg width="12" height="44" viewBox="0 0 12 44" fill="none" className="text-[#5b82a6] dark:text-[#7dd3fc] shrink-0">
-                                    <path d="M2 2 C6 2, 7 6, 7 16 C7 20, 10 21.5, 11 22 C10 22.5, 7 24, 7 28 C7 38, 6 42, 2 42" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                                </svg>
-                                <div className="font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] leading-[1.1] select-none whitespace-nowrap">
-                                    <div>{t.switchesLiveLine1}</div>
-                                    <div>{t.switchesLiveLine2}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Step Footer: Continue → */}
-                        <div className="mt-9 pt-4 flex justify-end">
-                            <button
-                                type="button"
-                                onClick={() => setCurrentStep(2)}
-                                className="btn-tactile-dark px-4 py-2 rounded-xl text-[13.5px] font-medium text-white dark:text-[#141413] cursor-pointer shadow-xs hover:opacity-95 transition-opacity"
-                            >
-                                {t.continueBtn}
-                            </button>
-                        </div>
+                    {/* Step indicator & Skip */}
+                    <div className="flex items-center gap-4">
+                        <span className="font-mono text-[13px] text-[#6e6e77] dark:text-[#a1a1aa]">
+                            0{currentStep} / 03
+                        </span>
+                        <button
+                            type="button"
+                            onClick={handleComplete}
+                            className="text-[13px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
+                        >
+                            {t.skipSetup}
+                        </button>
                     </div>
-                )}
+                </header>
 
-                {/* Step 2 of 3: Semester SKS Limit (Clean Typographic List — No Big Radio Boxes) */}
-                {currentStep === 2 && (
-                    <div key="step-2" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                        {/* Header */}
-                        <div>
-                            <h2 className="text-[15px] font-medium text-[#141413] dark:text-[#f4f4f6]">
-                                {t.step2Title}
-                            </h2>
-                            <p className="text-[14.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-1">
-                                {t.step2Desc}
-                            </p>
+                {/* Main Stage Content */}
+                <main className="flex flex-col justify-center">
+                    {/* ========================================================= */}
+                    {/* Step 1 of 3: Welcome, Language & Theme                    */}
+                    {/* ========================================================= */}
+                    {currentStep === 1 && (
+                        <div key="step-1" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            {/* Greeting & Headline */}
+                            <div>
+                                <span className="font-doodle text-[22px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] mb-1 block leading-none">
+                                    {t.greetingDoodle}
+                                </span>
+                                <h1 className="text-[26px] font-semibold tracking-tight text-[#141413] dark:text-[#f4f4f6] leading-snug">
+                                    {t.step1Headline}
+                                </h1>
+                                <p className="text-[15px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-2">
+                                    {t.step1IntroPre}
+                                    <span className="nexvyn-dash text-[#141413] dark:text-[#f4f4f6] font-medium">
+                                        {t.step1IntroHighlight}
+                                    </span>
+                                    {t.step1IntroPost}
+                                </p>
+                            </div>
+
+                            {/* Tactile Visual Swatch Pickers */}
+                            <div className="pt-1 flex items-center justify-between gap-4">
+                                <div className="space-y-4">
+                                    {/* Language Row */}
+                                    <div>
+                                        <span className="font-doodle text-[19px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] mb-2 block leading-none">
+                                            {t.languageLabelDoodle}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setLanguage("en")}
+                                                className={cn(
+                                                    "px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all cursor-pointer",
+                                                    language === "en"
+                                                        ? "bg-[#141413] text-white dark:bg-[#f4f4f6] dark:text-[#141413] shadow-sm"
+                                                        : "bg-white dark:bg-[#1c1c1f] border border-[#dcdcd6] dark:border-[#2e2e34] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-white"
+                                                )}
+                                            >
+                                                English
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setLanguage("id")}
+                                                className={cn(
+                                                    "px-4 py-2.5 rounded-xl text-[14px] font-medium transition-all cursor-pointer",
+                                                    language === "id"
+                                                        ? "bg-[#141413] text-white dark:bg-[#f4f4f6] dark:text-[#141413] shadow-sm"
+                                                        : "bg-white dark:bg-[#1c1c1f] border border-[#dcdcd6] dark:border-[#2e2e34] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-white"
+                                                )}
+                                            >
+                                                Bahasa Indonesia
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Appearance / Theme Row */}
+                                    <div>
+                                        <span className="font-doodle text-[19px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] mb-2 block leading-none">
+                                            {t.appearanceLabelDoodle}
+                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setTheme("light")}
+                                                className={cn(
+                                                    "px-4 py-2.5 rounded-xl text-[14px] font-medium flex items-center gap-2 transition-all cursor-pointer",
+                                                    !isDarkMode
+                                                        ? "bg-[#141413] text-white dark:bg-[#f4f4f6] dark:text-[#141413] shadow-sm"
+                                                        : "bg-white dark:bg-[#1c1c1f] border border-[#dcdcd6] dark:border-[#2e2e34] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-white"
+                                                )}
+                                            >
+                                                <span className="w-3.5 h-3.5 rounded-full bg-[#f9f9f8] border border-[#dcdcd6] flex items-center justify-center shrink-0">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                                </span>
+                                                <span>Warm Paper</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setTheme("dark")}
+                                                className={cn(
+                                                    "px-4 py-2.5 rounded-xl text-[14px] font-medium flex items-center gap-2 transition-all cursor-pointer",
+                                                    isDarkMode
+                                                        ? "bg-[#141413] text-white dark:bg-[#f4f4f6] dark:text-[#141413] shadow-sm"
+                                                        : "bg-white dark:bg-[#1c1c1f] border border-[#dcdcd6] dark:border-[#2e2e34] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-white"
+                                                )}
+                                            >
+                                                <span className="w-3.5 h-3.5 rounded-full bg-[#18181b] border border-[#3f3f46] flex items-center justify-center shrink-0">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />
+                                                </span>
+                                                <span>Dark Ink</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Right-Hand Hand-Drawn Closing Bracket `]` & Doodle Note */}
+                                <div className="hidden sm:flex items-center gap-1.5 shrink-0 pl-2 self-center">
+                                    <svg width="12" height="52" viewBox="0 0 12 52" fill="none" className="text-[#5b82a6] dark:text-[#7dd3fc] shrink-0">
+                                        <path d="M2 2 C6 2, 7 8, 7 20 C7 24, 10 25.5, 11 26 C10 26.5, 7 28, 7 32 C7 44, 6 50, 2 50" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                                    </svg>
+                                    <div className="font-doodle text-[16.5px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] leading-[1.15] select-none whitespace-nowrap">
+                                        <div>{t.switchesLiveLine1}</div>
+                                        <div>{t.switchesLiveLine2}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Step Footer: Continue → */}
+                            <div className="mt-8 pt-4 flex justify-end">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentStep(2)}
+                                    className={primaryCtaClass}
+                                >
+                                    {t.continueBtn}
+                                </button>
+                            </div>
                         </div>
+                    )}
 
-                        {/* Borderless Option Rows */}
-                        <div className="space-y-1 pt-1">
-                            {/* 20 SKS */}
-                            <div
-                                onClick={() => setMaxSks(20)}
-                                className="py-2.5 px-3 -mx-3 rounded-xl hover:bg-neutral-200/40 dark:hover:bg-white/[0.04] flex items-baseline justify-between cursor-pointer transition-colors"
-                            >
-                                <div>
-                                    <span className={cn(
-                                        "font-medium text-[14.5px]",
+                    {/* ========================================================= */}
+                    {/* Step 2 of 3: Semester SKS Workload                        */}
+                    {/* ========================================================= */}
+                    {currentStep === 2 && (
+                        <div key="step-2" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            {/* Headline */}
+                            <div>
+                                <span className="font-doodle text-[21px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] mb-1 block leading-none">
+                                    {t.step2Doodle}
+                                </span>
+                                <h2 className="text-[26px] font-semibold tracking-tight text-[#141413] dark:text-[#f4f4f6] leading-snug">
+                                    {t.step2Headline}
+                                </h2>
+                                <p className="text-[14.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-1">
+                                    {t.step2Desc}
+                                </p>
+                            </div>
+
+                            {/* Tactile Selectable Rows */}
+                            <div className="space-y-2.5 pt-1">
+                                {/* 20 SKS */}
+                                <div
+                                    onClick={() => setMaxSks(20)}
+                                    className={cn(
+                                        "p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
                                         maxSks === 20
-                                            ? "nexvyn-dash text-[#141413] dark:text-[#f4f4f6]"
-                                            : "text-[#141413] dark:text-[#f4f4f6]"
-                                    )}>
-                                        20 SKS
-                                    </span>
-                                    <span className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa]">
-                                        {" — "}{t.step2Cap20}
-                                    </span>
+                                            ? "bg-white dark:bg-[#1c1c1f] border-[#141413] dark:border-[#f4f4f6] shadow-sm"
+                                            : "bg-white/60 dark:bg-[#18181b]/60 border-[#e6e6e3] dark:border-[#27272a] hover:border-neutral-400 dark:hover:border-neutral-600"
+                                    )}
+                                >
+                                    <div>
+                                        <span className={cn(
+                                            "font-medium text-[15px]",
+                                            maxSks === 20 ? "text-[#141413] dark:text-[#f4f4f6]" : "text-[#141413] dark:text-[#f4f4f6]"
+                                        )}>
+                                            20 SKS
+                                        </span>
+                                        <span className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] ml-2">
+                                            {"— "}{t.step2Cap20}
+                                        </span>
+                                    </div>
+                                    {maxSks === 20 && (
+                                        <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
+                                            {t.selectedDoodle}
+                                        </span>
+                                    )}
                                 </div>
-                                {maxSks === 20 && (
-                                    <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
-                                        {t.selectedDoodle}
-                                    </span>
-                                )}
-                            </div>
 
-                            {/* 24 SKS */}
-                            <div
-                                onClick={() => setMaxSks(24)}
-                                className="py-2.5 px-3 -mx-3 rounded-xl hover:bg-neutral-200/40 dark:hover:bg-white/[0.04] flex items-baseline justify-between cursor-pointer transition-colors"
-                            >
-                                <div>
-                                    <span className={cn(
-                                        "font-medium text-[14.5px]",
+                                {/* 24 SKS */}
+                                <div
+                                    onClick={() => setMaxSks(24)}
+                                    className={cn(
+                                        "p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
                                         maxSks === 24
-                                            ? "nexvyn-dash text-[#141413] dark:text-[#f4f4f6]"
-                                            : "text-[#141413] dark:text-[#f4f4f6]"
-                                    )}>
-                                        24 SKS
-                                    </span>
-                                    <span className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa]">
-                                        {" — "}{t.step2Cap24}
-                                    </span>
+                                            ? "bg-white dark:bg-[#1c1c1f] border-[#141413] dark:border-[#f4f4f6] shadow-sm"
+                                            : "bg-white/60 dark:bg-[#18181b]/60 border-[#e6e6e3] dark:border-[#27272a] hover:border-neutral-400 dark:hover:border-neutral-600"
+                                    )}
+                                >
+                                    <div>
+                                        <span className="font-medium text-[15px] text-[#141413] dark:text-[#f4f4f6]">
+                                            24 SKS
+                                        </span>
+                                        <span className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] ml-2">
+                                            {"— "}{t.step2Cap24}
+                                        </span>
+                                    </div>
+                                    {maxSks === 24 ? (
+                                        <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
+                                            {t.selectedDoodle}
+                                        </span>
+                                    ) : (
+                                        <span className="font-doodle text-[14px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
+                                            {t.recommendedDoodle}
+                                        </span>
+                                    )}
                                 </div>
-                                {maxSks === 24 ? (
-                                    <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
-                                        {t.selectedDoodle}
-                                    </span>
-                                ) : (
-                                    <span className="font-doodle text-[14px] text-[#8e8e93] dark:text-[#636366]">
-                                        {t.defaultDoodle}
-                                    </span>
-                                )}
-                            </div>
 
-                            {/* Unlimited */}
-                            <div
-                                onClick={() => setMaxSks(99)}
-                                className="py-2.5 px-3 -mx-3 rounded-xl hover:bg-neutral-200/40 dark:hover:bg-white/[0.04] flex items-baseline justify-between cursor-pointer transition-colors"
-                            >
-                                <div>
-                                    <span className={cn(
-                                        "font-medium text-[14.5px]",
+                                {/* Unlimited */}
+                                <div
+                                    onClick={() => setMaxSks(99)}
+                                    className={cn(
+                                        "p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between",
                                         maxSks === 99
-                                            ? "nexvyn-dash text-[#141413] dark:text-[#f4f4f6]"
-                                            : "text-[#141413] dark:text-[#f4f4f6]"
-                                    )}>
-                                        {language === "id" ? "Tanpa Batas" : "Unlimited"}
-                                    </span>
-                                    <span className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa]">
-                                        {" — "}{t.step2CapUnlimited}
-                                    </span>
+                                            ? "bg-white dark:bg-[#1c1c1f] border-[#141413] dark:border-[#f4f4f6] shadow-sm"
+                                            : "bg-white/60 dark:bg-[#18181b]/60 border-[#e6e6e3] dark:border-[#27272a] hover:border-neutral-400 dark:hover:border-neutral-600"
+                                    )}
+                                >
+                                    <div>
+                                        <span className="font-medium text-[15px] text-[#141413] dark:text-[#f4f4f6]">
+                                            {language === "id" ? "Tanpa Batas" : "Unlimited"}
+                                        </span>
+                                        <span className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] ml-2">
+                                            {"— "}{t.step2CapUnlimited}
+                                        </span>
+                                    </div>
+                                    {maxSks === 99 && (
+                                        <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
+                                            {t.selectedDoodle}
+                                        </span>
+                                    )}
                                 </div>
-                                {maxSks === 99 && (
-                                    <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
-                                        {t.selectedDoodle}
-                                    </span>
-                                )}
+                            </div>
+
+                            {/* Step Footer: ← Back and Continue → */}
+                            <div className="mt-8 pt-4 flex items-center justify-between">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentStep(1)}
+                                    className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
+                                >
+                                    {t.backBtn}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentStep(3)}
+                                    className={primaryCtaClass}
+                                >
+                                    {t.continueBtn}
+                                </button>
                             </div>
                         </div>
+                    )}
 
-                        {/* Step Footer: ← Back and Continue → */}
-                        <div className="mt-9 pt-4 flex items-center justify-between">
-                            <button
-                                type="button"
-                                onClick={() => setCurrentStep(1)}
-                                className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
-                            >
-                                {t.backBtn}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setCurrentStep(3)}
-                                className="btn-tactile-dark px-4 py-2 rounded-xl text-[13.5px] font-medium text-white dark:text-[#141413] cursor-pointer shadow-xs hover:opacity-95 transition-opacity"
-                            >
-                                {t.continueBtn}
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {/* Step 3 of 3: Load Your Courses (Exact nexvyn.dev runeicons List Style) */}
-                {currentStep === 3 && (
-                    <div key="step-3" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
-                        {/* Section Header with Sketchy Note Icon */}
-                        <div className="font-doodle text-[20px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] flex items-center gap-2">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#6e6e77] dark:text-[#a1a1aa]">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <polyline points="14 2 14 8 20 8" />
-                                <line x1="8" y1="13" x2="16" y2="13" />
-                                <line x1="8" y1="17" x2="13" y2="17" />
-                            </svg>
-                            <span>{t.step3Header}</span>
-                        </div>
-
-                        {/* Two Borderless Action Rows (runeicons layout) */}
-                        <div className="space-y-1.5">
-                            {/* Row 1: Paste Schedule */}
-                            <div
-                                onClick={handleImport}
-                                className="group py-2.5 px-3 -mx-3 rounded-xl hover:bg-neutral-200/40 dark:hover:bg-white/[0.04] flex items-center justify-between cursor-pointer transition-colors"
-                            >
-                                <div className="flex items-center gap-3.5 min-w-0">
-                                    <div className="w-9 h-9 rounded-[10px] bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] font-mono text-[10px] font-bold flex items-center justify-center shrink-0 tracking-wider shadow-2xs">
-                                        CSV
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="text-[14.5px] font-medium text-[#141413] dark:text-[#f4f4f6] group-hover:underline">
-                                            {t.step3ImportTitle}
-                                        </div>
-                                        <div className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
-                                            {t.step3ImportDesc}
-                                        </div>
-                                    </div>
-                                </div>
-                                <span className="text-[15px] text-[#6e6e77] dark:text-[#a1a1aa] group-hover:text-[#141413] dark:group-hover:text-[#f4f4f6] group-hover:translate-x-0.5 transition-all shrink-0 ml-3">
-                                    →
+                    {/* ========================================================= */}
+                    {/* Step 3 of 3: How to Start                                 */}
+                    {/* ========================================================= */}
+                    {currentStep === 3 && (
+                        <div key="step-3" className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                            {/* Headline */}
+                            <div>
+                                <span className="font-doodle text-[21px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] mb-1 block leading-none">
+                                    {t.step3Doodle}
                                 </span>
+                                <h2 className="text-[26px] font-semibold tracking-tight text-[#141413] dark:text-[#f4f4f6] leading-snug">
+                                    {t.step3Headline}
+                                </h2>
+                                <p className="text-[14.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-1">
+                                    {t.step3Subtitle}
+                                </p>
                             </div>
 
-                            {/* Row 2: Explore Sample */}
-                            <div
-                                onClick={handleExplore}
-                                className="group py-2.5 px-3 -mx-3 rounded-xl hover:bg-neutral-200/40 dark:hover:bg-white/[0.04] flex items-center justify-between cursor-pointer transition-colors"
-                            >
-                                <div className="flex items-center gap-3.5 min-w-0">
-                                    <div className="w-9 h-9 rounded-[10px] bg-blue-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-xs shrink-0 tracking-wider">
-                                        TRY
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="text-[14.5px] font-medium text-[#141413] dark:text-[#f4f4f6] group-hover:underline flex items-center flex-wrap">
-                                            <span>{t.step3SampleTitle}</span>
-                                            <span className="font-doodle font-bold text-[#5b82a6] dark:text-[#7dd3fc] text-[13.5px] ml-2">
-                                                {t.step3SampleDoodle}
-                                            </span>
+                            {/* Start Rows with Warm Hover Lift */}
+                            <div className="space-y-2">
+                                {/* Row 1: Paste Schedule */}
+                                <div
+                                    onClick={handleImport}
+                                    className="p-3.5 rounded-xl border border-[#e6e6e3] dark:border-[#2e2e34] bg-white/70 dark:bg-[#18181b]/70 hover:bg-white dark:hover:bg-[#1c1c1f] hover:border-[#141413] dark:hover:border-[#f4f4f6] flex items-center justify-between cursor-pointer transition-all hover:translate-x-0.5 group shadow-2xs"
+                                >
+                                    <div className="flex items-center gap-3.5 min-w-0">
+                                        <div className="w-9 h-9 rounded-[10px] bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] font-mono text-[10px] font-bold flex items-center justify-center shrink-0 tracking-wider shadow-2xs">
+                                            CSV
                                         </div>
-                                        <div className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
-                                            {t.step3SampleDesc}
+                                        <div className="min-w-0">
+                                            <div className="text-[14.5px] font-medium text-[#141413] dark:text-[#f4f4f6] group-hover:underline">
+                                                {t.step3ImportTitle}
+                                            </div>
+                                            <div className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
+                                                {t.step3ImportDesc}
+                                            </div>
                                         </div>
                                     </div>
+                                    <span className="text-[15px] text-[#6e6e77] dark:text-[#a1a1aa] group-hover:text-[#141413] dark:group-hover:text-[#f4f4f6] group-hover:translate-x-0.5 transition-all shrink-0 ml-3">
+                                        →
+                                    </span>
                                 </div>
-                                <span className="text-[15px] text-[#6e6e77] dark:text-[#a1a1aa] group-hover:text-[#141413] dark:group-hover:text-[#f4f4f6] group-hover:translate-x-0.5 transition-all shrink-0 ml-3">
-                                    →
+
+                                {/* Row 2: Explore Sample */}
+                                <div
+                                    onClick={handleExplore}
+                                    className="p-3.5 rounded-xl border border-[#e6e6e3] dark:border-[#2e2e34] bg-white/70 dark:bg-[#18181b]/70 hover:bg-white dark:hover:bg-[#1c1c1f] hover:border-[#141413] dark:hover:border-[#f4f4f6] flex items-center justify-between cursor-pointer transition-all hover:translate-x-0.5 group shadow-2xs"
+                                >
+                                    <div className="flex items-center gap-3.5 min-w-0">
+                                        <div className="w-9 h-9 rounded-[10px] bg-blue-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shadow-xs shrink-0 tracking-wider">
+                                            TRY
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-[14.5px] font-medium text-[#141413] dark:text-[#f4f4f6] group-hover:underline flex items-center flex-wrap">
+                                                <span>{t.step3SampleTitle}</span>
+                                                <span className="font-doodle font-bold text-[#5b82a6] dark:text-[#7dd3fc] text-[13.5px] ml-2">
+                                                    {t.step3SampleDoodle}
+                                                </span>
+                                            </div>
+                                            <div className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
+                                                {t.step3SampleDesc}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span className="text-[15px] text-[#6e6e77] dark:text-[#a1a1aa] group-hover:text-[#141413] dark:group-hover:text-[#f4f4f6] group-hover:translate-x-0.5 transition-all shrink-0 ml-3">
+                                        →
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Cloud Sync Footer Note */}
+                            <div className="mt-8 pt-4 border-t border-[#e6e6e3] dark:border-[#27272a] text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
+                                {t.cloudSyncPre}
+                                <span className="nexvyn-dash text-[#141413] dark:text-[#f4f4f6] font-medium">
+                                    {t.cloudSyncHighlight}
                                 </span>
+                                {t.cloudSyncPost}
+                            </div>
+
+                            {/* Step Footer: ← Back */}
+                            <div className="mt-8 flex items-center justify-start">
+                                <button
+                                    type="button"
+                                    onClick={() => setCurrentStep(2)}
+                                    className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
+                                >
+                                    {t.backBtn}
+                                </button>
                             </div>
                         </div>
-
-                        {/* Cloud Sync Footer Note */}
-                        <div className="mt-8 pt-4 border-t border-[#e6e6e3] dark:border-[#27272a] text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
-                            {t.cloudSyncPre}
-                            <span className="nexvyn-dash text-[#141413] dark:text-[#f4f4f6] font-medium">
-                                {t.cloudSyncHighlight}
-                            </span>
-                            {t.cloudSyncPost}
-                        </div>
-
-                        {/* Step Footer: ← Back */}
-                        <div className="mt-8 flex items-center justify-start">
-                            <button
-                                type="button"
-                                onClick={() => setCurrentStep(2)}
-                                className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
-                            >
-                                {t.backBtn}
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </main>
+                    )}
+                </main>
+            </div>
         </div>
     );
 }
