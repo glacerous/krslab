@@ -73,6 +73,8 @@ interface AppStore {
 
     // Datasource Actions
     addDatasource: (name: string, subjects: Subject[]) => string;
+    addSubjectToDatasource: (datasourceId: string, subject: Subject, autoSelectInPlanId?: string) => void;
+    createEmptyDatasource: (name?: string) => { datasourceId: string; planId: string };
     updateDatasource: (id: string, updates: { name?: string; subjects?: Subject[] }) => void;
     deleteDatasource: (id: string) => void;
     duplicateDatasource: (id: string) => string;
@@ -171,6 +173,70 @@ export const useAppStore = create<AppStore>()(
                 };
                 set((state) => ({ datasources: [newDs, ...state.datasources] }));
                 return id;
+            },
+
+            addSubjectToDatasource: (datasourceId, subject, autoSelectInPlanId) => {
+                set((state: AppStore) => {
+                    const datasources = state.datasources.map((ds) => {
+                        if (ds.id !== datasourceId) return ds;
+                        return {
+                            ...ds,
+                            subjects: [subject, ...ds.subjects],
+                        };
+                    });
+
+                    let plans = state.plans;
+                    if (autoSelectInPlanId) {
+                        plans = state.plans.map((p) => {
+                            if (p.id !== autoSelectInPlanId) return p;
+                            const newSelected = p.selectedSubjectIds.includes(subject.subjectId)
+                                ? p.selectedSubjectIds
+                                : [subject.subjectId, ...p.selectedSubjectIds];
+                            const newSelectedClass = { ...p.selectedClassBySubjectId };
+                            if (subject.classes.length > 0 && !newSelectedClass[subject.subjectId]) {
+                                newSelectedClass[subject.subjectId] = subject.classes[0].classId;
+                            }
+                            return {
+                                ...p,
+                                selectedSubjectIds: newSelected,
+                                selectedClassBySubjectId: newSelectedClass,
+                            };
+                        });
+                    }
+
+                    return { datasources, plans };
+                });
+            },
+
+            createEmptyDatasource: (name) => {
+                const defaultName = name?.trim() || `Semester Schedule`;
+                const dsId = crypto.randomUUID();
+                const newDs: Datasource = {
+                    id: dsId,
+                    name: defaultName,
+                    createdAt: new Date().toISOString(),
+                    subjects: [],
+                };
+                const planId = crypto.randomUUID();
+                const newPlan: Plan = {
+                    id: planId,
+                    name: "Plan 1",
+                    createdAt: new Date().toISOString(),
+                    datasourceId: dsId,
+                    selectedSubjectIds: [],
+                    selectedClassBySubjectId: {},
+                    rules: [],
+                    savedVariants: [],
+                    frozenSubjectIds: [],
+                    previewOverrides: {},
+                };
+                set((state: AppStore) => ({
+                    datasources: [newDs, ...state.datasources],
+                    plans: [newPlan, ...state.plans],
+                    activeDatasourceId: dsId,
+                    activePlanId: planId,
+                }));
+                return { datasourceId: dsId, planId };
             },
 
             updateDatasource: (id, updates) => {

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { getSubjectColor } from "@/lib/colors";
 import { toast } from "sonner";
 import { getTranslation, formatDay } from "@/lib/i18n";
+import { CustomCourseModal } from "@/components/CustomCourseModal";
 
 interface CoursePanelProps {
     plan: Plan;
@@ -52,6 +53,7 @@ export function CoursePanel({
     const t = useMemo(() => getTranslation(language), [language]);
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedSubjectId, setExpandedSubjectId] = useState<string | null>(null);
+    const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
 
     // Selected courses list
     const selectedSubjects = useMemo(() => {
@@ -105,13 +107,23 @@ export function CoursePanel({
                     {activeTab === "selected" ? t.selectedCourses : t.addCourses}
                 </h3>
 
-                <button
-                    id="tour-add-course-btn"
-                    onClick={() => onTabChange(activeTab === "selected" ? "catalog" : "selected")}
-                    className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] dark:text-[#a1a1aa] dark:hover:text-[#f4f4f6] transition-colors"
-                >
-                    {activeTab === "selected" ? t.addCourseBtn : t.viewSelected}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setIsCustomModalOpen(true)}
+                        className="font-doodle text-[13.5px] font-bold text-[#5b82a6] hover:text-[#416282] dark:text-[#7dd3fc] dark:hover:text-[#bae6fd] transition-colors"
+                        title={language === "id" ? "Tambah mata kuliah manual" : "Add custom course manually"}
+                    >
+                        {language === "id" ? "+ matkul manual" : "+ custom course"}
+                    </button>
+                    <button
+                        id="tour-add-course-btn"
+                        onClick={() => onTabChange(activeTab === "selected" ? "catalog" : "selected")}
+                        className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] dark:text-[#a1a1aa] dark:hover:text-[#f4f4f6] transition-colors"
+                    >
+                        {activeTab === "selected" ? t.addCourseBtn : t.viewSelected}
+                    </button>
+                </div>
             </div>
 
             {/* Subtle Active Source Context Header */}
@@ -315,53 +327,87 @@ export function CoursePanel({
                     </div>
 
                     <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
-                        {filteredCatalog.map((sub, idx) => {
-                            const isSelected = (plan.selectedSubjectIds ?? []).includes(sub.subjectId);
-
-                            return (
-                                <div
-                                    key={sub.subjectId}
-                                    id={idx === 0 ? "tour-catalog-first-row" : idx === 1 ? "tour-catalog-second-row" : undefined}
-                                    onMouseEnter={() => onHoverSubject?.(sub.subjectId)}
-                                    onMouseLeave={() => onHoverSubject?.(null)}
-                                    onClick={() => toggleSubjectInPlan(plan.id, sub.subjectId)}
-                                    className={cn(
-                                        "p-2 -mx-1.5 rounded-xl cursor-pointer transition-colors flex items-center justify-between gap-2.5",
-                                        isSelected
-                                            ? "bg-neutral-100/90 dark:bg-white/[0.08] border border-neutral-200/80 dark:border-white/[0.14] text-[#141413] dark:text-white"
-                                            : "bg-transparent hover:bg-neutral-100/70 dark:hover:bg-white/[0.04] text-[#141413] dark:text-[#f4f4f6]"
-                                    )}
+                        {filteredCatalog.length === 0 ? (
+                            <div className="py-10 text-center space-y-2">
+                                <p className="text-[13px] text-[#6e6e77] dark:text-[#a1a1aa]">
+                                    {searchQuery
+                                        ? (language === "id" ? `Tidak ada matkul "${searchQuery}"` : `No courses matching "${searchQuery}"`)
+                                        : (language === "id" ? "Belum ada mata kuliah." : "No courses available.")}
+                                </p>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsCustomModalOpen(true)}
+                                    className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] underline decoration-dashed underline-offset-4"
                                 >
-                                    <div className="min-w-0 flex-1">
-                                        <div className="flex items-baseline justify-between gap-1">
-                                            <h4 className="text-[13px] font-medium truncate">
-                                                {sub.name}
-                                            </h4>
-                                            <span className="font-doodle text-[15px] font-bold text-[#6e6e77] dark:text-[#9ca3af] shrink-0 leading-none">
-                                                {sub.sks} sks
-                                            </span>
-                                        </div>
-                                        <p className="text-[11.5px] text-[#6e6e77] dark:text-[#9ca3af] truncate">
-                                            <span className="font-mono">{sub.code}</span> · {sub.classes.length} classes
-                                        </p>
-                                    </div>
+                                    {language === "id" ? "+ Buat matkul manual" : "+ Add as custom course"}
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                {filteredCatalog.map((sub, idx) => {
+                                    const isSelected = (plan.selectedSubjectIds ?? []).includes(sub.subjectId);
 
-                                    <div
-                                        className={cn(
-                                            "w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors",
-                                            isSelected
-                                                ? "bg-[#141413] dark:bg-[#f4f4f6] border-[#141413] dark:border-[#f4f4f6] text-white dark:text-[#141413]"
-                                                : "border-[#d4d4d0] dark:border-[#3f3f46]"
-                                        )}
+                                    return (
+                                        <div
+                                            key={sub.subjectId}
+                                            id={idx === 0 ? "tour-catalog-first-row" : idx === 1 ? "tour-catalog-second-row" : undefined}
+                                            onMouseEnter={() => onHoverSubject?.(sub.subjectId)}
+                                            onMouseLeave={() => onHoverSubject?.(null)}
+                                            onClick={() => toggleSubjectInPlan(plan.id, sub.subjectId)}
+                                            className={cn(
+                                                "p-2 -mx-1.5 rounded-xl cursor-pointer transition-colors flex items-center justify-between gap-2.5",
+                                                isSelected
+                                                    ? "bg-neutral-100/90 dark:bg-white/[0.08] border border-neutral-200/80 dark:border-white/[0.14] text-[#141413] dark:text-white"
+                                                    : "bg-transparent hover:bg-neutral-100/70 dark:hover:bg-white/[0.04] text-[#141413] dark:text-[#f4f4f6]"
+                                            )}
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-baseline justify-between gap-1">
+                                                    <h4 className="text-[13px] font-medium truncate">
+                                                        {sub.name}
+                                                    </h4>
+                                                    <span className="font-doodle text-[15px] font-bold text-[#6e6e77] dark:text-[#9ca3af] shrink-0 leading-none">
+                                                        {sub.sks} sks
+                                                    </span>
+                                                </div>
+                                                <p className="text-[11.5px] text-[#6e6e77] dark:text-[#9ca3af] truncate">
+                                                    <span className="font-mono">{sub.code}</span> · {sub.classes.length} classes
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                className={cn(
+                                                    "w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors",
+                                                    isSelected
+                                                        ? "bg-[#141413] dark:bg-[#f4f4f6] border-[#141413] dark:border-[#f4f4f6] text-white dark:text-[#141413]"
+                                                        : "border-[#d4d4d0] dark:border-[#3f3f46]"
+                                                )}
+                                            >
+                                                {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                <div className="pt-2 pb-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCustomModalOpen(true)}
+                                        className="w-full py-2 px-3 rounded-xl border border-dashed border-[#e6e6e3] dark:border-[#2e2e34] hover:border-[#141413] dark:hover:border-[#f4f4f6] text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors flex items-center justify-center gap-1.5"
                                     >
-                                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                                    </div>
+                                        <span>{language === "id" ? "+ Tambah matkul manual" : "+ Add custom course"}</span>
+                                    </button>
                                 </div>
-                            );
-                        })}
+                            </>
+                        )}
                     </div>
                 </div>
             )}
+
+            <CustomCourseModal
+                isOpen={isCustomModalOpen}
+                onClose={() => setIsCustomModalOpen(false)}
+            />
         </div>
     );
 }
