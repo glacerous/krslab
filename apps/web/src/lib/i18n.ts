@@ -370,3 +370,31 @@ export const translations: Record<Language, Translations> = {
 export function getTranslation(lang: Language = "en"): Translations {
     return translations[lang] || translations.en;
 }
+
+const DAY_MAP_EN: Record<string, { full: string; short: string }> = {
+    Senin: { full: "Monday", short: "Mon" },
+    Selasa: { full: "Tuesday", short: "Tue" },
+    Rabu: { full: "Wednesday", short: "Wed" },
+    Kamis: { full: "Thursday", short: "Thu" },
+    Jumat: { full: "Friday", short: "Fri" },
+    Sabtu: { full: "Saturday", short: "Sat" },
+    Minggu: { full: "Sunday", short: "Sun" },
+};
+
+const DAY_MAP_ID: Record<string, { full: string; short: string }> = {
+    Senin: { full: "Senin", short: "Sen" },
+    Selasa: { full: "Selasa", short: "Sel" },
+    Rabu: { full: "Rabu", short: "Rab" },
+    Kamis: { full: "Kamis", short: "Kam" },
+    Jumat: { full: "Jumat", short: "Jum" },
+    Sabtu: { full: "Sabtu", short: "Sab" },
+    Minggu: { full: "Minggu", short: "Min" },
+};
+
+export function formatDay(day: string, lang: Language = "en", short?: boolean): string {
+    const map = lang === "en" ? DAY_MAP_EN : DAY_MAP_ID;
+    const entry = map[day];
+    if (!entry) return day;
+    return short ? entry.short : entry.full;
+}
+

@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getSubjectColor } from "@/lib/colors";
 import { toast } from "sonner";
-import { getTranslation } from "@/lib/i18n";
+import { getTranslation, formatDay } from "@/lib/i18n";
 
 interface CoursePanelProps {
     plan: Plan;
@@ -197,8 +197,8 @@ export function CoursePanel({
                                                     )}
                                                     <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] truncate leading-tight">
                                                         {meeting
-                                                            ? `${meeting.day}, ${meeting.start}–${meeting.end}`
-                                                            : "No schedule set"}
+                                                            ? `${formatDay(meeting.day, language)}, ${meeting.start}–${meeting.end}`
+                                                            : (language === "id" ? "Jadwal belum disetel" : "No schedule set")}
                                                     </p>
                                                 </div>
 
@@ -277,7 +277,7 @@ export function CoursePanel({
                                                             </span>
                                                             {m && (
                                                                 <span className={isSelected ? "text-neutral-300 dark:text-neutral-700" : "text-[#a1a1aa] dark:text-[#71717a]"}>
-                                                                    {m.day} {m.start}–{m.end}
+                                                                    {formatDay(m.day, language)} {m.start}–{m.end}
                                                                 </span>
                                                             )}
                                                         </div>

@@ -5,6 +5,8 @@ import { X, Plus, Trash2, Clock, CalendarX, Calendar, Hourglass, CheckCircle2, A
 import { cn } from "@/lib/utils";
 import { Rule, TimeWindowRule, NoDayRule, MaxDaysPerWeekRule, MaxGapRule, Day } from "@krs/engine";
 import { createPortal } from "react-dom";
+import { useAppStore } from "@/lib/store";
+import { formatDay } from "@/lib/i18n";
 
 interface RulesLabProps {
     isOpen: boolean;
@@ -293,6 +295,7 @@ function Switch({ checked, onChange }: { checked: boolean, onChange: () => void 
 }
 
 function NoDayPicker({ selectedDays, onChange }: { selectedDays: Day[], onChange: (days: Day[]) => void }) {
+    const language = useAppStore((s) => s.language);
     const toggleDay = (day: Day) => {
         if (selectedDays.includes(day)) {
             onChange(selectedDays.filter(d => d !== day));
@@ -316,7 +319,7 @@ function NoDayPicker({ selectedDays, onChange }: { selectedDays: Day[], onChange
                                 : "bg-muted border-border text-muted-foreground hover:border-muted-foreground/20"
                         )}
                     >
-                        {day}
+                        {formatDay(day, language)}
                     </button>
                 ))}
             </div>

@@ -7,9 +7,10 @@ import {
     Unlock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Meeting, Subject } from "@/lib/store";
+import { Meeting, Subject, useAppStore } from "@/lib/store";
 import { getSubjectColor } from "@/lib/colors";
 import { checkClassConflict } from "@krs/engine";
+import { formatDay } from "@/lib/i18n";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const START_HOUR = 7;
@@ -62,6 +63,7 @@ export function ScheduleGrid({
     focusedSubjectId: propFocusedSubjectId,
     onFocusSubject
 }: ScheduleGridProps) {
+    const language = useAppStore((state) => state.language);
     const [rowHeight, setRowHeight] = useState(compact ? 56 : 74);
     const [internalFocusedSubjectId, setInternalFocusedSubjectId] = useState<string | null>(null);
     const focusedSubjectId = propFocusedSubjectId !== undefined ? propFocusedSubjectId : internalFocusedSubjectId;
@@ -609,7 +611,7 @@ export function ScheduleGrid({
                                 )}
                             >
                                 <span className="font-doodle font-bold text-[20px] text-[#141413] dark:text-[#f4f4f6] tracking-normal leading-tight">
-                                    {compact ? day.substring(0, 3) : day}
+                                    {compact ? formatDay(day, language, true) : formatDay(day, language)}
                                 </span>
                             </div>
                         ))}
@@ -739,7 +741,7 @@ export function ScheduleGrid({
                                                                         <div className="flex flex-col h-full justify-between">
                                                                             <div className="flex items-center justify-between gap-1 text-[11px] leading-tight">
                                                                                 <span className="font-semibold text-[#141413] dark:text-[#f4f4f6] truncate">Kelas {sec.className}</span>
-                                                                                <span className="font-mono text-[9.5px] text-[#6e6e77] dark:text-[#cbd5e1] tabular-nums shrink-0">{m.start}–{m.end}</span>
+                                                                                <span className="font-mono text-[9.5px] text-[#6e6e77] dark:text-[#cbd5e1] tabular-nums shrink-0">{formatDay(m.day, language, true)} {m.start}–{m.end}</span>
                                                                             </div>
                                                                             <div className="truncate">
                                                                                 {conflictInfo.hasConflict ? (
@@ -760,7 +762,7 @@ export function ScheduleGrid({
                                                                                     Kelas {sec.className}
                                                                                 </div>
                                                                                 <div className="text-[11px] text-[#6e6e77] dark:text-[#cbd5e1] mt-0.5 font-medium">
-                                                                                    <span className="font-mono">{m.start}–{m.end}</span>
+                                                                                    <span className="font-mono">{formatDay(m.day, language, true)}, {m.start}–{m.end}</span>
                                                                                     {m.room && <span className="text-[#4a4a52] dark:text-[#cbd5e1]"> · {m.room}</span>}
                                                                                 </div>
                                                                             </div>
