@@ -1303,6 +1303,10 @@ function WorkspaceContent() {
                             effectiveMapping={effectiveMapping}
                             onHoverSubject={setHoveredSubjectId}
                             onHoverClass={setHoveredClassId}
+                            onOpenImportModal={() => {
+                                setDataModalEditSourceId(activeDatasource.id);
+                                openOverlay("bima-import");
+                            }}
                         />
                     </div>
                 </div>
@@ -1443,6 +1447,10 @@ function WorkspaceContent() {
                                     effectiveMapping={effectiveMapping}
                                     onHoverSubject={setHoveredSubjectId}
                                     onHoverClass={setHoveredClassId}
+                                    onOpenImportModal={() => {
+                                        setDataModalEditSourceId(activeDatasource.id);
+                                        openOverlay("bima-import");
+                                    }}
                                 />
                             </div>
                         </div>
