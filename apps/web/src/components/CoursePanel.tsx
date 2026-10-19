@@ -367,14 +367,6 @@ export function CoursePanel({
                                 </span>
                             </div>
 
-                            {/* First-Course Subtle Margin Hint (When subjects.length > 0 and selectedIds.length === 0) */}
-                            {selectedSubjects.length === 0 && (
-                                <div className="font-doodle text-base text-[#5b82a6] dark:text-[#7dd3fc] px-1 py-0.5 mb-1.5 select-none leading-tight">
-                                    {language === "id"
-                                        ? "~ arahkan kursor untuk pratinjau di tabel, klik untuk tambah ~"
-                                        : "~ hover any course to preview on grid, click to add ~"}
-                                </div>
-                            )}
 
                             <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
                                 {filteredCatalog.length === 0 ? (
