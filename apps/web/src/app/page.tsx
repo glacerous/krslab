@@ -31,9 +31,13 @@ import {
     RotateCw,
     Pencil,
     Copy,
-    FileText
+    FileText,
+    SlidersHorizontal,
+    User
 } from "lucide-react";
 import { createPortal } from "react-dom";
+import { WelcomeScreen } from "@/components/WelcomeScreen";
+import { getTranslation } from "@/lib/i18n";
 
 function WorkspaceContent() {
     const {
@@ -61,17 +65,26 @@ function WorkspaceContent() {
         setIsDataModalOpen,
         isGenerating,
         _hasHydrated,
-        setHasHydrated
+        setHasHydrated,
+        language,
+        setLanguage,
+        maxSks,
+        setMaxSks,
+        hasCompletedWelcome,
+        setHasCompletedWelcome
     } = useAppStore();
 
     type ActiveOverlay = "none" | "bima-import" | "rules" | "tour";
 
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
+    const t = useMemo(() => getTranslation(language), [language]);
     const [activeOverlay, setActiveOverlay] = useState<ActiveOverlay>("none");
     const [tourStep, setTourStep] = useState(0);
     const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
     const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
+    const [isPrefsOpen, setIsPrefsOpen] = useState(false);
+    const [isWelcomeManuallyOpen, setIsWelcomeManuallyOpen] = useState(false);
     const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
     const [editingPlanIdInMenu, setEditingPlanIdInMenu] = useState<string | null>(null);
     const [menuPlanNameInput, setMenuPlanNameInput] = useState("");
@@ -82,8 +95,10 @@ function WorkspaceContent() {
     const [dataModalEditSourceId, setDataModalEditSourceId] = useState<string | null>(null);
     const sourceTriggerRef = useRef<HTMLButtonElement>(null);
     const planTriggerRef = useRef<HTMLButtonElement>(null);
+    const prefsBtnRef = useRef<HTMLButtonElement>(null);
     const [sourceMenuCoords, setSourceMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const [planMenuCoords, setPlanMenuCoords] = useState<{ top: number; left: number } | null>(null);
+    const [prefsCoords, setPrefsCoords] = useState<{ top: number; left: number } | null>(null);
 
     const updateSourceMenuCoords = useCallback(() => {
         if (sourceTriggerRef.current) {
@@ -109,11 +124,24 @@ function WorkspaceContent() {
         }
     }, []);
 
+    const updatePrefsCoords = useCallback(() => {
+        if (prefsBtnRef.current) {
+            const rect = prefsBtnRef.current.getBoundingClientRect();
+            const menuWidth = 280;
+            const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+            setPrefsCoords({
+                top: rect.bottom + 6,
+                left,
+            });
+        }
+    }, []);
+
     const handleToggleSourceMenu = () => {
         if (!isSourceMenuOpen) {
             updateSourceMenuCoords();
             setIsSourceMenuOpen(true);
             setIsPlanMenuOpen(false);
+            setIsPrefsOpen(false);
         } else {
             setIsSourceMenuOpen(false);
         }
@@ -124,10 +152,22 @@ function WorkspaceContent() {
             updatePlanMenuCoords();
             setIsPlanMenuOpen(true);
             setIsSourceMenuOpen(false);
+            setIsPrefsOpen(false);
             setConfirmDeletePlanId(null);
             setEditingPlanIdInMenu(null);
         } else {
             setIsPlanMenuOpen(false);
+        }
+    };
+
+    const handleTogglePrefs = () => {
+        if (!isPrefsOpen) {
+            updatePrefsCoords();
+            setIsPrefsOpen(true);
+            setIsSourceMenuOpen(false);
+            setIsPlanMenuOpen(false);
+        } else {
+            setIsPrefsOpen(false);
         }
     };
 
@@ -154,6 +194,16 @@ function WorkspaceContent() {
             window.removeEventListener("scroll", updatePlanMenuCoords, true);
         };
     }, [isPlanMenuOpen, updatePlanMenuCoords]);
+
+    useEffect(() => {
+        if (!isPrefsOpen) return;
+        window.addEventListener("resize", updatePrefsCoords);
+        window.addEventListener("scroll", updatePrefsCoords, true);
+        return () => {
+            window.removeEventListener("resize", updatePrefsCoords);
+            window.removeEventListener("scroll", updatePrefsCoords, true);
+        };
+    }, [isPrefsOpen, updatePrefsCoords]);
 
     const [activeTab, setActiveTab] = useState<"selected" | "catalog">("selected");
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
@@ -227,6 +277,9 @@ function WorkspaceContent() {
                     setConfirmDeletePlanId(null);
                     setEditingPlanIdInMenu(null);
                 }
+                if (isPrefsOpen) {
+                    setIsPrefsOpen(false);
+                }
                 if (isRenamingTopBar) {
                     setIsRenamingTopBar(false);
                 }
@@ -242,7 +295,7 @@ function WorkspaceContent() {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [activeOverlay, closeOverlay, handleCloseTour, isMobileCoursesOpen, isSourceMenuOpen, isPlanMenuOpen, isRenamingTopBar]);
+    }, [activeOverlay, closeOverlay, handleCloseTour, isMobileCoursesOpen, isSourceMenuOpen, isPlanMenuOpen, isPrefsOpen, isRenamingTopBar]);
 
     const handleSaveTopBarRename = () => {
         if (!activePlan) return;
@@ -829,18 +882,18 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 1. TOP WORKSPACE HEADER & TOOLBAR                         */}
             {/* ========================================================= */}
-            <header className="h-14 border-b border-[#e6e6e3] bg-white/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
+            <header className="h-14 border-b border-[#e6e6e3] dark:border-[#2e2e2b] bg-white/90 dark:bg-[#1a1a18]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
                 <div className="flex items-center gap-2.5 shrink-0 min-w-0">
                     {/* Minimal Dark Squircle Mark + Brand Wordmark */}
                     <div className="flex items-center gap-2 select-none shrink-0">
-                        <div className="w-6 h-6 rounded-[7px] bg-[#141413] text-white flex items-center justify-center font-bold text-[12px] shadow-sm">
+                        <div className="w-6 h-6 rounded-[7px] bg-[#141413] dark:bg-[#f4f4f0] text-white dark:text-[#141413] flex items-center justify-center font-bold text-[12px] shadow-sm">
                             K
                         </div>
-                        <span className="text-[14px] font-medium text-[#141413] tracking-tight hidden sm:inline">KRSlab</span>
+                        <span className="text-[14px] font-medium text-[#141413] dark:text-[#f4f4f0] tracking-tight hidden sm:inline">KRSlab</span>
                     </div>
 
-                    <span className="text-[#d8d8d4] text-sm shrink-0 font-light">/</span>
+                    <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm shrink-0 font-light">/</span>
 
                     {/* Source Switcher Dropdown Trigger */}
                     <div className="relative shrink-0">
@@ -849,7 +902,7 @@ function WorkspaceContent() {
                             ref={sourceTriggerRef}
                             type="button"
                             onClick={handleToggleSourceMenu}
-                            className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 text-[13.5px] font-medium text-[#141413] flex items-center gap-1.5 transition-colors select-none"
+                            className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-colors select-none"
                             title="Click to switch, edit, copy, or import schedule sources"
                         >
                             <span className="max-w-[150px] sm:max-w-[220px] truncate">{activeDatasource.name}</span>
@@ -857,7 +910,7 @@ function WorkspaceContent() {
                         </button>
                     </div>
 
-                    <span className="text-[#d8d8d4] text-sm shrink-0 font-light">/</span>
+                    <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm shrink-0 font-light">/</span>
 
                     {/* Plan Switcher Dropdown Trigger */}
                     <div className="relative shrink-0">
@@ -880,7 +933,7 @@ function WorkspaceContent() {
                                             setIsRenamingTopBar(false);
                                         }
                                     }}
-                                    className="px-2 py-0.5 text-[13.5px] font-semibold text-[#141413] bg-white border border-[#141413] rounded-md outline-none max-w-[150px] shadow-xs"
+                                    className="px-2 py-0.5 text-[13.5px] font-semibold text-[#141413] dark:text-[#f4f4f0] bg-white dark:bg-[#20201e] border border-[#141413] dark:border-[#f4f4f0] rounded-md outline-none max-w-[150px] shadow-xs"
                                     autoFocus
                                 />
                             </form>
@@ -896,7 +949,7 @@ function WorkspaceContent() {
                                     setTopBarPlanName(activePlan.name);
                                     setIsRenamingTopBar(true);
                                 }}
-                                className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 text-[13.5px] text-[#141413] flex items-center gap-1.5 transition-colors select-none group"
+                                className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-colors select-none group"
                                 title="Click to switch plans, duplicate, or manage (double click to rename)"
                             >
                                 <span className="nexvyn-dash font-semibold max-w-[130px] sm:max-w-[180px] truncate">
@@ -908,17 +961,17 @@ function WorkspaceContent() {
                     </div>
                 </div>
 
-                {/* 2. Center Group: [Rules 0] | [+ Save] [Saved (N)] | [Auto-Schedule] ↖ psst */}
+                {/* 2. Center Group: [Rules 0] | [Auto-Schedule] ↖ psst */}
                 <div id="tour-solver-bar" className="flex items-center gap-2.5 shrink-0">
                     {/* Rules Button */}
                     <button
                         id="tour-rules-btn"
                         onClick={() => openOverlay("rules")}
-                        className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] flex items-center gap-1.5 transition-all"
+                        className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all"
                         title="Configure Solver Rules"
                     >
-                        <span>Rules</span>
-                        <span className="bg-neutral-200/70 text-[#6e6e77] px-1.5 py-0.5 rounded text-[10px] font-mono leading-none">
+                        <span>{t.rules}</span>
+                        <span className="bg-neutral-200/70 dark:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] px-1.5 py-0.5 rounded text-[10px] font-mono leading-none">
                             {activePlan.rules?.filter(r => r.enabled).length || 0}
                         </span>
                     </button>
@@ -932,14 +985,14 @@ function WorkspaceContent() {
                             className={cn(
                                 "px-3.5 py-1.5 rounded-lg text-[13px] font-medium flex items-center gap-1.5 transition-all select-none shadow-sm",
                                 previewMapping !== null
-                                    ? "btn-tactile-light text-[#141413] border-[#d8d8d4]"
+                                    ? "btn-tactile-light text-[#141413] dark:text-[#f4f4f0] border-[#d8d8d4] dark:border-[#2e2e2b]"
                                     : "btn-tactile-dark text-white",
                                 isGenerating && "opacity-75 cursor-not-allowed"
                             )}
-                            title={previewMapping !== null ? "Shuffle candidate (Space)" : "Generate conflict-free schedule (Space)"}
+                            title={previewMapping !== null ? `${t.shuffle} (Space)` : `${t.autoSchedule} (Space)`}
                         >
                             {previewMapping !== null ? (
-                                <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6]", isGenerating && "animate-spin")} />
+                                <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]", isGenerating && "animate-spin")} />
                             ) : (
                                 <svg className={cn("w-3.5 h-3.5 fill-current opacity-90", isGenerating && "animate-spin")} viewBox="0 0 24 24">
                                     <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" />
@@ -947,65 +1000,71 @@ function WorkspaceContent() {
                             )}
                             <span>
                                 {isGenerating
-                                    ? "Solving..."
+                                    ? t.solving
                                     : previewMapping !== null
-                                        ? "Shuffle"
-                                        : "Auto-Schedule"}
+                                        ? t.shuffle
+                                        : t.autoSchedule}
                             </span>
                         </button>
 
                         {/* Margin Note: Doodle arrow & text pointing directly at Auto-Schedule */}
                         {previewMapping === null && (
-                            <div className="hidden 2xl:flex items-center gap-1.5 select-none text-[#5b82a6] font-doodle font-bold text-[16.5px] -rotate-2 ml-1">
-                                <svg className="w-6 h-4 text-[#5b82a6] stroke-current fill-none stroke-[2] -scale-x-100" viewBox="0 0 32 20">
+                            <div className="hidden 2xl:flex items-center gap-1.5 select-none text-[#5b82a6] dark:text-[#7da2c4] font-doodle font-bold text-[16.5px] -rotate-2 ml-1">
+                                <svg className="w-6 h-4 text-[#5b82a6] dark:text-[#7da2c4] stroke-current fill-none stroke-[2] -scale-x-100" viewBox="0 0 32 20">
                                     <path d="M4 16 C 14 16, 22 12, 28 4" strokeLinecap="round" />
                                     <path d="M22 4 L28 4 L28 10" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                                <span>← space to shuffle</span>
+                                <span>{t.spaceToShuffle}</span>
                             </div>
                         )}
                     </div>
                 </div>
 
-                {/* 3. Right Group: Compact Tutorial Pill, SKS Status & Export */}
+                {/* 3. Right Group: Compact Tutorial Pill, SKS Status, Export & Preferences */}
                 <div className="flex items-center gap-2.5 shrink-0">
                     {/* Tutorial Doodle Button */}
                     <button
                         type="button"
                         onClick={() => openOverlay("tour")}
-                        className="font-doodle text-[17.5px] font-bold text-[#5b82a6] hover:text-[#141413] px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 transition-colors flex items-center gap-1 shrink-0 select-none"
-                        title="Restart 4-step interactive tutorial"
+                        className="font-doodle text-[17.5px] font-bold text-[#5b82a6] dark:text-[#7da2c4] hover:text-[#141413] dark:hover:text-[#f4f4f0] px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 dark:hover:bg-[#20201e] transition-colors flex items-center gap-1 shrink-0 select-none"
+                        title="Restart interactive tutorial"
                     >
-                        <span>↻ tutorial</span>
+                        <span>↻ {t.tutorial}</span>
                     </button>
 
-                    <span className="text-[#d8d8d4] text-xs select-none">·</span>
+                    <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-xs select-none">·</span>
 
                     {/* Status Dot + SKS Count with lowercase sks */}
                     <div
                         onClick={() => {
-                            if (totalSks > 24) {
+                            if (maxSks !== 99 && totalSks > maxSks) {
                                 setAllowOverload(!allowOverload);
-                                toast.info(allowOverload ? "24 SKS limit active" : "Overload allowed (>24 SKS)");
+                                toast.info(allowOverload ? `${maxSks} SKS limit active` : `Overload allowed (>${maxSks} SKS)`);
                             }
                         }}
                         className={cn(
                             "flex items-center gap-1.5 text-[12.5px] font-mono select-none cursor-pointer",
-                            conflictCount > 0 ? "text-rose-500 font-semibold" : "text-[#6e6e77]"
+                            conflictCount > 0 || (maxSks !== 99 && totalSks > maxSks && !allowOverload)
+                                ? "text-rose-500 font-semibold"
+                                : "text-[#6e6e77] dark:text-[#a1a1aa]"
                         )}
                         title={conflictCount > 0 ? `${conflictCount} conflicting courses` : "Total selected SKS"}
                     >
                         <span className={cn(
                             "w-1.5 h-1.5 rounded-full shrink-0",
-                            conflictCount > 0 ? "bg-rose-500 animate-pulse" : "bg-emerald-500"
+                            conflictCount > 0 || (maxSks !== 99 && totalSks > maxSks && !allowOverload)
+                                ? "bg-rose-500 animate-pulse"
+                                : "bg-emerald-500"
                         )} />
                         <div className="flex items-baseline gap-1">
-                            <span className="font-mono text-[12.5px] tabular-nums">{totalSks} / 24</span>
-                            <span className="font-doodle text-[17px] font-bold text-[#6e6e77]">sks</span>
+                            <span className="font-mono text-[12.5px] tabular-nums text-[#141413] dark:text-[#f4f4f0]">
+                                {totalSks} / {maxSks === 99 ? "∞" : maxSks}
+                            </span>
+                            <span className="font-doodle text-[17px] font-bold text-[#6e6e77] dark:text-[#a1a1aa]">sks</span>
                         </div>
-                        {totalSks > 24 && (
+                        {maxSks !== 99 && totalSks > maxSks && (
                             <span className="text-[10px] text-amber-500 font-sans">
-                                {allowOverload ? "(Overload)" : "(Exceeded)"}
+                                {allowOverload ? `(${t.overload})` : `(${t.exceeded})`}
                             </span>
                         )}
                     </div>
@@ -1013,13 +1072,26 @@ function WorkspaceContent() {
                     {/* Export Button */}
                     <button
                         onClick={handleExportImage}
-                        className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] flex items-center gap-1.5 transition-all"
+                        className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all"
                         title="Export Timetable as PNG"
                     >
-                        <Download className="w-3.5 h-3.5 text-[#6e6e77]" />
-                        <span className="hidden sm:inline">Export</span>
+                        <Download className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
+                        <span className="hidden sm:inline">{t.export}</span>
                     </button>
 
+                    {/* Preferences Button */}
+                    <button
+                        ref={prefsBtnRef}
+                        type="button"
+                        onClick={handleTogglePrefs}
+                        className={cn(
+                            "btn-tactile-light p-2 rounded-lg text-[#141413] dark:text-[#f4f4f0] flex items-center justify-center transition-all",
+                            isPrefsOpen && "bg-neutral-200/80 dark:bg-[#2e2e2b]"
+                        )}
+                        title={t.preferences}
+                    >
+                        <SlidersHorizontal className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
+                    </button>
                 </div>
             </header>
 
@@ -1113,9 +1185,9 @@ function WorkspaceContent() {
 
                 {/* Floating Preview Confirmation Bar */}
                 {previewMapping !== null && (
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 backdrop-blur-md border border-[#d8d8d4] shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl px-4 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
-                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] pr-1 select-none">
-                            previewing schedule
+                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 dark:bg-[#1a1a18]/95 backdrop-blur-md border border-[#d8d8d4] dark:border-[#2e2e2b] shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl px-4 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
+                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] pr-1 select-none">
+                            {t.previewingSchedule}
                         </span>
 
                         {/* [ ✓ Accept ↵ ] */}
@@ -1125,7 +1197,7 @@ function WorkspaceContent() {
                             title="Accept schedule candidate (Enter)"
                         >
                             <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-                            <span>Accept</span>
+                            <span>{t.accept}</span>
                             <span className="text-[10px] font-mono opacity-80 bg-emerald-700/60 px-1 py-0.2 rounded ml-0.5">↵</span>
                         </button>
 
@@ -1133,22 +1205,22 @@ function WorkspaceContent() {
                         <button
                             onClick={handleGenerateOrShuffle}
                             disabled={isGenerating}
-                            className="btn-tactile-light px-3.5 py-1.5 rounded-xl text-[13px] font-medium text-[#141413] flex items-center gap-1.5 transition-all select-none shadow-2xs cursor-pointer"
+                            className="btn-tactile-light px-3.5 py-1.5 rounded-xl text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all select-none shadow-2xs cursor-pointer"
                             title="Shuffle candidate (Space)"
                         >
-                            <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6]", isGenerating && "animate-spin")} />
-                            <span>Shuffle</span>
-                            <span className="text-[10px] font-mono text-[#6e6e77] bg-neutral-200/60 px-1.5 py-0.2 rounded ml-0.5">Space</span>
+                            <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]", isGenerating && "animate-spin")} />
+                            <span>{t.shuffle}</span>
+                            <span className="text-[10px] font-mono text-[#6e6e77] dark:text-[#a1a1aa] bg-neutral-200/60 dark:bg-[#2e2e2b] px-1.5 py-0.2 rounded ml-0.5">Space</span>
                         </button>
 
                         {/* [ ✕ Cancel Esc ] */}
                         <button
                             onClick={handleCancelPreview}
-                            className="px-3 py-1.5 rounded-xl text-[13px] font-medium text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-100 transition-colors flex items-center gap-1 select-none cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] transition-colors flex items-center gap-1 select-none cursor-pointer"
                             title="Discard preview (Esc)"
                         >
                             <X className="w-3.5 h-3.5" />
-                            <span>Cancel</span>
+                            <span>{t.cancel}</span>
                             <span className="text-[10px] font-mono text-[#a1a1aa] ml-0.5">Esc</span>
                         </button>
                     </div>
@@ -1273,11 +1345,11 @@ function WorkspaceContent() {
                             top: `${sourceMenuCoords.top}px`,
                             left: `${sourceMenuCoords.left}px`,
                         }}
-                        className="w-[300px] sm:w-[340px] bg-white border border-[#e2e2de] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1a1a18] border border-[#e2e2de] dark:border-[#2e2e2b] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] select-none">
-                            schedule sources
+                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] select-none">
+                            {t.scheduleSources}
                         </div>
 
                         <div className="max-h-[260px] overflow-y-auto custom-scrollbar space-y-0.5 my-1">
@@ -1291,20 +1363,20 @@ function WorkspaceContent() {
                                         onClick={() => handleSwitchDatasource(ds.id)}
                                         className={cn(
                                             "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
-                                            isActive ? "bg-neutral-100/80 font-medium" : "hover:bg-neutral-50"
+                                            isActive ? "bg-neutral-100/80 dark:bg-[#20201e] font-medium" : "hover:bg-neutral-50 dark:hover:bg-[#20201e]/60"
                                         )}
                                     >
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-[13px] text-[#141413] truncate font-medium">
+                                                    <span className="text-[13px] text-[#141413] dark:text-[#f4f4f0] truncate font-medium">
                                                         {ds.name}
                                                     </span>
                                                     {isActive && (
-                                                        <Check className="w-3.5 h-3.5 text-[#141413] shrink-0" />
+                                                        <Check className="w-3.5 h-3.5 text-[#141413] dark:text-[#f4f4f0] shrink-0" />
                                                     )}
                                                 </div>
-                                                <div className="text-[11px] text-[#6e6e77] truncate">
+                                                <div className="text-[11px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
                                                     {ds.subjects.length} courses · {totalClasses} classes
                                                 </div>
                                             </div>
@@ -1324,7 +1396,7 @@ function WorkspaceContent() {
                                                     setDataModalEditSourceId(ds.id);
                                                     openOverlay("bima-import");
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
                                                 title="Edit source or rename"
                                             >
                                                 <Pencil className="w-3.5 h-3.5" />
@@ -1337,7 +1409,7 @@ function WorkspaceContent() {
                                                     e.stopPropagation();
                                                     handleDuplicateDatasource(ds.id);
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
                                                 title="Duplicate source"
                                             >
                                                 <Copy className="w-3.5 h-3.5" />
@@ -1362,7 +1434,7 @@ function WorkspaceContent() {
                         </div>
 
                         {/* Popover Footer Actions */}
-                        <div className="border-t border-[#e6e6e3] mt-1 pt-1.5 space-y-0.5">
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e2b] mt-1 pt-1.5 space-y-0.5">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -1370,10 +1442,10 @@ function WorkspaceContent() {
                                     setDataModalEditSourceId(null);
                                     openOverlay("bima-import");
                                 }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] flex items-center gap-2 transition-colors select-none"
                             >
-                                <Plus className="w-3.5 h-3.5 text-[#5b82a6]" />
-                                <span>+ Import new BIMA source...</span>
+                                <Plus className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]" />
+                                <span>+ {t.importNewBima}</span>
                             </button>
 
                             <button
@@ -1382,9 +1454,9 @@ function WorkspaceContent() {
                                     setIsSourceMenuOpen(false);
                                     handleLoadSample();
                                 }}
-                                className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-50 flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-50 dark:hover:bg-[#20201e]/60 flex items-center gap-2 transition-colors select-none"
                             >
-                                <span>Load sample Informatics data</span>
+                                <span>{t.loadSample}</span>
                             </button>
                         </div>
                     </div>
@@ -1418,11 +1490,11 @@ function WorkspaceContent() {
                             top: `${planMenuCoords.top}px`,
                             left: `${planMenuCoords.left}px`,
                         }}
-                        className="w-[300px] sm:w-[340px] bg-white border border-[#e2e2de] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1a1a18] border border-[#e2e2de] dark:border-[#2e2e2b] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] select-none flex items-center justify-between">
-                            <span>schedule plans</span>
+                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] select-none flex items-center justify-between">
+                            <span>{t.schedulePlans}</span>
                             <span className="text-[11px] font-sans font-normal text-[#a1a1aa]">
                                 {sourcePlans.length} {sourcePlans.length === 1 ? "plan" : "plans"}
                             </span>
@@ -1438,11 +1510,11 @@ function WorkspaceContent() {
                                     return (
                                         <div
                                             key={p.id}
-                                            className="bg-rose-50/90 border border-rose-200 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2 animate-in fade-in duration-150 select-none"
+                                            className="bg-rose-50/90 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2 animate-in fade-in duration-150 select-none"
                                         >
                                             <div className="flex items-center gap-1.5 min-w-0">
                                                 <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                                                <span className="text-[12px] font-medium text-rose-900 truncate">
+                                                <span className="text-[12px] font-medium text-rose-900 dark:text-rose-200 truncate">
                                                     Delete &quot;{p.name}&quot;?
                                                 </span>
                                             </div>
@@ -1450,9 +1522,9 @@ function WorkspaceContent() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setConfirmDeletePlanId(null)}
-                                                    className="text-[11.5px] text-[#6e6e77] hover:text-[#141413] px-2 py-0.5 rounded transition-colors"
+                                                    className="text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] px-2 py-0.5 rounded transition-colors"
                                                 >
-                                                    Cancel
+                                                    {t.cancel}
                                                 </button>
                                                 <button
                                                     type="button"
@@ -1473,7 +1545,7 @@ function WorkspaceContent() {
                                     return (
                                         <div
                                             key={p.id}
-                                            className="p-1.5 rounded-lg bg-neutral-100/90 border border-[#d8d8d4] flex items-center gap-1.5"
+                                            className="p-1.5 rounded-lg bg-neutral-100/90 dark:bg-[#20201e] border border-[#d8d8d4] dark:border-[#2e2e2b] flex items-center gap-1.5"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <input
@@ -1488,22 +1560,22 @@ function WorkspaceContent() {
                                                         setEditingPlanIdInMenu(null);
                                                     }
                                                 }}
-                                                className="flex-1 min-w-0 px-2 py-1 text-[13px] font-medium bg-white border border-[#d8d8d4] rounded-md outline-none focus:border-[#141413]"
+                                                className="flex-1 min-w-0 px-2 py-1 text-[13px] font-medium bg-white dark:bg-[#1a1a18] border border-[#d8d8d4] dark:border-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] rounded-md outline-none focus:border-[#141413] dark:focus:border-[#f4f4f0]"
                                                 autoFocus
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => handleSaveMenuRename(p.id)}
-                                                className="px-2 py-1 text-[11.5px] font-medium bg-[#141413] text-white rounded-md hover:bg-neutral-800 transition-colors"
+                                                className="px-2 py-1 text-[11.5px] font-medium bg-[#141413] dark:bg-[#f4f4f0] text-white dark:text-[#141413] rounded-md hover:bg-neutral-800 transition-colors"
                                             >
-                                                Save
+                                                {t.save}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setEditingPlanIdInMenu(null)}
-                                                className="px-1.5 py-1 text-[11.5px] text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                className="px-1.5 py-1 text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
                                             >
-                                                Cancel
+                                                {t.cancel}
                                             </button>
                                         </div>
                                     );
@@ -1525,20 +1597,20 @@ function WorkspaceContent() {
                                         }}
                                         className={cn(
                                             "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
-                                            isActive ? "bg-neutral-100/80 font-medium" : "hover:bg-neutral-50"
+                                            isActive ? "bg-neutral-100/80 dark:bg-[#20201e] font-medium" : "hover:bg-neutral-50 dark:hover:bg-[#20201e]/60"
                                         )}
                                     >
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className={cn("text-[13px] text-[#141413] truncate", isActive && "font-semibold")}>
+                                                    <span className={cn("text-[13px] text-[#141413] dark:text-[#f4f4f0] truncate", isActive && "font-semibold")}>
                                                         {p.name}
                                                     </span>
                                                     {isActive && (
-                                                        <Check className="w-3.5 h-3.5 text-[#141413] shrink-0" />
+                                                        <Check className="w-3.5 h-3.5 text-[#141413] dark:text-[#f4f4f0] shrink-0" />
                                                     )}
                                                 </div>
-                                                <div className="text-[11px] text-[#6e6e77] truncate">
+                                                <div className="text-[11px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
                                                     {courseCount} courses · {sksCount} SKS
                                                 </div>
                                             </div>
@@ -1558,7 +1630,7 @@ function WorkspaceContent() {
                                                     setMenuPlanNameInput(p.name);
                                                     setConfirmDeletePlanId(null);
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
                                                 title="Rename plan"
                                             >
                                                 <Pencil className="w-3.5 h-3.5" />
@@ -1571,7 +1643,7 @@ function WorkspaceContent() {
                                                     e.stopPropagation();
                                                     handleDuplicatePlan(p.id);
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
                                                 title="Duplicate plan"
                                             >
                                                 <Copy className="w-3.5 h-3.5" />
@@ -1599,17 +1671,17 @@ function WorkspaceContent() {
                         </div>
 
                         {/* Popover Footer Actions */}
-                        <div className="border-t border-[#e6e6e3] mt-1 pt-1.5 space-y-0.5">
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e2b] mt-1 pt-1.5 space-y-0.5">
                             <button
                                 type="button"
                                 onClick={() => {
                                     handleDuplicatePlan(activePlan.id);
                                     setIsPlanMenuOpen(false);
                                 }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] flex items-center gap-2 transition-colors select-none"
                             >
-                                <Copy className="w-3.5 h-3.5 text-[#5b82a6]" />
-                                <span>Duplicate current plan</span>
+                                <Copy className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]" />
+                                <span>{t.duplicateCurrentPlan}</span>
                             </button>
                             <button
                                 type="button"
@@ -1617,16 +1689,206 @@ function WorkspaceContent() {
                                     handleCreateNewPlan();
                                     setIsPlanMenuOpen(false);
                                 }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] flex items-center gap-2 transition-colors select-none"
                             >
-                                <Plus className="w-3.5 h-3.5 text-[#5b82a6]" />
-                                <span>+ Create new plan</span>
+                                <Plus className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]" />
+                                <span>+ {t.createNewPlan}</span>
                             </button>
                         </div>
                     </div>
                 </div>,
                 document.body
             )}
+
+            {/* Portaled User Preferences Popover */}
+            {mounted && isPrefsOpen && prefsCoords && createPortal(
+                <div className="fixed inset-0 z-[9998] pointer-events-auto">
+                    {/* Full-screen invisible click-away backdrop */}
+                    <div
+                        className="fixed inset-0 z-[9998] bg-transparent"
+                        onClick={() => setIsPrefsOpen(false)}
+                    />
+
+                    {/* Popover Card */}
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: `${prefsCoords.top}px`,
+                            left: `${prefsCoords.left}px`,
+                        }}
+                        className="w-[280px] bg-white dark:bg-[#1a1a18] border border-[#e2e2de] dark:border-[#2e2e2b] rounded-xl shadow-2xl p-3 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left space-y-3"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Account / Cloud Sync */}
+                        <div className="flex items-start gap-2.5 p-2 rounded-lg bg-neutral-50 dark:bg-[#20201e] border border-neutral-200/60 dark:border-[#2e2e2b]">
+                            <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-[#2e2e2b] flex items-center justify-center shrink-0 mt-0.5 text-[#6e6e77] dark:text-[#a1a1aa]">
+                                <User className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="text-[12px] font-semibold text-[#141413] dark:text-[#f4f4f0] truncate">
+                                    {t.localWorkspace}
+                                </div>
+                                <div className="text-[10.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate mb-1">
+                                    {t.savedOnDevice}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        toast.info("Cloud sync coming soon!", {
+                                            description: "All your data is safely saved in your browser's local storage."
+                                        });
+                                    }}
+                                    className="text-[11px] font-medium text-[#5b82a6] dark:text-[#7da2c4] hover:underline flex items-center gap-1 select-none"
+                                >
+                                    <span>{t.signInToSync}</span>
+                                    <span className="text-[9.5px] opacity-75">({t.comingSoonBadge})</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Language Setting */}
+                        <div className="space-y-1.5">
+                            <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
+                                {t.languageLabel}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#20201e] rounded-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => setLanguage("en")}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all text-center",
+                                        language === "en"
+                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                    )}
+                                >
+                                    English (EN)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setLanguage("id")}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all text-center",
+                                        language === "id"
+                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                    )}
+                                >
+                                    Indonesia (ID)
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Appearance Setting */}
+                        <div className="space-y-1.5">
+                            <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
+                                {t.appearanceLabel}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#20201e] rounded-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => setTheme("light")}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
+                                        theme !== "dark"
+                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                    )}
+                                >
+                                    <Sun className="w-3 h-3" />
+                                    <span>{t.themeWarmPaper}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTheme("dark")}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
+                                        theme === "dark"
+                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                    )}
+                                >
+                                    <Moon className="w-3 h-3" />
+                                    <span>{t.themeDarkInk}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* SKS Limit Setting */}
+                        <div className="space-y-1.5">
+                            <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
+                                {t.sksCapLabel}
+                            </div>
+                            <div className="grid grid-cols-4 gap-1 p-0.5 bg-neutral-100 dark:bg-[#20201e] rounded-lg">
+                                {[20, 22, 24, 99].map((cap) => (
+                                    <button
+                                        key={cap}
+                                        type="button"
+                                        onClick={() => setMaxSks(cap)}
+                                        className={cn(
+                                            "py-1 text-[12px] font-medium rounded-md transition-all text-center",
+                                            maxSks === cap
+                                                ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs font-semibold"
+                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                        )}
+                                    >
+                                        {cap === 99 ? "∞" : cap}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer Navigation Links */}
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e2b] pt-2 space-y-0.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsPrefsOpen(false);
+                                    setIsWelcomeManuallyOpen(true);
+                                }}
+                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] transition-colors"
+                            >
+                                {t.openWelcome}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsPrefsOpen(false);
+                                    openOverlay("tour");
+                                }}
+                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] transition-colors"
+                            >
+                                {t.startTutorial}
+                            </button>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Welcome Greeting Screen */}
+            <WelcomeScreen
+                isOpen={mounted && (!hasCompletedWelcome || isWelcomeManuallyOpen)}
+                onImportTable={() => {
+                    setIsWelcomeManuallyOpen(false);
+                    openOverlay("bima-import");
+                }}
+                onExploreSample={() => {
+                    setIsWelcomeManuallyOpen(false);
+                    if (datasources.length === 0) {
+                        const { parseBimaMasterWithDebug } = require("@krs/engine");
+                        const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
+                        const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
+                        const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
+                        useAppStore.getState().updatePlan(planId, {
+                            name: "Semester 4",
+                            selectedSubjectIds: sampleSubIds
+                        });
+                        setActiveTab("selected");
+                        toast.success("Loaded Sample Informatics Schedule!");
+                    }
+                }}
+            />
         </div>
     );
 }
