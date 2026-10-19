@@ -89,7 +89,7 @@ export function CoursePanel({
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-white/95 dark:bg-[#161618]/95 px-6 py-6 select-none overflow-hidden">
+        <div className="w-full h-full flex flex-col bg-white/95 dark:bg-[#141418] px-6 py-6 select-none overflow-hidden">
             {/* 1. Editorial Intro Paragraph (Inspired by nexvyn.dev) */}
             <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mb-6 shrink-0">
                 {t.dragIntroPre}

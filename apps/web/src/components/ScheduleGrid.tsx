@@ -577,7 +577,7 @@ export function ScheduleGrid({
                 }
             }}
             className={cn(
-                "flex-1 bg-dot-matrix flex flex-col h-full relative selection:bg-none select-none overflow-hidden",
+                "flex-1 bg-dot-matrix flex flex-col h-full relative selection:bg-none select-none overflow-hidden bg-[#f9f9f8] dark:bg-[#0c0c0e]",
                 compact ? "rounded-xl" : "rounded-none"
             )}
         >
@@ -590,11 +590,11 @@ export function ScheduleGrid({
                     )}
                 >
                     {/* Header Days - Gaegu Doodle Font text-[20px] (Z-Index 20 so header popovers float above) */}
-                    <div className="flex bg-[#fafaf9] dark:bg-[#161618] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#27272a] sticky top-0">
+                    <div className="flex bg-[#fafaf9] dark:bg-[#141418] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#1e1e24] sticky top-0">
                         {/* Top-left corner time label in Gaegu text-[17px] */}
                         <div
                             className={cn(
-                                "w-14 border-r border-[#e6e6e3] dark:border-[#27272a] flex items-center justify-center p-2 bg-neutral-50/60 dark:bg-[#161618] sticky left-0 z-20",
+                                "w-14 border-r border-[#e6e6e3] dark:border-[#1e1e24] flex items-center justify-center p-2 bg-neutral-50/60 dark:bg-[#141418] sticky left-0 z-20",
                                 compact && "w-12"
                             )}
                         >
@@ -606,7 +606,7 @@ export function ScheduleGrid({
                             <div
                                 key={day}
                                 className={cn(
-                                    "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] dark:border-[#27272a] bg-[#fafaf9] dark:bg-[#161618]",
+                                    "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] dark:border-[#1e1e24] bg-[#fafaf9] dark:bg-[#141418]",
                                     compact && "py-1 px-2"
                                 )}
                             >
@@ -635,8 +635,8 @@ export function ScheduleGrid({
                                         className={cn(
                                             "w-full relative",
                                             slot.isMajor
-                                                ? "border-b border-[#e6e6e3]/90 dark:border-[#27272a]"
-                                                : "border-b border-[#e6e6e3]/40 dark:border-[#202023]"
+                                                ? "border-b border-[#e6e6e3]/90 dark:border-[#1e1e24]"
+                                                : "border-b border-[#e6e6e3]/40 dark:border-[#1e1e24]/60"
                                         )}
                                     />
                                 ))}
@@ -645,7 +645,7 @@ export function ScheduleGrid({
                             {/* Time Column - Space Mono Hourly Labels */}
                             <div
                                 className={cn(
-                                    "w-14 border-r border-[#e6e6e3] dark:border-[#27272a] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 dark:bg-[#161618]/95 backdrop-blur-md",
+                                    "w-14 border-r border-[#e6e6e3] dark:border-[#1e1e24] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 dark:bg-[#141418]/95 backdrop-blur-md",
                                     compact && "w-12"
                                 )}
                                 style={{ paddingTop: `${TOP_OFFSET}px` }}
@@ -670,7 +670,7 @@ export function ScheduleGrid({
                                 {DAYS.map((day) => (
                                     <div
                                         key={day}
-                                        className="flex-1 border-r last:border-r-0 border-[#e6e6e3]/50 dark:border-[#27272a]/60 bg-transparent"
+                                        className="flex-1 border-r last:border-r-0 border-[#e6e6e3]/50 dark:border-[#1e1e24] bg-transparent"
                                     />
                                 ))}
                             </div>
@@ -821,7 +821,7 @@ export function ScheduleGrid({
                                                     className={cn(
                                                         // Clean solid white card, flowing naturally from top
                                                         "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
-                                                        "bg-white dark:bg-[#1c1c1f] border border-[#dcdcd6] dark:border-[#323238] border-b-[2px] border-b-[#c6c6be] dark:border-b-[#42424a] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0] dark:hover:border-[#44444a]",
+                                                        "bg-white dark:bg-[#202027] dark:hover:bg-[#26262f] border border-[#dcdcd6] dark:border-[#343440] border-b-[2px] border-b-[#c6c6be] dark:border-b-[#464656] shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.07)] hover:border-[#b8b8b0] dark:hover:border-[#464656]",
                                                         layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
                                                         isFocused && "border-[#141413] dark:border-[#f4f4f6] ring-1 ring-[#141413] dark:ring-[#f4f4f6] shadow-md -translate-y-[1px] z-30",
                                                         isThisCardDragging
@@ -877,7 +877,7 @@ export function ScheduleGrid({
                                                                     {cls.subjectName}
                                                                 </h4>
                                                                 <div className="flex items-center gap-1 shrink-0">
-                                                                    <span className="px-1 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2a2a30] border border-[#e2e2de] dark:border-[#3f3f46] text-[9.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
+                                                                    <span className="px-1 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2e2e38] border border-[#e2e2de] dark:border-[#454554] text-[9.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
                                                                     {onToggleFreeze && (
@@ -928,7 +928,7 @@ export function ScheduleGrid({
                                                             {/* Row 1: Section + Time + Lock */}
                                                             <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
                                                                 <div className="flex items-center gap-1.5 min-w-0">
-                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2a2a30] border border-[#e2e2de] dark:border-[#3f3f46] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
+                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2e2e38] border border-[#e2e2de] dark:border-[#454554] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
                                                                     <span className={cn(
@@ -993,7 +993,7 @@ export function ScheduleGrid({
                                                             {/* Row 1: Section & Time + Lock Icon */}
                                                             <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
                                                                 <div className="flex items-center gap-1.5 min-w-0">
-                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2a2a30] border border-[#e2e2de] dark:border-[#3f3f46] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
+                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2e2e38] border border-[#e2e2de] dark:border-[#454554] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
                                                                     <span className={cn(

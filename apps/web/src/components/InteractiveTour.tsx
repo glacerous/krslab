@@ -645,7 +645,7 @@ export function InteractiveTour({
                         y="0"
                         width="100%"
                         height="100%"
-                        fill="rgba(20, 20, 19, 0.25)"
+                        className="fill-[rgba(20,20,19,0.25)] dark:fill-[rgba(0,0,0,0.72)]"
                         mask="url(#tour-spotlight-mask)"
                     />
                 </svg>
@@ -684,7 +684,7 @@ export function InteractiveTour({
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 vectorEffect="non-scaling-stroke"
-                                className="animate-scribble"
+                                className="animate-scribble stroke-[#5b82a6] dark:stroke-[#7dd3fc] [stroke-width:1.75] dark:[stroke-width:2] dark:[filter:drop-shadow(0_0_8px_rgba(125,211,252,0.45))]"
                             />
                         </svg>
                     </div>
@@ -697,7 +697,7 @@ export function InteractiveTour({
                     <path
                         key={`arrow-${stepIndex}`}
                         d={connectorArrow.pathD}
-                        stroke="#5b82a6"
+                        className="stroke-[#5b82a6] dark:stroke-[#7dd3fc]"
                         strokeWidth="1.25"
                         strokeDasharray="4 3"
                         vectorEffect="non-scaling-stroke"
@@ -707,12 +707,12 @@ export function InteractiveTour({
                     <polygon
                         key={`arrowhead-${stepIndex}`}
                         points={connectorArrow.arrowPoints}
-                        fill="#5b82a6"
+                        className="fill-[#5b82a6] dark:fill-[#7dd3fc]"
                     />
                 </svg>
             )}
 
-            {/* Warm Paper-Feel Popover Card (Zero Nested Boxes) */}
+            {/* High-Contrast Tour Popover Card */}
             <div
                 style={{
                     position: "fixed",
@@ -720,7 +720,7 @@ export function InteractiveTour({
                     left: `${popoverCoords.left}px`,
                     zIndex: 10002
                 }}
-                className="w-[315px] max-w-[315px] bg-[#fcfcfa] dark:bg-[#1c1c1f] rounded-2xl border border-[#d8d8d4] dark:border-[#2e2e34] border-b-[3px] border-b-[#c2c2bc] dark:border-b-[#383840] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
+                className="w-[315px] max-w-[315px] bg-[#fcfcfa] dark:bg-[#222228] rounded-2xl border border-[#d8d8d4] dark:border-[#3f3f4a] border-b-[3px] border-b-[#c2c2bc] dark:border-b-[#3f3f4a] shadow-[0_16px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08)] p-5 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header row: doodle label + close */}
@@ -795,7 +795,7 @@ export function InteractiveTour({
                         <button
                             type="button"
                             onClick={handleNext}
-                            className="btn-tactile-dark px-3.5 py-1.5 rounded-lg text-[12.5px] font-medium text-white flex items-center gap-1 transition-all select-none shadow-xs cursor-pointer"
+                            className="bg-[#141413] text-white dark:bg-[#f4f4f6] dark:text-[#141413] hover:opacity-90 font-semibold px-3.5 py-1.5 rounded-lg text-[12.5px] flex items-center gap-1 transition-all select-none shadow-xs cursor-pointer"
                         >
                             <span>{stepIndex === STEPS.length - 1 ? "Finish" : "Next →"}</span>
                         </button>

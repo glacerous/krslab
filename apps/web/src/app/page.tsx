@@ -891,11 +891,11 @@ function WorkspaceContent() {
     }
 
     return (
-        <div className="flex flex-col h-screen bg-[#f9f9f8] overflow-hidden font-sans selection:bg-amber-100">
+        <div className="flex flex-col h-screen bg-[#f9f9f8] dark:bg-[#0c0c0e] overflow-hidden font-sans selection:bg-amber-100">
             {/* ========================================================= */}
             {/* 1. TOP WORKSPACE HEADER & TOOLBAR                         */}
             {/* ========================================================= */}
-            <header className="h-14 border-b border-[#e6e6e3] dark:border-[#2e2e2b] bg-white/90 dark:bg-[#1a1a18]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
+            <header className="h-14 border-b border-[#e6e6e3] dark:border-[#26262e] bg-white/90 dark:bg-[#141418] backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
                 <div className="flex items-center gap-2.5 shrink-0 min-w-0">
                     {/* Custom Brand Logo with Timetable Mark & Doodle lab */}
@@ -1142,11 +1142,11 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 4. MAIN WORKSPACE STAGE: (Left Panel + Center Grid)       */}
             {/* ========================================================= */}
-            <div className="flex-1 flex overflow-hidden relative z-10 bg-[#f9f9f8] dark:bg-[#121214] bg-dot-matrix">
+            <div className="flex-1 flex overflow-hidden relative z-10 bg-[#f9f9f8] dark:bg-[#0c0c0e] bg-dot-matrix">
                 {/* Left Panel: Desktop 320px Clean Split (Untouched on lg screens) */}
                 <div
                     id="tour-course-panel"
-                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] dark:border-[#27272a] bg-white/95 dark:bg-[#161618]/95"
+                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418]"
                 >
                     <CoursePanel
                         plan={activePlan}
@@ -1163,7 +1163,7 @@ function WorkspaceContent() {
                 {/* Center / Right Panel: Live Interactive ScheduleGrid (100% width on mobile/tablet) */}
                 <div
                     id="krs-grid-capture"
-                    className="flex-1 h-full overflow-hidden bg-[#f9f9f8] dark:bg-[#121214] bg-dot-matrix relative flex flex-col"
+                    className="flex-1 h-full overflow-hidden bg-[#f9f9f8] dark:bg-[#0c0c0e] bg-dot-matrix relative flex flex-col"
                 >
                     <ScheduleGrid
                         selectedClasses={selectedClasses}
