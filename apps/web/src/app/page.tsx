@@ -4,7 +4,6 @@ import { useState, useMemo, useEffect, useRef, useCallback, Suspense } from "rea
 import { useAppStore, Subject, Plan } from "@/lib/store";
 import { ScheduleGrid } from "@/components/ScheduleGrid";
 import { RulesLab } from "@/components/RulesLab";
-import { SavedVariants } from "@/components/SavedVariants";
 import { CoursePanel } from "@/components/CoursePanel";
 import { DataModal } from "@/components/DataModal";
 import { InteractiveTour } from "@/components/InteractiveTour";
@@ -56,9 +55,6 @@ function WorkspaceContent() {
         generateCandidateSchedule,
         setRulesForPlan,
         toggleFreezeSubject,
-        saveActiveVariant,
-        setActiveSavedVariant,
-        applyActiveSavedVariantToPlan,
         setSelectedClassForSubject,
         importDatasourceAndCreatePlan,
         isDataModalOpen,
@@ -68,7 +64,7 @@ function WorkspaceContent() {
         setHasHydrated
     } = useAppStore();
 
-    type ActiveOverlay = "none" | "bima-import" | "rules" | "saved" | "tour";
+    type ActiveOverlay = "none" | "bima-import" | "rules" | "tour";
 
     const [mounted, setMounted] = useState(false);
     const { theme, setTheme } = useTheme();
@@ -539,12 +535,6 @@ function WorkspaceContent() {
         }
     }, [updateSourceMenuCoords, updatePlanMenuCoords, selectedClasses, activePlan]);
 
-    // Handler: Save Current Schedule to Archive
-    const handleSaveCurrentSchedule = useCallback(() => {
-        if (!activePlan) return;
-        saveActiveVariant(activePlan.id);
-        toast.success("Schedule saved to archive");
-    }, [activePlan, saveActiveVariant]);
 
     // Handler: Auto-Schedule Solver (Generates a single candidate preview without overwriting plan)
     const handleGenerateOrShuffle = useCallback(() => {
@@ -933,30 +923,6 @@ function WorkspaceContent() {
                         </span>
                     </button>
 
-                    {/* Split/paired Saved action: [+ Save] and [Saved (N)] */}
-                    <div className="flex items-center gap-1 bg-[#f3f3f0] p-0.5 rounded-lg border border-[#e6e6e3]">
-                        <button
-                            onClick={handleSaveCurrentSchedule}
-                            className="px-2.5 py-1 rounded-md text-[12.5px] font-medium text-[#141413] hover:bg-white transition-colors flex items-center gap-1 select-none"
-                            title="Save current schedule to archive"
-                        >
-                            <Plus className="w-3 h-3 text-[#5b82a6]" />
-                            <span>Save</span>
-                        </button>
-                        <button
-                            onClick={() => openOverlay("saved")}
-                            className="px-2.5 py-1 rounded-md text-[12.5px] font-medium text-[#6e6e77] hover:text-[#141413] hover:bg-white transition-colors flex items-center gap-1.5 select-none"
-                            title="View Saved Schedules"
-                        >
-                            <span>Saved</span>
-                            <span className="bg-neutral-200/80 text-[#141413] px-1.5 py-0.2 rounded text-[10px] font-mono leading-none">
-                                {activePlan.savedVariants?.length ?? 0}
-                            </span>
-                        </button>
-                    </div>
-
-                    <span className="text-[#d8d8d4] text-xs select-none">|</span>
-
                     {/* Auto-Schedule / Shuffle Button (Static width & position, never expands) */}
                     <div className="flex items-center gap-2">
                         <button
@@ -1054,17 +1020,6 @@ function WorkspaceContent() {
                         <span className="hidden sm:inline">Export</span>
                     </button>
 
-                    {/* Saved Drawer Modal */}
-                    <SavedVariants
-                        plan={activePlan}
-                        datasource={activeDatasource}
-                        isOpen={activeOverlay === "saved"}
-                        onOpenChange={(open) => {
-                            if (!open) closeOverlay();
-                            else openOverlay("saved");
-                        }}
-                        hideTrigger
-                    />
                 </div>
             </header>
 
@@ -1644,7 +1599,18 @@ function WorkspaceContent() {
                         </div>
 
                         {/* Popover Footer Actions */}
-                        <div className="border-t border-[#e6e6e3] mt-1 pt-1.5">
+                        <div className="border-t border-[#e6e6e3] mt-1 pt-1.5 space-y-0.5">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    handleDuplicatePlan(activePlan.id);
+                                    setIsPlanMenuOpen(false);
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] hover:bg-neutral-100 flex items-center gap-2 transition-colors select-none"
+                            >
+                                <Copy className="w-3.5 h-3.5 text-[#5b82a6]" />
+                                <span>Duplicate current plan</span>
+                            </button>
                             <button
                                 type="button"
                                 onClick={() => {
