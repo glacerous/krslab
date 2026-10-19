@@ -72,7 +72,8 @@ function WorkspaceContent() {
         maxSks,
         setMaxSks,
         hasCompletedWelcome,
-        setHasCompletedWelcome
+        setHasCompletedWelcome,
+        createEmptyDatasource
     } = useAppStore();
 
     type ActiveOverlay = "none" | "bima-import" | "rules" | "tour";
@@ -391,7 +392,8 @@ function WorkspaceContent() {
         }
         const { parseBimaMasterWithDebug } = require("@krs/engine");
         const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
-        const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
+        const sampleName = language === "id" ? "Sampel Informatika" : "Sample Informatics";
+        const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
         const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
         const sampleClasses: Record<string, string> = {};
         const assignedClasses: any[] = [];
@@ -410,7 +412,7 @@ function WorkspaceContent() {
             selectedSubjectIds: sampleSubIds,
             selectedClassBySubjectId: sampleClasses
         });
-        toast.success(`Switched to "Sample UPNYK Informatics" (${parsed.subjects.length} courses)`);
+        toast.success(language === "id" ? `Beralih ke "${sampleName}" (${parsed.subjects.length} matkul)` : `Switched to "${sampleName}" (${parsed.subjects.length} courses)`);
         setIsSourceMenuOpen(false);
     };
 
@@ -873,7 +875,8 @@ function WorkspaceContent() {
                             onClick={() => {
                                 const { parseBimaMasterWithDebug } = require("@krs/engine");
                                 const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
-                                const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
+                                const sampleName = language === "id" ? "Sampel Informatika" : "Sample Informatics";
+                                const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
                                 const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
                                 const sampleClasses: Record<string, string> = {};
                                 const assignedClasses: any[] = [];
@@ -1544,6 +1547,22 @@ function WorkspaceContent() {
                                 type="button"
                                 onClick={() => {
                                     setIsSourceMenuOpen(false);
+                                    const defaultName = language === "id" ? "Jadwal Semester" : "Semester Schedule";
+                                    const { datasourceId } = createEmptyDatasource(defaultName);
+                                    setActiveDatasourceId(datasourceId);
+                                    setActiveTab("catalog");
+                                    toast.success(language === "id" ? "Sumber jadwal kosong berhasil dibuat!" : "Created empty schedule source!");
+                                }}
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors select-none"
+                            >
+                                <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                                <span>{language === "id" ? "Mulai sumber kosong (input manual)" : "Start empty source (manual input)"}</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsSourceMenuOpen(false);
                                     handleLoadSample();
                                 }}
                                 className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-50 dark:hover:bg-white/[0.04] flex items-center gap-2 transition-colors select-none"
@@ -1966,7 +1985,8 @@ function WorkspaceContent() {
                     if (datasources.length === 0) {
                         const { parseBimaMasterWithDebug } = require("@krs/engine");
                         const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
-                        const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
+                        const sampleName = language === "id" ? "Sampel Informatika" : "Sample Informatics";
+                        const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
                         const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
                         const sampleClasses: Record<string, string> = {};
                         const assignedClasses: any[] = [];

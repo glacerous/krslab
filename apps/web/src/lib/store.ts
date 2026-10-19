@@ -352,7 +352,7 @@ export const useAppStore = create<AppStore>()(
                     const dsId = crypto.randomUUID();
                     const sampleDs: Datasource = {
                         id: dsId,
-                        name: "Sample UPNYK Informatics",
+                        name: "Sample Informatics",
                         createdAt: new Date().toISOString(),
                         subjects: parsed.subjects,
                     };

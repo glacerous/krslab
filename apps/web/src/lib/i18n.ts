@@ -187,7 +187,7 @@ export const translations: Record<Language, Translations> = {
         plansCount: "plans",
 
         // Sources switcher
-        importNewBima: "Import new BIMA source...",
+        importNewBima: "Import schedule source...",
         loadSample: "Load sample Informatics data",
         coursesAndClasses: "courses · classes",
 
@@ -235,8 +235,8 @@ export const translations: Record<Language, Translations> = {
         step3Headline: "How would you like to start?",
         step3Subtitle: "Choose how you'd like to load your courses into the planner.",
         step3Header: "start scheduling",
-        step3ImportTitle: "Import BIMA / SIAKAD table",
-        step3ImportDesc: "Copy rows from Jadwal Dosen and paste them straight in.",
+        step3ImportTitle: "Import campus schedule table",
+        step3ImportDesc: "Copy rows from SIAKAD, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, or spreadsheet and paste in.",
         step3SampleTitle: "Explore with sample courses",
         step3SampleDoodle: "← psst, try this first",
         step3SampleDesc: "Jump straight into a pre-loaded Informatics schedule.",
@@ -308,7 +308,7 @@ export const translations: Record<Language, Translations> = {
         plansCount: "rencana",
 
         // Sources switcher
-        importNewBima: "Impor sumber BIMA baru...",
+        importNewBima: "Impor sumber jadwal...",
         loadSample: "Muat data contoh Informatika",
         coursesAndClasses: "matkul · kelas",
 
@@ -356,8 +356,8 @@ export const translations: Record<Language, Translations> = {
         step3Headline: "Bagaimana kamu ingin memulai?",
         step3Subtitle: "Pilih cara memulai penyusunan rencana jadwalmu.",
         step3Header: "mulai menyusun",
-        step3ImportTitle: "Impor tabel BIMA / SIAKAD",
-        step3ImportDesc: "Salin baris dari Jadwal Dosen dan tempel langsung.",
+        step3ImportTitle: "Impor tabel jadwal kampus",
+        step3ImportDesc: "Salin baris dari SIAKAD, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, atau spreadsheet dan tempel.",
         step3SampleTitle: "Coba dengan matkul contoh",
         step3SampleDoodle: "← coba ini dulu",
         step3SampleDesc: "Langsung masuk ke jadwal Informatika yang sudah terisi.",

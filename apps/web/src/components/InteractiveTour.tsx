@@ -26,12 +26,12 @@ const STEPS: StepConfig[] = [
     {
         label: "1 of 6",
         title: "Manage schedule sources",
-        body: "Switch between semester datasets, duplicate or rename a source, or add a new BIMA schedule from the live menu."
+        body: "Switch between semester datasets, duplicate or rename a source, or import schedules from your campus portal (SIAKAD, BIMA, SIMASTER, SIAK-NG, etc.) or manual input."
     },
     {
         label: "2 of 6",
-        title: "Importing BIMA table data",
-        body: "In bima.upnyk.ac.id (Menu Perkuliahan → Dosen → Jadwal Dosen), copy the table rows (Ctrl+C) and paste into the box. Lecturers and rooms parse automatically.",
+        title: "Importing portal or spreadsheet data",
+        body: "Copy table rows (Ctrl+C) from your campus portal (SIAKAD, BIMA, SIMASTER, SIAK-NG, SIX, SIAM) or spreadsheet and paste into the box. Courses, rooms, and times parse automatically.",
         actionType: "bima-preview"
     },
     {
@@ -756,7 +756,7 @@ export function InteractiveTour({
                             onClick={() => setShowImage(!showImage)}
                             className="text-[12px] text-[#5b82a6] dark:text-[#7dd3fc] hover:text-[#141413] dark:hover:text-[#f4f4f6] underline decoration-dashed underline-offset-4 cursor-pointer"
                         >
-                            {showImage ? "hide example" : "view BIMA table example"}
+                            {showImage ? "hide example" : "view portal table example"}
                         </button>
                         {showImage && (
                             <div className="mt-2.5 rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] relative w-full h-32">

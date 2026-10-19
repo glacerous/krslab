@@ -23,8 +23,12 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         updateDatasource,
         importDatasourceAndCreatePlan,
         plans,
-        setActivePlanId
+        setActivePlanId,
+        createEmptyDatasource,
+        language
     } = useAppStore();
+
+    const isId = language === "id";
 
     const isEditMode = Boolean(editSourceId);
     const editSource = useMemo(() => datasources.find(d => d.id === editSourceId), [datasources, editSourceId]);
@@ -71,7 +75,9 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
             if (subjects.length === 0) {
                 return {
                     ok: false,
-                    error: "No course rows recognized. Ensure table columns match BIMA format.",
+                    error: isId
+                        ? "Tidak ada baris jadwal yang dikenali. Pastikan tabel berisi matkul dan jadwal."
+                        : "No course rows recognized. Ensure table columns or text contain courses and schedules.",
                     subjects: [],
                     classCount: 0
                 };
@@ -80,22 +86,22 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         } catch (err: any) {
             return {
                 ok: false,
-                error: err?.message || "Failed to parse table format",
+                error: err?.message || (isId ? "Gagal memproses format tabel" : "Failed to parse table format"),
                 subjects: [],
                 classCount: 0
             };
         }
-    }, [rawText]);
+    }, [rawText, isId]);
 
     const handlePaste = async () => {
         try {
             const text = await navigator.clipboard.readText();
             if (text) {
                 setRawText(text);
-                toast.success("Pasted from clipboard!");
+                toast.success(isId ? "Berhasil ditempel dari clipboard!" : "Pasted from clipboard!");
             }
         } catch {
-            toast.error("Clipboard access restricted. Please paste directly with Ctrl+V.");
+            toast.error(isId ? "Akses clipboard dibatasi. Silakan tempel dengan Ctrl+V." : "Clipboard access restricted. Please paste directly with Ctrl+V.");
         }
     };
 
@@ -110,9 +116,9 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                 )
             );
             await navigator.clipboard.writeText(lines.join("\n"));
-            toast.success("Copied course schedule data to clipboard!");
+            toast.success(isId ? "Data jadwal berhasil disalin ke clipboard!" : "Copied course schedule data to clipboard!");
         } catch {
-            toast.error("Could not copy to clipboard");
+            toast.error(isId ? "Gagal menyalin ke clipboard" : "Could not copy to clipboard");
         }
     };
 
@@ -126,18 +132,27 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
             if (existingPlan) {
                 setActivePlanId(existingPlan.id);
             }
-            toast.info("Switched to existing Sample Schedule");
+            toast.info(isId ? "Beralih ke Jadwal Sampel" : "Switched to existing Sample Schedule");
             onClose();
             return;
         }
         const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
-        const { planId } = importDatasourceAndCreatePlan("Sample UPNYK Informatics", parsed.subjects);
+        const sampleName = isId ? "Sampel Informatika" : "Sample Informatics";
+        const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
         const sampleSubIds = parsed.subjects.slice(0, 5).map(s => s.subjectId);
         useAppStore.getState().updatePlan(planId, {
-            name: "Semester 4",
+            name: "Plan 1",
             selectedSubjectIds: sampleSubIds
         });
-        toast.success("Sample Data Loaded!");
+        toast.success(isId ? "Data sampel dimuat!" : "Sample Data Loaded!");
+        onClose();
+    };
+
+    const handleStartEmpty = () => {
+        const defaultName = sourceName.trim() || (isId ? "Jadwal Semester" : "Semester Schedule");
+        const { datasourceId } = createEmptyDatasource(defaultName);
+        setActiveDatasourceId(datasourceId);
+        toast.success(isId ? "Sumber jadwal kosong berhasil dibuat!" : "Created empty schedule source!");
         onClose();
     };
 
@@ -189,13 +204,15 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         // Create Mode
         const text = rawText.trim();
         if (!text) {
-            toast.error("Paste your BIMA table data first");
+            toast.error(isId ? "Tempel data tabel jadwalmu terlebih dahulu" : "Paste your schedule table data first");
             return;
         }
 
         if (!parseResult?.ok || parseResult.subjects.length === 0) {
-            toast.error("Could not parse schedule data", {
-                description: parseResult?.error || "Make sure you copied the 'Jadwal Dosen' table from BIMA."
+            toast.error(isId ? "Format jadwal tidak dapat dibaca" : "Could not parse schedule data", {
+                description: parseResult?.error || (isId
+                    ? "Pastikan kamu menyalin tabel jadwal dari portal kampus (SIAKAD, BIMA, SIMASTER, SIAK-NG, dll) atau spreadsheet."
+                    : "Make sure you copied a schedule table from your campus portal (SIAKAD, BIMA, SIMASTER, SIAK-NG, etc.) or spreadsheet.")
             });
             return;
         }
@@ -214,8 +231,10 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                 });
             }
 
-            toast.success("Schedule Imported!", {
-                description: `Successfully loaded ${parseResult.subjects.length} courses.`
+            toast.success(isId ? "Jadwal Berhasil Diimpor!" : "Schedule Imported!", {
+                description: isId
+                    ? `Berhasil memuat ${parseResult.subjects.length} mata kuliah.`
+                    : `Successfully loaded ${parseResult.subjects.length} courses.`
             });
 
             setRawText("");
@@ -224,8 +243,8 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
             onClose();
         } catch (err: any) {
             setIsSubmitting(false);
-            toast.error("Failed to parse data", {
-                description: err?.message || "Please check the pasted format."
+            toast.error(isId ? "Gagal memproses data" : "Failed to parse data", {
+                description: err?.message || (isId ? "Silakan periksa format tabel yang ditempel." : "Please check the pasted format.")
             });
         }
     };
@@ -255,12 +274,18 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                         </div>
                         <div>
                             <h2 className="text-[17px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight">
-                                {isEditMode ? "Edit schedule source" : "Import BIMA schedule"}
+                                {isEditMode
+                                    ? (isId ? "Edit sumber jadwal" : "Edit schedule source")
+                                    : (isId ? "Impor jadwal kuliah" : "Import course schedule")}
                             </h2>
                             <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa]">
                                 {isEditMode
-                                    ? "Rename this source or paste updated BIMA schedule text."
-                                    : "Paste your Jadwal Dosen table from bima.upnyk.ac.id."}
+                                    ? (isId
+                                        ? "Ganti nama sumber ini atau tempel teks jadwal terbaru dari portal kampus atau spreadsheet."
+                                        : "Rename this source or paste updated schedule text from your campus portal or spreadsheet.")
+                                    : (isId
+                                        ? "Salin & tempel tabel jadwal dari SIAKAD, SiakadCloud, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, atau Excel/CSV."
+                                        : "Copy & paste your schedule table from SIAKAD, SiakadCloud, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, or Excel/CSV.")}
                             </p>
                         </div>
                     </div>
@@ -279,7 +304,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                     {/* 1. Source Name Input */}
                     <div className="space-y-1.5">
                         <label className="text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6]">
-                            Source name
+                            {isId ? "Nama sumber jadwal" : "Source name"}
                         </label>
                         <input
                             type="text"
@@ -287,8 +312,10 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                             onChange={(e) => setSourceName(e.target.value)}
                             placeholder={
                                 isEditMode
-                                    ? "Source name"
-                                    : "e.g. Semester 4 Informatika (optional — auto-named if left blank)"
+                                    ? (isId ? "Nama sumber jadwal" : "Source name")
+                                    : (isId
+                                        ? "contoh: Semester 4 Informatika (opsional — otomatis jika dikosongkan)"
+                                        : "e.g. Semester 4 Informatika (optional — auto-named if left blank)")
                             }
                             className="w-full px-3 py-2 rounded-xl bg-[#fafaf9] dark:bg-[#141416] border border-[#e2e2de] dark:border-[#2e2e34] focus:border-[#141413] dark:focus:border-[#f4f4f6] focus:bg-white dark:focus:bg-[#18181b] outline-none text-[13px] text-[#141413] dark:text-[#f4f4f6] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors"
                         />
@@ -301,7 +328,11 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 01
                             </span>
                             <span className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
-                                Open BIMA → <strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Jadwal Dosen</strong>
+                                {isId ? (
+                                    <>Buka portal kampus (<strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Jadwal Kuliah / Dosen / KRS</strong>) atau spreadsheet</>
+                                ) : (
+                                    <>Open campus portal (<strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Jadwal Kuliah / Dosen / KRS</strong>) or spreadsheet</>
+                                )}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -309,7 +340,11 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 02
                             </span>
                             <span className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
-                                Copy all table rows (<kbd className="font-mono text-[10px] bg-[#f3f3f0] dark:bg-[#27272a] border border-[#e2e2de] dark:border-[#3f3f46] text-[#141413] dark:text-[#f4f4f6] px-1 py-0.5 rounded">Ctrl+C</kbd>)
+                                {isId ? (
+                                    <>Sorot semua baris tabel (<kbd className="font-mono text-[10px] bg-[#f3f3f0] dark:bg-[#27272a] border border-[#e2e2de] dark:border-[#3f3f46] text-[#141413] dark:text-[#f4f4f6] px-1 py-0.5 rounded">Ctrl+C</kbd>)</>
+                                ) : (
+                                    <>Highlight all table rows (<kbd className="font-mono text-[10px] bg-[#f3f3f0] dark:bg-[#27272a] border border-[#e2e2de] dark:border-[#3f3f46] text-[#141413] dark:text-[#f4f4f6] px-1 py-0.5 rounded">Ctrl+C</kbd>)</>
+                                )}
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
@@ -317,16 +352,20 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 03
                             </span>
                             <span className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
-                                Paste below
+                                {isId ? (
+                                    <>Tempel di bawah ini (atau klik <strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Mulai sumber kosong</strong>)</>
+                                ) : (
+                                    <>Paste below (or click <strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Start empty source</strong>)</>
+                                )}
                             </span>
                         </div>
                     </div>
 
-                    {/* 3. Raw BIMA Textarea + Live Feedback */}
+                    {/* 3. Raw Table Textarea + Live Feedback */}
                     <div id="tour-bima-paste-area" className="space-y-2">
                         <div className="flex items-center justify-between">
                             <span className="font-doodle text-[17px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
-                                bima table data
+                                {isId ? "data tabel jadwal" : "schedule table data"}
                             </span>
 
                             <div className="flex items-center gap-2">
@@ -335,10 +374,10 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                         type="button"
                                         onClick={handleCopyExistingData}
                                         className="text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] flex items-center gap-1 transition-colors"
-                                        title="Copy existing courses to clipboard"
+                                        title={isId ? "Salin jadwal yang ada ke clipboard" : "Copy existing courses to clipboard"}
                                     >
                                         <Copy className="w-3.5 h-3.5" />
-                                        <span>Copy data</span>
+                                        <span>{isId ? "Salin data" : "Copy data"}</span>
                                     </button>
                                 )}
 
@@ -348,7 +387,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                         onClick={() => setRawText("")}
                                         className="text-[12px] font-medium text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                     >
-                                        Clear
+                                        {isId ? "Hapus teks" : "Clear"}
                                     </button>
                                 )}
 
@@ -358,7 +397,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                     className="text-[12px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] flex items-center gap-1 hover:underline"
                                 >
                                     <Clipboard className="w-3.5 h-3.5" />
-                                    <span>Paste from clipboard</span>
+                                    <span>{isId ? "Tempel dari clipboard" : "Paste from clipboard"}</span>
                                 </button>
                             </div>
                         </div>
@@ -368,7 +407,11 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                             <div className="p-2.5 rounded-xl bg-neutral-50 dark:bg-[#141416] border border-[#e6e6e3] dark:border-[#2e2e34] text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#5b82a6] dark:bg-[#7dd3fc] shrink-0" />
                                 <span>
-                                    Currently holds <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} courses</strong> ({editSourceTotalClasses} classes) — paste new BIMA text below only if you want to replace the courses.
+                                    {isId ? (
+                                        <>Saat ini berisi <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} matkul</strong> ({editSourceTotalClasses} kelas) — tempel teks jadwal baru hanya jika ingin menggantinya.</>
+                                    ) : (
+                                        <>Currently holds <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} courses</strong> ({editSourceTotalClasses} classes) — paste new schedule text below only if you want to replace the courses.</>
+                                    )}
                                 </span>
                             </div>
                         )}
@@ -376,7 +419,11 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                         <textarea
                             value={rawText}
                             onChange={(e) => setRawText(e.target.value)}
-                            placeholder="Paste copied table text here (Ctrl + V)...&#10;e.g. INFORMATIKA  123001  Pemrograman Web  3  IF-A  40  Senin 07:00-09:30  Lab. 1"
+                            placeholder={
+                                isId
+                                    ? "Tempel teks tabel jadwal di sini (Ctrl + V)...\nContoh: Kode | Mata Kuliah | SKS | Kelas | Hari Jam | Ruang\nMendukung SIAKAD, SiakadCloud, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, Excel, CSV, TSV..."
+                                    : "Paste copied schedule table text here (Ctrl + V)...\ne.g. Code | Course Name | Credits | Class | Day Time | Room\nSupports SIAKAD, SiakadCloud, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, Excel, CSV, TSV..."
+                            }
                             rows={rawText ? 5 : 4}
                             className="w-full p-3 rounded-xl bg-[#fafaf9] dark:bg-[#141416] border border-[#e2e2de] dark:border-[#2e2e34] focus:border-[#141413] dark:focus:border-[#f4f4f6] focus:bg-white dark:focus:bg-[#18181b] outline-none font-mono text-[11.5px] text-[#141413] dark:text-[#f4f4f6] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors leading-relaxed"
                         />
@@ -394,7 +441,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 {parseResult.ok ? (
                                     <>
                                         <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                        <span>✓ Detected {parseResult.subjects.length} courses ({parseResult.classCount} classes)</span>
+                                        <span>✓ {isId ? `Terdeteksi ${parseResult.subjects.length} matkul (${parseResult.classCount} kelas)` : `Detected ${parseResult.subjects.length} courses (${parseResult.classCount} classes)`}</span>
                                     </>
                                 ) : (
                                     <>
@@ -417,16 +464,26 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 className="text-[12.5px] font-medium text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline flex items-center gap-1 transition-colors"
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
-                                <span>Delete source</span>
+                                <span>{isId ? "Hapus sumber" : "Delete source"}</span>
                             </button>
                         ) : (
-                            <button
-                                type="button"
-                                onClick={handleLoadSample}
-                                className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:text-[#416282] dark:hover:text-[#bae6fd] hover:underline transition-colors"
-                            >
-                                Use sample Informatics data
-                            </button>
+                            <div className="flex items-center gap-2.5">
+                                <button
+                                    type="button"
+                                    onClick={handleStartEmpty}
+                                    className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:text-[#416282] dark:hover:text-[#bae6fd] hover:underline transition-colors"
+                                >
+                                    {isId ? "Mulai sumber kosong (input manual)" : "Start empty source (manual input)"}
+                                </button>
+                                <span className="text-[#a1a1aa] dark:text-[#71717a]">·</span>
+                                <button
+                                    type="button"
+                                    onClick={handleLoadSample}
+                                    className="text-[12.5px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
+                                >
+                                    {isId ? "Gunakan sampel Informatika" : "Use sample Informatics data"}
+                                </button>
+                            </div>
                         )}
                     </div>
 
@@ -436,7 +493,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                             onClick={onClose}
                             className="btn-tactile-light px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                         >
-                            Cancel
+                            {isId ? "Batal" : "Cancel"}
                         </button>
 
                         <button
@@ -451,10 +508,10 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                         >
                             <span>
                                 {isSubmitting
-                                    ? "Saving..."
+                                    ? (isId ? "Menyimpan..." : "Saving...")
                                     : isEditMode
-                                        ? "Save changes"
-                                        : "Import schedule"}
+                                        ? (isId ? "Simpan perubahan" : "Save changes")
+                                        : (isId ? "Impor jadwal" : "Import schedule")}
                             </span>
                             <ArrowRight className="w-3.5 h-3.5" />
                         </button>
