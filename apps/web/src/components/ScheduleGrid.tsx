@@ -588,15 +588,15 @@ export function ScheduleGrid({
                     )}
                 >
                     {/* Header Days - Gaegu Doodle Font text-[20px] (Z-Index 20 so header popovers float above) */}
-                    <div className="flex bg-white shrink-0 z-20 border-b border-[#e6e6e3] sticky top-0">
+                    <div className="flex bg-white dark:bg-[#1a1a18] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#2e2e2b] sticky top-0">
                         {/* Top-left corner time label in Gaegu text-[17px] */}
                         <div
                             className={cn(
-                                "w-14 border-r border-[#e6e6e3] flex items-center justify-center p-2 bg-neutral-50/60 sticky left-0 z-20",
+                                "w-14 border-r border-[#e6e6e3] dark:border-[#2e2e2b] flex items-center justify-center p-2 bg-neutral-50/60 dark:bg-[#161615] sticky left-0 z-20",
                                 compact && "w-12"
                             )}
                         >
-                            <span className="font-doodle font-bold text-[17px] text-[#6e6e77] leading-none">
+                            <span className="font-doodle font-bold text-[17px] text-[#6e6e77] dark:text-[#a1a19a] leading-none">
                                 time
                             </span>
                         </div>
@@ -604,11 +604,11 @@ export function ScheduleGrid({
                             <div
                                 key={day}
                                 className={cn(
-                                    "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] bg-white",
+                                    "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] dark:border-[#2e2e2b] bg-white dark:bg-[#1a1a18]",
                                     compact && "py-1 px-2"
                                 )}
                             >
-                                <span className="font-doodle font-bold text-[20px] text-[#141413] tracking-normal leading-tight">
+                                <span className="font-doodle font-bold text-[20px] text-[#141413] dark:text-[#f4f4f0] tracking-normal leading-tight">
                                     {compact ? day.substring(0, 3) : day}
                                 </span>
                             </div>
@@ -643,7 +643,7 @@ export function ScheduleGrid({
                             {/* Time Column - Space Mono Hourly Labels */}
                             <div
                                 className={cn(
-                                    "w-14 border-r border-[#e6e6e3] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 backdrop-blur-md",
+                                    "w-14 border-r border-[#e6e6e3] dark:border-[#2e2e2b] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 dark:bg-[#161615]/95 backdrop-blur-md",
                                     compact && "w-12"
                                 )}
                                 style={{ paddingTop: `${TOP_OFFSET}px` }}
@@ -655,7 +655,7 @@ export function ScheduleGrid({
                                         className="pr-2.5 relative flex items-start justify-end"
                                     >
                                         {slot.isMajor && (
-                                            <span className="font-mono text-[11px] font-medium text-[#6e6e77] tabular-nums -mt-2">
+                                            <span className="font-mono text-[11px] font-medium text-[#6e6e77] dark:text-[#a1a19a] tabular-nums -mt-2">
                                                 {slot.h.toString().padStart(2, "0")}:00
                                             </span>
                                         )}
@@ -817,17 +817,17 @@ export function ScheduleGrid({
                                                     className={cn(
                                                         // Clean solid white card, flowing naturally from top
                                                         "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
-                                                        "bg-white border border-[#dcdcd6] border-b-[2px] border-b-[#c6c6be] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0]",
+                                                        "bg-white dark:bg-[#20201e] border border-[#dcdcd6] dark:border-[#333330] border-b-[2px] border-b-[#c6c6be] dark:border-b-[#282826] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0] dark:hover:border-[#444440]",
                                                         layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
-                                                        isFocused && "border-[#141413] ring-1 ring-[#141413] shadow-md -translate-y-[1px] z-30",
+                                                        isFocused && "border-[#141413] dark:border-[#f4f4f0] ring-1 ring-[#141413] dark:ring-[#f4f4f0] shadow-md -translate-y-[1px] z-30",
                                                         isThisCardDragging
-                                                            ? "!z-50 shadow-2xl ring-2 ring-[#141413] cursor-grabbing"
+                                                            ? "!z-50 shadow-2xl ring-2 ring-[#141413] dark:ring-[#f4f4f0] cursor-grabbing"
                                                             : "cursor-grab active:cursor-grabbing hover:shadow-md",
-                                                        isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70",
+                                                        isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70 dark:bg-rose-950/40",
                                                         // Cascading overlap expansion on hover
-                                                        layout.isOverlapping && !isThisCardDragging && "krs-cascading-node hover:!z-50 hover:shadow-xl hover:border-[#141413]/40",
+                                                        layout.isOverlapping && !isThisCardDragging && "krs-cascading-node hover:!z-50 hover:shadow-xl hover:border-[#141413]/40 dark:hover:border-[#f4f4f0]/40",
                                                         // Hover-to-expand for short duration nodes
-                                                        !isThisCardDragging && layout.durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40"
+                                                        !isThisCardDragging && layout.durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40 dark:hover:border-[#f4f4f0]/40"
                                                     )}
                                                     style={{
                                                         top: `${layout.top}px`,

@@ -37,29 +37,41 @@
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 4%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 6% 10%;
-    --secondary: 240 4% 14%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 12%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 0 0% 98%;
+    --background: 60 4% 7%;          /* #121211 */
+    --foreground: 60 9% 95%;         /* #f4f4f0 */
+
+    --card: 60 4% 10%;               /* #1a1a18 */
+    --card-foreground: 60 9% 95%;    /* #f4f4f0 */
+
+    --popover: 60 4% 10%;            /* #1a1a18 */
+    --popover-foreground: 60 9% 95%; /* #f4f4f0 */
+
+    --primary: 60 9% 95%;            /* #f4f4f0 */
+    --primary-foreground: 60 4% 7%;  /* #121211 */
+
+    --secondary: 60 4% 12%;          /* #20201e */
+    --secondary-foreground: 60 9% 95%;
+
+    --muted: 60 3% 15%;              /* #282825 */
+    --muted-foreground: 60 3% 62%;   /* #a1a19a */
+
+    --accent: 60 4% 14%;             /* #242422 */
+    --accent-foreground: 60 9% 95%;
+
+    --destructive: 350 84% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 60 4% 17%;             /* #2e2e2b */
+    --input: 60 4% 17%;
+    --ring: 60 9% 95%;
   }
 
   * {
     border-color: #e6e6e3;
+  }
+
+  .dark * {
+    border-color: #2e2e2b;
   }
 
   body {
@@ -68,6 +80,11 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     letter-spacing: -0.012em;
   }
+
+  .dark body {
+    background-color: #121211;
+    color: #f4f4f0;
+  }
 }
 
 @layer utilities {
@@ -75,6 +92,12 @@
   .bg-dot-matrix {
     background-color: #f9f9f8;
     background-image: radial-gradient(#dcdcd7 1.1px, transparent 1.1px);
+    background-size: 20px 20px;
+  }
+
+  .dark .bg-dot-matrix {
+    background-color: #121211;
+    background-image: radial-gradient(#242422 1.2px, transparent 1.2px);
     background-size: 20px 20px;
   }
 
@@ -136,6 +159,29 @@
     transform: translateY(1px);
   }
 
+  .dark .btn-tactile-dark {
+    background: linear-gradient(180deg, #2e2e2b 0%, #20201e 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid #3d3d39;
+    color: #f4f4f0;
+  }
+
+  .dark .btn-tactile-dark:hover {
+    background: linear-gradient(180deg, #3a3a36 0%, #272724 100%);
+  }
+
+  .dark .btn-tactile-light {
+    background: linear-gradient(180deg, #242422 0%, #1a1a18 100%);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    border: 1px solid #2e2e2b;
+    color: #f4f4f0;
+  }
+
+  .dark .btn-tactile-light:hover {
+    background: linear-gradient(180deg, #2c2c29 0%, #20201e 100%);
+    border-color: #3d3d39;
+  }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -158,8 +204,16 @@
     border-radius: 9999px;
   }
 
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #2e2e2b;
+  }
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #d4d4d0;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #3e3e3a;
   }
 
   @keyframes node-settle {

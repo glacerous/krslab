@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { getSubjectColor } from "@/lib/colors";
 import { toast } from "sonner";
+import { getTranslation } from "@/lib/i18n";
 
 interface CoursePanelProps {
     plan: Plan;
@@ -44,9 +45,11 @@ export function CoursePanel({
         removeSubjectFromPlan,
         setSelectedClassForSubject,
         toggleFreezeSubject,
-        setPreviewOverride
+        setPreviewOverride,
+        language
     } = useAppStore();
 
+    const t = useMemo(() => getTranslation(language), [language]);
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedSubjectId, setExpandedSubjectId] = useState<string | null>(null);
 
@@ -86,42 +89,42 @@ export function CoursePanel({
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-white/95 px-6 py-6 select-none overflow-hidden">
+        <div className="w-full h-full flex flex-col bg-white/95 dark:bg-[#1a1a18]/95 px-6 py-6 select-none overflow-hidden">
             {/* 1. Editorial Intro Paragraph (Inspired by nexvyn.dev) */}
-            <p className="text-[13.5px] text-[#6e6e77] leading-relaxed mb-6 shrink-0">
-                Drag any class on the canvas or click to explore{" "}
-                <span className="text-[#141413] font-medium border-b-[1.5px] border-dashed border-amber-500 pb-[1px]">
-                    conflict-free
-                </span>{" "}
-                alternatives.
+            <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a19a] leading-relaxed mb-6 shrink-0">
+                {t.dragIntroPre}
+                <span className="text-[#141413] dark:text-[#f4f4f0] font-medium border-b-[1.5px] border-dashed border-amber-500 pb-[1px]">
+                    {t.dragIntroHighlight}
+                </span>
+                {t.dragIntroPost}
             </p>
 
             {/* 2. Section Header & Mode Toggle */}
             <div className="flex items-baseline justify-between mb-1.5 shrink-0">
-                <h3 className="font-doodle text-[19px] font-bold text-[#6e6e77] tracking-tight">
-                    {activeTab === "selected" ? "selected courses" : "add courses"}
+                <h3 className="font-doodle text-[19px] font-bold text-[#6e6e77] dark:text-[#a1a19a] tracking-tight">
+                    {activeTab === "selected" ? t.selectedCourses : t.addCourses}
                 </h3>
 
                 <button
                     id="tour-add-course-btn"
                     onClick={() => onTabChange(activeTab === "selected" ? "catalog" : "selected")}
-                    className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] transition-colors"
+                    className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] dark:text-[#a1a19a] dark:hover:text-[#f4f4f0] transition-colors"
                 >
-                    {activeTab === "selected" ? "+ add course" : "← view selected"}
+                    {activeTab === "selected" ? t.addCourseBtn : t.viewSelected}
                 </button>
             </div>
 
             {/* Subtle Active Source Context Header */}
             <div
                 key={datasource.id}
-                className="flex items-center gap-1.5 text-[12px] text-[#6e6e77] mb-3 px-0.5 shrink-0 animate-in fade-in duration-200"
+                className="flex items-center gap-1.5 text-[12px] text-[#6e6e77] dark:text-[#a1a19a] mb-3 px-0.5 shrink-0 animate-in fade-in duration-200"
             >
-                <span className="font-medium text-[#141413] truncate max-w-[170px]" title={datasource.name}>
+                <span className="font-medium text-[#141413] dark:text-[#f4f4f0] truncate max-w-[170px]" title={datasource.name}>
                     {datasource.name}
                 </span>
                 <span className="text-[#a1a1aa]">·</span>
                 <span className="whitespace-nowrap">
-                    {datasource.subjects.length} courses available
+                    {datasource.subjects.length} {t.coursesAvailable}
                 </span>
             </div>
 
@@ -130,14 +133,14 @@ export function CoursePanel({
                 <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
                     {selectedSubjects.length === 0 ? (
                         <div className="py-12 text-center space-y-2">
-                            <p className="text-[13px] text-[#6e6e77]">
-                                No courses added yet.
+                            <p className="text-[13px] text-[#6e6e77] dark:text-[#a1a19a]">
+                                {t.noCoursesYet}
                             </p>
                             <button
                                 onClick={() => onTabChange("catalog")}
-                                className="font-doodle text-[16px] font-bold text-[#141413] underline decoration-dashed decoration-amber-500 underline-offset-4"
+                                className="font-doodle text-[16px] font-bold text-[#141413] dark:text-[#f4f4f0] underline decoration-dashed decoration-amber-500 underline-offset-4"
                             >
-                                Browse course catalog
+                                {t.browseCatalog}
                             </button>
                         </div>
                     ) : (
@@ -158,13 +161,13 @@ export function CoursePanel({
                                         onMouseEnter={() => onHoverSubject?.(sub.subjectId)}
                                         onMouseLeave={() => onHoverSubject?.(null)}
                                         className={cn(
-                                            "flex items-center gap-3 p-2 -mx-2 rounded-xl cursor-pointer transition-all hover:bg-neutral-100/70",
-                                            isExpanded && "bg-neutral-100/60"
+                                            "flex items-center gap-3 p-2 -mx-2 rounded-xl cursor-pointer transition-all hover:bg-neutral-100/70 dark:hover:bg-neutral-800/70",
+                                            isExpanded && "bg-neutral-100/60 dark:bg-neutral-800/60"
                                         )}
                                         onClick={() => setExpandedSubjectId(isExpanded ? null : sub.subjectId)}
                                     >
                                         {/* Handwritten Doodle Index Number (01, 02, ...) */}
-                                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] w-6 shrink-0 tabular-nums select-none leading-none">
+                                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] w-6 shrink-0 tabular-nums select-none leading-none">
                                             {indexNumber}
                                         </span>
 
@@ -172,10 +175,10 @@ export function CoursePanel({
                                         <div className="flex-1 min-w-0">
                                             {/* Row 1: Name + SKS */}
                                             <div className="flex items-baseline justify-between gap-1.5">
-                                                <h4 className="text-[13.5px] font-medium text-[#141413] truncate leading-tight">
+                                                <h4 className="text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] truncate leading-tight">
                                                     {sub.name}
                                                 </h4>
-                                                <span className="font-doodle text-[15px] font-bold text-[#6e6e77] shrink-0 leading-none">
+                                                <span className="font-doodle text-[15px] font-bold text-[#6e6e77] dark:text-[#a1a19a] shrink-0 leading-none">
                                                     {sub.sks} sks
                                                 </span>
                                             </div>
@@ -241,9 +244,9 @@ export function CoursePanel({
 
                                     {/* Section Switcher Accordion with Doodle Hint */}
                                     {isExpanded && (
-                                        <div className="ml-9 pl-3 pr-1 py-1.5 space-y-1 border-l-2 border-[#e6e6e3] animate-in slide-in-from-top-1 duration-150">
-                                            <div className="font-doodle text-[13.5px] font-bold text-[#5b82a6] -rotate-1 pb-0.5 select-none">
-                                                click to swap class ↓
+                                        <div className="ml-9 pl-3 pr-1 py-1.5 space-y-1 border-l-2 border-[#e6e6e3] dark:border-[#2e2e2b] animate-in slide-in-from-top-1 duration-150">
+                                            <div className="font-doodle text-[13.5px] font-bold text-[#5b82a6] dark:text-[#7da2c4] -rotate-1 pb-0.5 select-none">
+                                                {t.clickToSwap}
                                             </div>
                                             {sub.classes.map((cls) => {
                                                 const isSelected = currentClassId === cls.classId;
@@ -293,13 +296,13 @@ export function CoursePanel({
                 /* Course Search & Catalog View */
                 <div className="flex-1 flex flex-col min-h-0">
                     <div id="tour-catalog-search-area" className="relative mb-3">
-                        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a1aa]" />
+                        <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a1aa] dark:text-[#71717a]" />
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search course title or code..."
-                            className="w-full pl-8 pr-7 py-1.5 text-xs bg-neutral-100/70 border border-[#e6e6e3] rounded-lg outline-none focus:border-[#141413] text-[#141413] placeholder:text-[#a1a1aa] transition-colors"
+                            placeholder={t.searchPlaceholder}
+                            className="w-full pl-8 pr-7 py-1.5 text-xs bg-neutral-100/70 dark:bg-neutral-800/70 border border-[#e6e6e3] dark:border-[#2e2e2b] rounded-lg outline-none focus:border-[#141413] dark:focus:border-[#f4f4f0] text-[#141413] dark:text-[#f4f4f0] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors"
                         />
                         {searchQuery && (
                             <button

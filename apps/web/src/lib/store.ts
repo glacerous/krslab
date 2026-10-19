@@ -128,6 +128,14 @@ interface AppStore {
     deleteSavedVariant: (planId: string, savedId: string) => void;
     setActiveSavedVariant: (planId: string, savedId: string | null) => void;
     applyActiveSavedVariantToPlan: (planId: string, savedId?: string) => void;
+
+    // User Preferences
+    language: "en" | "id";
+    maxSks: number;
+    hasCompletedWelcome: boolean;
+    setLanguage: (language: "en" | "id") => void;
+    setMaxSks: (maxSks: number) => void;
+    setHasCompletedWelcome: (hasCompleted: boolean) => void;
 }
 
 export const useAppStore = create<AppStore>()(
@@ -140,6 +148,15 @@ export const useAppStore = create<AppStore>()(
             isGenerating: false,
             isDataModalOpen: false,
             _hasHydrated: false,
+
+            // Preferences defaults
+            language: "en",
+            maxSks: 24,
+            hasCompletedWelcome: false,
+
+            setLanguage: (language) => set({ language }),
+            setMaxSks: (maxSks) => set({ maxSks }),
+            setHasCompletedWelcome: (hasCompletedWelcome) => set({ hasCompletedWelcome }),
 
             setHasHydrated: (state) => set({ _hasHydrated: state }),
             setIsDataModalOpen: (isDataModalOpen) => set({ isDataModalOpen }),
