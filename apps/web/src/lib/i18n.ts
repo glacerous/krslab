@@ -84,6 +84,49 @@ export interface Translations {
     importTableBtn: string;
     exploreSampleBtn: string;
     tryStudioNote: string;
+
+    // Step-by-Step Onboarding Flow
+    onboardingStep: string;
+    onboardingOf: string;
+    skipSetup: string;
+    continueBtn: string;
+    backBtn: string;
+    liveDeskPreviewNote: string;
+    mon: string;
+    tue: string;
+    wed: string;
+    thu: string;
+    fri: string;
+    step1Eyebrow: string;
+    step1Headline: string;
+    step1Sub: string;
+    warmPaperTitle: string;
+    warmPaperSub: string;
+    darkInkTitle: string;
+    darkInkSub: string;
+    switchesInstantlyNote: string;
+    step2Eyebrow: string;
+    step2Headline: string;
+    step2Sub: string;
+    loadBalancedTitle: string;
+    loadBalancedSub: string;
+    loadFullTitle: string;
+    loadFullSub: string;
+    loadUnlimitedTitle: string;
+    loadUnlimitedSub: string;
+    recommendedBadge: string;
+    step3Eyebrow: string;
+    step3Headline: string;
+    step3Sub: string;
+    pasteBimaTitle: string;
+    pasteBimaSub: string;
+    exploreSampleTitle: string;
+    exploreSampleSub: string;
+    tryIn1ClickBadge: string;
+    syncTitle: string;
+    syncSub: string;
+    signInBtn: string;
+    syncComingSoonBadge: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -162,7 +205,7 @@ export const translations: Record<Language, Translations> = {
         // Welcome screen
         welcomeHeadline: "Plan your semester schedule without the spreadsheet headache.",
         welcomeSub: "Paste your course table, drag classes on the canvas, and explore conflict-free combinations. Before we jump in, tune your desk:",
-        localNote: "100% local in your browser — your data stays on your device",
+        localNote: "100% local in your browser",
         rowLanguage: "language",
         rowAppearance: "appearance",
         rowSksLimit: "sks limit",
@@ -171,6 +214,49 @@ export const translations: Record<Language, Translations> = {
         importTableBtn: "Import schedule table →",
         exploreSampleBtn: "Explore with sample courses",
         tryStudioNote: "← try the studio first",
+
+        // Step-by-Step Onboarding Flow
+        onboardingStep: "step",
+        onboardingOf: "of",
+        skipSetup: "Skip setup →",
+        continueBtn: "Continue →",
+        backBtn: "← Back",
+        liveDeskPreviewNote: "live desk preview",
+        mon: "Mon",
+        tue: "Tue",
+        wed: "Wed",
+        thu: "Thu",
+        fri: "Fri",
+        step1Eyebrow: "01 · language & canvas",
+        step1Headline: "Tune your workspace before we start.",
+        step1Sub: "Pick the canvas feel that's easiest on your eyes.",
+        warmPaperTitle: "Warm Paper",
+        warmPaperSub: "Crisp daylight architect sheet",
+        darkInkTitle: "Dark Ink",
+        darkInkSub: "Low-glare night studio",
+        switchesInstantlyNote: "switches every label in the studio instantly",
+        step2Eyebrow: "02 · semester workload",
+        step2Headline: "Pick your SKS safety cap.",
+        step2Sub: "We'll track your credit count as you pick courses and warn you if you go over.",
+        loadBalancedTitle: "20 SKS · Balanced Load",
+        loadBalancedSub: "Ideal for lighter semesters or taking 6–7 focused courses.",
+        loadFullTitle: "24 SKS · Full Semester Cap",
+        loadFullSub: "Standard maximum university credit load.",
+        loadUnlimitedTitle: "Unlimited · Free Exploration",
+        loadUnlimitedSub: "No credit cap — great for comparing extra electives freely.",
+        recommendedBadge: "recommended",
+        step3Eyebrow: "03 · load your courses",
+        step3Headline: "Start with your campus schedule or test the studio.",
+        step3Sub: "Choose how you'd like to load your courses into the planner.",
+        pasteBimaTitle: "Paste my BIMA / SIAKAD schedule",
+        pasteBimaSub: "Copy your Jadwal Dosen table and paste it in — rooms, times, and lecturers parse automatically.",
+        exploreSampleTitle: "Explore with sample courses",
+        exploreSampleSub: "Jump straight into a pre-loaded Informatics schedule to test dragging, locking, and auto-scheduling.",
+        tryIn1ClickBadge: "try it in 1 click",
+        syncTitle: "Sync across devices",
+        syncSub: "Sign in to back up your plans and sources to the cloud",
+        signInBtn: "Sign in",
+        syncComingSoonBadge: "coming soon · saved locally for now"
     },
     id: {
         // Top bar & Header
@@ -247,7 +333,7 @@ export const translations: Record<Language, Translations> = {
         // Welcome screen
         welcomeHeadline: "Susun jadwal kuliah semestermu tanpa pusing bentrok.",
         welcomeSub: "Tempel tabel jadwal kampusmu, geser kelas di kanvas, dan temukan kombinasi bebas bentrok. Sebelum mulai, atur mejamu:",
-        localNote: "100% lokal di browser — datamu tersimpan di perangkatmu sendiri",
+        localNote: "100% lokal di browser Anda",
         rowLanguage: "bahasa",
         rowAppearance: "tampilan",
         rowSksLimit: "batas sks",
@@ -256,6 +342,49 @@ export const translations: Record<Language, Translations> = {
         importTableBtn: "Impor tabel jadwal →",
         exploreSampleBtn: "Coba dengan matkul contoh",
         tryStudioNote: "← coba studio langsung",
+
+        // Step-by-Step Onboarding Flow
+        onboardingStep: "langkah",
+        onboardingOf: "dari",
+        skipSetup: "Lewati penyiapan →",
+        continueBtn: "Lanjut →",
+        backBtn: "← Kembali",
+        liveDeskPreviewNote: "pratinjau mejamu",
+        mon: "Sen",
+        tue: "Sel",
+        wed: "Rab",
+        thu: "Kam",
+        fri: "Jum",
+        step1Eyebrow: "01 · bahasa & kanvas",
+        step1Headline: "Atur ruang kerjamu sebelum kita mulai.",
+        step1Sub: "Pilih tema kanvas yang paling nyaman untuk matamu.",
+        warmPaperTitle: "Warm Paper",
+        warmPaperSub: "Lembar arsitek terang di siang hari",
+        darkInkTitle: "Dark Ink",
+        darkInkSub: "Studio malam minim silau",
+        switchesInstantlyNote: "mengubah semua label studio seketika",
+        step2Eyebrow: "02 · beban semester",
+        step2Headline: "Pilih batas aman SKS semestermu.",
+        step2Sub: "Kami akan memantau jumlah SKS saat memilih matkul dan mengingatkan jika berlebih.",
+        loadBalancedTitle: "20 SKS · Beban Seimbang",
+        loadBalancedSub: "Ideal untuk semester santai atau mengambil 6–7 matkul fokus.",
+        loadFullTitle: "24 SKS · Batas Penuh Kampus",
+        loadFullSub: "Beban kredit maksimal standar universitas.",
+        loadUnlimitedTitle: "Tanpa Batas · Eksplorasi Bebas",
+        loadUnlimitedSub: "Tanpa batas kredit — leluasa membandingkan banyak matkul pilihan.",
+        recommendedBadge: "disarankan",
+        step3Eyebrow: "03 · muat mata kuliah",
+        step3Headline: "Mulai dengan jadwal kampusmu atau uji coba studio.",
+        step3Sub: "Pilih cara memulai penyusunan rencana jadwalmu.",
+        pasteBimaTitle: "Tempel jadwal BIMA / SIAKAD saya",
+        pasteBimaSub: "Salin tabel Jadwal Dosen dan tempel — ruang, jam, dan dosen terurai otomatis.",
+        exploreSampleTitle: "Coba dengan matkul contoh",
+        exploreSampleSub: "Langsung masuk ke jadwal Informatika yang sudah terisi untuk mencoba geser, kunci, dan susun otomatis.",
+        tryIn1ClickBadge: "coba 1 klik",
+        syncTitle: "Sinkronisasi antar perangkat",
+        syncSub: "Masuk untuk mencadangkan rencana dan sumber ke cloud",
+        signInBtn: "Masuk akun",
+        syncComingSoonBadge: "segera hadir · saat ini tersimpan lokal"
     }
 };
 
