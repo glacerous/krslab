@@ -36,6 +36,11 @@ interface ScheduleGridProps {
     compact?: boolean;
     focusedSubjectId?: string | null;
     onFocusSubject?: (subjectId: string | null) => void;
+    activeDatasourceName?: string;
+    activePlanName?: string;
+    onOpenCustomCourse?: () => void;
+    onOpenImportData?: () => void;
+    onBrowseCatalog?: () => void;
 }
 
 interface PointerDragState {
@@ -61,7 +66,12 @@ export function ScheduleGrid({
     hoveredClassId = null,
     compact = false,
     focusedSubjectId: propFocusedSubjectId,
-    onFocusSubject
+    onFocusSubject,
+    activeDatasourceName,
+    activePlanName,
+    onOpenCustomCourse,
+    onOpenImportData,
+    onBrowseCatalog
 }: ScheduleGridProps) {
     const language = useAppStore((state) => state.language);
     const [rowHeight, setRowHeight] = useState(compact ? 56 : 74);
@@ -1062,6 +1072,72 @@ export function ScheduleGrid({
                     </div>
                 </div>
             </div>
+
+            {/* Empty Sheet Stamp Overlay when 0 selected courses on grid */}
+            {selectedClasses.length === 0 && (
+                <div className="absolute inset-0 top-12 flex items-center justify-center pointer-events-none z-30 p-4">
+                    <div className="pointer-events-auto bg-white/95 dark:bg-[#161619]/95 backdrop-blur-md border border-[#e2e2df] dark:border-[#2e2e34] shadow-[0_12px_36px_rgba(0,0,0,0.08)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.35)] rounded-2xl p-6 sm:p-7 max-w-md w-full text-center flex flex-col items-center animate-in fade-in zoom-in-95 duration-250">
+                        {/* Doodle Eyebrow */}
+                        <span className="font-doodle text-[19px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] leading-none">
+                            {allSubjects.length === 0
+                                ? (language === "id" ? "sumber jadwal kosong" : "blank manual source")
+                                : (language === "id" ? "rencana jadwal kosong" : "empty schedule plan")}
+                        </span>
+
+                        {/* Title: Exact Source · Plan */}
+                        <h3 className="text-[16px] font-semibold text-[#141413] dark:text-[#f4f4f6] mt-1.5 max-w-[340px] truncate">
+                            {activeDatasourceName || (language === "id" ? "Jadwal" : "Schedule")} · {activePlanName || "Plan 1"}
+                        </h3>
+
+                        {/* Subtitle / Context */}
+                        {allSubjects.length === 0 ? (
+                            <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] mt-1.5 max-w-[320px] leading-relaxed">
+                                {language === "id"
+                                    ? "Tambahkan mata kuliah manual secara bertahap atau salin tabel jadwal dari SIAKAD / portal kampus Anda."
+                                    : "Add your courses manually step-by-step or paste a schedule table from SIAKAD / your campus portal."}
+                            </p>
+                        ) : (
+                            <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] mt-1.5 max-w-[320px] leading-relaxed">
+                                {language === "id"
+                                    ? "Pilih mata kuliah dari katalog sebelah kiri (atau arahkan kursor untuk pratinjau di grid)."
+                                    : "Pick courses from the left catalog (or hover them to preview on the grid)."}
+                            </p>
+                        )}
+
+                        {/* Actions */}
+                        {allSubjects.length === 0 ? (
+                            <div className="flex flex-col sm:flex-row items-center gap-2.5 mt-5 w-full justify-center">
+                                <button
+                                    type="button"
+                                    onClick={onOpenCustomCourse}
+                                    className="btn-tactile-dark w-full sm:w-auto px-4 py-2 rounded-xl text-[13px] font-medium shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                    <span>{language === "id" ? "+ Tambah matkul manual" : "+ Create custom course"}</span>
+                                </button>
+                                {onOpenImportData && (
+                                    <button
+                                        type="button"
+                                        onClick={onOpenImportData}
+                                        className="w-full sm:w-auto px-3 py-2 text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors cursor-pointer"
+                                    >
+                                        <span>{language === "id" ? "Salin tabel dari SIAKAD / BIMA" : "Paste table from SIAKAD / BIMA"}</span>
+                                    </button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="mt-4">
+                                <button
+                                    type="button"
+                                    onClick={onBrowseCatalog}
+                                    className="btn-tactile-light px-4 py-2 rounded-xl text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] dark:bg-[#202024] dark:border-[#383840] shadow-2xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <span>{language === "id" ? "Buka katalog mata kuliah →" : "Browse course catalog →"}</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

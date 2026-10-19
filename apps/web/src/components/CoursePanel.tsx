@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 import { getSubjectColor } from "@/lib/colors";
 import { toast } from "sonner";
 import { getTranslation, formatDay } from "@/lib/i18n";
-import { CustomCourseModal } from "@/components/CustomCourseModal";
 
 interface CoursePanelProps {
     plan: Plan;
@@ -47,13 +46,13 @@ export function CoursePanel({
         setSelectedClassForSubject,
         toggleFreezeSubject,
         setPreviewOverride,
+        setIsCustomCourseModalOpen,
         language
     } = useAppStore();
 
     const t = useMemo(() => getTranslation(language), [language]);
     const [searchQuery, setSearchQuery] = useState("");
     const [expandedSubjectId, setExpandedSubjectId] = useState<string | null>(null);
-    const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
 
     // Selected courses list
     const selectedSubjects = useMemo(() => {
@@ -318,7 +317,7 @@ export function CoursePanel({
 
                     {/* Quick Custom Course Trigger Row */}
                     <div
-                        onClick={() => setIsCustomModalOpen(true)}
+                        onClick={() => setIsCustomCourseModalOpen(true)}
                         className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline py-1 mb-1.5 px-0.5 flex items-center justify-between cursor-pointer select-none shrink-0"
                     >
                         <span>
@@ -341,7 +340,7 @@ export function CoursePanel({
                                 </p>
                                 <button
                                     type="button"
-                                    onClick={() => setIsCustomModalOpen(true)}
+                                    onClick={() => setIsCustomCourseModalOpen(true)}
                                     className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] underline decoration-dashed underline-offset-4"
                                 >
                                     {language === "id" ? "+ Buat matkul manual" : "+ Add as custom course"}
@@ -397,7 +396,7 @@ export function CoursePanel({
                                 <div className="pt-2 pb-1">
                                     <button
                                         type="button"
-                                        onClick={() => setIsCustomModalOpen(true)}
+                                        onClick={() => setIsCustomCourseModalOpen(true)}
                                         className="w-full py-2 px-3 rounded-xl border border-dashed border-[#e6e6e3] dark:border-[#2e2e34] hover:border-[#141413] dark:hover:border-[#f4f4f6] text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors flex items-center justify-center gap-1.5"
                                     >
                                         <span>{language === "id" ? "+ Tambah matkul manual" : "+ Add custom course"}</span>
@@ -408,11 +407,6 @@ export function CoursePanel({
                     </div>
                 </div>
             )}
-
-            <CustomCourseModal
-                isOpen={isCustomModalOpen}
-                onClose={() => setIsCustomModalOpen(false)}
-            />
         </div>
     );
 }

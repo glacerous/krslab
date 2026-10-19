@@ -25,6 +25,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         plans,
         setActivePlanId,
         createEmptyDatasource,
+        setIsCustomCourseModalOpen,
         language
     } = useAppStore();
 
@@ -149,9 +150,16 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
     };
 
     const handleStartEmpty = () => {
-        const defaultName = sourceName.trim() || (isId ? "Jadwal Semester" : "Semester Schedule");
-        const { datasourceId } = createEmptyDatasource(defaultName);
+        const activeDs = datasources.find(d => d.id === activeDatasourceId);
+        if (!sourceName.trim() && activeDs && activeDs.subjects.length === 0) {
+            setIsCustomCourseModalOpen(true);
+            toast.info(isId ? "Sudah berada di lembar jadwal kosong." : "Already on an empty schedule sheet.");
+            onClose();
+            return;
+        }
+        const { datasourceId } = createEmptyDatasource(sourceName.trim() || undefined);
         setActiveDatasourceId(datasourceId);
+        setIsCustomCourseModalOpen(true);
         toast.success(isId ? "Sumber jadwal kosong berhasil dibuat!" : "Created empty schedule source!");
         onClose();
     };

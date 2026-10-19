@@ -6,6 +6,7 @@ import { ScheduleGrid } from "@/components/ScheduleGrid";
 import { RulesLab } from "@/components/RulesLab";
 import { CoursePanel } from "@/components/CoursePanel";
 import { DataModal } from "@/components/DataModal";
+import { CustomCourseModal } from "@/components/CustomCourseModal";
 import { InteractiveTour } from "@/components/InteractiveTour";
 import { SAMPLE_BIMA_TEXT } from "@/lib/sample-data";
 import { checkClassConflict } from "@krs/engine";
@@ -73,7 +74,9 @@ function WorkspaceContent() {
         setMaxSks,
         hasCompletedWelcome,
         setHasCompletedWelcome,
-        createEmptyDatasource
+        createEmptyDatasource,
+        isCustomCourseModalOpen,
+        setIsCustomCourseModalOpen
     } = useAppStore();
 
     type ActiveOverlay = "none" | "bima-import" | "rules" | "tour";
@@ -498,6 +501,37 @@ function WorkspaceContent() {
             }
         }
     }, [activePlan]);
+
+    // Tactile Header Pill Pulses on Source or Plan switch (400ms)
+    const [isSourcePulsing, setIsSourcePulsing] = useState(false);
+    const [isPlanPulsing, setIsPlanPulsing] = useState(false);
+    const prevDatasourcePulseIdRef = useRef<string | null>(null);
+    const prevPlanPulseIdRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        if (!activeDatasource?.id) return;
+        if (prevDatasourcePulseIdRef.current && prevDatasourcePulseIdRef.current !== activeDatasource.id) {
+            setIsSourcePulsing(true);
+            const timer = setTimeout(() => setIsSourcePulsing(false), 400);
+            prevDatasourcePulseIdRef.current = activeDatasource.id;
+            return () => clearTimeout(timer);
+        }
+        prevDatasourcePulseIdRef.current = activeDatasource.id;
+    }, [activeDatasource?.id]);
+
+    useEffect(() => {
+        if (!activePlan?.id) return;
+        if (prevPlanPulseIdRef.current && prevPlanPulseIdRef.current !== activePlan.id) {
+            setIsPlanPulsing(true);
+            const timer = setTimeout(() => setIsPlanPulsing(false), 400);
+            prevPlanPulseIdRef.current = activePlan.id;
+            return () => clearTimeout(timer);
+        }
+        prevPlanPulseIdRef.current = activePlan.id;
+    }, [activePlan?.id]);
+
+    // Stable key for tactile workspace sheet swap transitions
+    const sheetTransitionKey = `${activeDatasource?.id || "ds"}-${activePlan?.id || "plan"}`;
 
     // Safety auto-assign: ensure selected courses in activePlan always have a valid class section assigned
     useEffect(() => {
@@ -991,7 +1025,10 @@ function WorkspaceContent() {
                             ref={sourceTriggerRef}
                             type="button"
                             onClick={handleToggleSourceMenu}
-                            className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-colors select-none"
+                            className={cn(
+                                "px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all duration-200 select-none",
+                                isSourcePulsing && "ring-2 ring-amber-400/80 scale-[1.03] bg-amber-50/70 dark:bg-amber-950/40"
+                            )}
                             title="Click to switch, edit, copy, or import schedule sources"
                         >
                             <span className="max-w-[150px] sm:max-w-[220px] truncate">{activeDatasource.name}</span>
@@ -1038,7 +1075,10 @@ function WorkspaceContent() {
                                     setTopBarPlanName(activePlan.name);
                                     setIsRenamingTopBar(true);
                                 }}
-                                className="px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-colors select-none group"
+                                className={cn(
+                                    "px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all duration-200 select-none group",
+                                    isPlanPulsing && "ring-2 ring-amber-400/80 scale-[1.03] bg-amber-50/70 dark:bg-amber-950/40"
+                                )}
                                 title="Click to switch plans, duplicate, or manage (double click to rename)"
                             >
                                 <span className="nexvyn-dash font-semibold max-w-[130px] sm:max-w-[180px] truncate">
@@ -1227,18 +1267,20 @@ function WorkspaceContent() {
                 {/* Left Panel: Desktop 320px Clean Split (Untouched on lg screens) */}
                 <div
                     id="tour-course-panel"
-                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418]"
+                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418] overflow-hidden"
                 >
-                    <CoursePanel
-                        plan={activePlan}
-                        datasource={activeDatasource}
-                        activeTab={activeTab}
-                        onTabChange={setActiveTab}
-                        conflicts={conflicts}
-                        effectiveMapping={effectiveMapping}
-                        onHoverSubject={setHoveredSubjectId}
-                        onHoverClass={setHoveredClassId}
-                    />
+                    <div key={sheetTransitionKey} className="w-full h-full flex flex-col animate-sheet-swap">
+                        <CoursePanel
+                            plan={activePlan}
+                            datasource={activeDatasource}
+                            activeTab={activeTab}
+                            onTabChange={setActiveTab}
+                            conflicts={conflicts}
+                            effectiveMapping={effectiveMapping}
+                            onHoverSubject={setHoveredSubjectId}
+                            onHoverClass={setHoveredClassId}
+                        />
+                    </div>
                 </div>
 
                 {/* Center / Right Panel: Live Interactive ScheduleGrid (100% width on mobile/tablet) */}
@@ -1246,30 +1288,40 @@ function WorkspaceContent() {
                     id="krs-grid-capture"
                     className="flex-1 h-full overflow-hidden bg-[#f9f9f8] dark:bg-[#0c0c0e] bg-dot-matrix relative flex flex-col"
                 >
-                    <ScheduleGrid
-                        selectedClasses={selectedClasses}
-                        conflicts={conflicts}
-                        frozenSubjectIds={activePlan?.frozenSubjectIds ?? []}
-                        onToggleFreeze={(subId) => toggleFreezeSubject(activePlan.id, subId)}
-                        onBlockClick={(subId) => {
-                            setActiveTab("selected");
-                        }}
-                        onSelectClass={(subId, classId) => {
-                            if (previewMapping) {
-                                setPreviewMapping(prev => ({ ...(prev ?? {}), [subId]: classId }));
-                            } else {
-                                setSelectedClassForSubject(activePlan.id, subId, classId);
-                            }
-                            const sub = activeDatasource.subjects.find(s => s.subjectId === subId);
-                            const cls = sub?.classes.find(c => c.classId === classId);
-                            toast.success(`Switched to Kelas ${cls?.className || classId}`, { id: "switch-section" });
-                        }}
-                        allSubjects={activeDatasource.subjects}
-                        hoveredSubjectId={hoveredSubjectId}
-                        hoveredClassId={hoveredClassId}
-                        focusedSubjectId={gridFocusedSubjectId}
-                        onFocusSubject={setGridFocusedSubjectId}
-                    />
+                    <div key={sheetTransitionKey} className="w-full h-full flex flex-col animate-sheet-swap">
+                        <ScheduleGrid
+                            selectedClasses={selectedClasses}
+                            conflicts={conflicts}
+                            frozenSubjectIds={activePlan?.frozenSubjectIds ?? []}
+                            onToggleFreeze={(subId) => toggleFreezeSubject(activePlan.id, subId)}
+                            onBlockClick={(subId) => {
+                                setActiveTab("selected");
+                            }}
+                            onSelectClass={(subId, classId) => {
+                                if (previewMapping) {
+                                    setPreviewMapping(prev => ({ ...(prev ?? {}), [subId]: classId }));
+                                } else {
+                                    setSelectedClassForSubject(activePlan.id, subId, classId);
+                                }
+                                const sub = activeDatasource.subjects.find(s => s.subjectId === subId);
+                                const cls = sub?.classes.find(c => c.classId === classId);
+                                toast.success(`Switched to Kelas ${cls?.className || classId}`, { id: "switch-section" });
+                            }}
+                            allSubjects={activeDatasource.subjects}
+                            hoveredSubjectId={hoveredSubjectId}
+                            hoveredClassId={hoveredClassId}
+                            focusedSubjectId={gridFocusedSubjectId}
+                            onFocusSubject={setGridFocusedSubjectId}
+                            activeDatasourceName={activeDatasource.name}
+                            activePlanName={activePlan.name}
+                            onOpenCustomCourse={() => setIsCustomCourseModalOpen(true)}
+                            onOpenImportData={() => {
+                                setDataModalEditSourceId(activeDatasource.id);
+                                openOverlay("bima-import");
+                            }}
+                            onBrowseCatalog={() => setActiveTab("catalog")}
+                        />
+                    </div>
                 </div>
 
                 {/* Floating Preview Confirmation Bar */}
@@ -1357,7 +1409,7 @@ function WorkspaceContent() {
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-hidden">
+                            <div key={sheetTransitionKey} className="flex-1 overflow-hidden animate-sheet-swap">
                                 <CoursePanel
                                     plan={activePlan}
                                     datasource={activeDatasource}
@@ -1398,6 +1450,12 @@ function WorkspaceContent() {
                     }
                 }}
                 editSourceId={dataModalEditSourceId}
+            />
+
+            {/* Manual Custom Course Modal */}
+            <CustomCourseModal
+                isOpen={isCustomCourseModalOpen}
+                onClose={() => setIsCustomCourseModalOpen(false)}
             />
 
             {/* Interactive 6-Step Spotlight Tour */}
@@ -1547,10 +1605,16 @@ function WorkspaceContent() {
                                 type="button"
                                 onClick={() => {
                                     setIsSourceMenuOpen(false);
-                                    const defaultName = language === "id" ? "Jadwal Semester" : "Semester Schedule";
-                                    const { datasourceId } = createEmptyDatasource(defaultName);
+                                    if (activeDatasource && activeDatasource.subjects.length === 0) {
+                                        setActiveTab("catalog");
+                                        setIsCustomCourseModalOpen(true);
+                                        toast.info(language === "id" ? "Sudah berada di lembar jadwal kosong." : "Already on an empty schedule sheet.");
+                                        return;
+                                    }
+                                    const { datasourceId } = createEmptyDatasource();
                                     setActiveDatasourceId(datasourceId);
                                     setActiveTab("catalog");
+                                    setIsCustomCourseModalOpen(true);
                                     toast.success(language === "id" ? "Sumber jadwal kosong berhasil dibuat!" : "Created empty schedule source!");
                                 }}
                                 className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors select-none"

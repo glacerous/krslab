@@ -65,11 +65,13 @@ interface AppStore {
     activeDatasourceId: string | null;
     isGenerating: boolean;
     isDataModalOpen: boolean;
+    isCustomCourseModalOpen: boolean;
     _hasHydrated: boolean;
 
     // Actions
     setHasHydrated: (state: boolean) => void;
     setIsDataModalOpen: (open: boolean) => void;
+    setIsCustomCourseModalOpen: (open: boolean) => void;
 
     // Datasource Actions
     addDatasource: (name: string, subjects: Subject[]) => string;
@@ -149,6 +151,7 @@ export const useAppStore = create<AppStore>()(
             activeDatasourceId: null,
             isGenerating: false,
             isDataModalOpen: false,
+            isCustomCourseModalOpen: false,
             _hasHydrated: false,
 
             // Preferences defaults
@@ -162,6 +165,7 @@ export const useAppStore = create<AppStore>()(
 
             setHasHydrated: (state) => set({ _hasHydrated: state }),
             setIsDataModalOpen: (isDataModalOpen) => set({ isDataModalOpen }),
+            setIsCustomCourseModalOpen: (isCustomCourseModalOpen) => set({ isCustomCourseModalOpen }),
 
             addDatasource: (name, subjects) => {
                 const id = crypto.randomUUID();
@@ -209,11 +213,35 @@ export const useAppStore = create<AppStore>()(
             },
 
             createEmptyDatasource: (name) => {
-                const defaultName = name?.trim() || `Semester Schedule`;
+                const isId = get().language === "id";
+                const prefix = isId ? "Jadwal Manual" : "Custom Schedule";
+
+                let finalName = name?.trim();
+                if (!finalName) {
+                    let maxNum = 0;
+                    for (const ds of get().datasources) {
+                        const match = ds.name.match(/^(?:Custom Schedule|Jadwal Manual|Semester Schedule|Jadwal Semester)\s*(\d*)$/i);
+                        if (match) {
+                            const num = match[1] ? parseInt(match[1], 10) : 1;
+                            if (num > maxNum) maxNum = num;
+                        }
+                    }
+                    finalName = `${prefix} ${maxNum + 1}`;
+                } else {
+                    const exists = get().datasources.some(d => d.name.toLowerCase() === finalName!.toLowerCase());
+                    if (exists) {
+                        let counter = 2;
+                        while (get().datasources.some(d => d.name.toLowerCase() === `${finalName} ${counter}`.toLowerCase())) {
+                            counter++;
+                        }
+                        finalName = `${finalName} ${counter}`;
+                    }
+                }
+
                 const dsId = crypto.randomUUID();
                 const newDs: Datasource = {
                     id: dsId,
-                    name: defaultName,
+                    name: finalName,
                     createdAt: new Date().toISOString(),
                     subjects: [],
                 };
@@ -235,6 +263,7 @@ export const useAppStore = create<AppStore>()(
                     plans: [newPlan, ...state.plans],
                     activeDatasourceId: dsId,
                     activePlanId: planId,
+                    isCustomCourseModalOpen: true,
                 }));
                 return { datasourceId: dsId, planId };
             },
