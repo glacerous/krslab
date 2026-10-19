@@ -83,33 +83,33 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
 
                     {/* Panel */}
                     <div
-                        className="absolute top-0 right-0 h-full w-[410px] max-w-[90vw] bg-white border-l border-[#e6e6e3] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 z-[125]"
+                        className="absolute top-0 right-0 h-full w-[410px] max-w-[90vw] bg-white dark:bg-[#1c1c1f] border-l border-[#e6e6e3] dark:border-[#2e2e34] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 z-[125]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="p-5 px-6 border-b border-[#e6e6e3] flex items-center justify-between bg-[#fbfbfa] shrink-0">
+                        <div className="p-5 px-6 border-b border-[#e6e6e3] dark:border-[#2e2e34] flex items-center justify-between bg-[#fbfbfa] dark:bg-[#18181b] shrink-0">
                             <div>
-                                <h2 className="text-[16px] font-semibold text-[#141413] tracking-tight">
+                                <h2 className="text-[16px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight">
                                     Rules & Preferences
                                 </h2>
-                                <p className="text-[12px] text-[#6e6e77] mt-0.5">Configure solver schedule constraints</p>
+                                <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] mt-0.5">Configure solver schedule constraints</p>
                             </div>
                             <button
                                 onClick={onClose}
-                                className="p-1.5 hover:bg-neutral-100 rounded-lg transition-colors text-[#6e6e77] hover:text-[#141413]"
+                                className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/[0.08] rounded-lg transition-colors text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                             >
                                 <X className="w-4 h-4" />
                             </button>
                         </div>
 
                         {/* Rules List */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-white dark:bg-[#1c1c1f]">
                             {rules.length === 0 ? (
-                                <div className="py-8 px-4 flex flex-col items-center justify-center border border-dashed border-[#e6e6e3] rounded-2xl text-center bg-[#fafaf9]/70 space-y-2">
-                                    <p className="font-doodle text-[17px] font-bold text-[#6e6e77] leading-snug max-w-[240px]">
+                                <div className="py-8 px-4 flex flex-col items-center justify-center border border-dashed border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl text-center bg-[#fafaf9]/70 dark:bg-[#18181b]/70 space-y-2">
+                                    <p className="font-doodle text-[17px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] leading-snug max-w-[240px]">
                                         no rules yet — add one below to filter schedules
                                     </p>
-                                    <svg className="w-5 h-6 text-[#5b82a6] stroke-current fill-none stroke-[2] translate-y-1" viewBox="0 0 20 24">
+                                    <svg className="w-5 h-6 text-[#5b82a6] dark:text-[#7dd3fc] stroke-current fill-none stroke-[2] translate-y-1" viewBox="0 0 20 24">
                                         <path d="M10 2 L10 20" strokeLinecap="round" />
                                         <path d="M5 15 L10 20 L15 15" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
@@ -127,9 +127,9 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
                             )}
 
                             {/* Add Rules Section */}
-                            <div className="pt-4 border-t border-[#e6e6e3] space-y-2.5">
+                            <div className="pt-4 border-t border-[#e6e6e3] dark:border-[#2e2e34] space-y-2.5">
                                 <div className="flex items-center justify-between">
-                                    <span className="font-doodle text-[19px] font-bold text-[#5b82a6] select-none">
+                                    <span className="font-doodle text-[19px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
                                         add a rule
                                     </span>
                                     <span className="text-[11px] font-mono text-[#a1a1aa]">
@@ -146,7 +146,7 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
                         </div>
 
                         {/* Footer */}
-                        <div className="p-4 px-6 border-t border-[#e6e6e3] bg-[#fbfbfa] shrink-0">
+                        <div className="p-4 px-6 border-t border-[#e6e6e3] dark:border-[#2e2e34] bg-[#fbfbfa] dark:bg-[#18181b] shrink-0">
                             <button
                                 onClick={onGenerate}
                                 className="w-full btn-tactile-dark py-2.5 rounded-xl font-medium text-[13px] text-white flex items-center justify-center gap-2 select-none"
@@ -167,12 +167,12 @@ function AddRuleButton({ num, label, onClick }: { num: string; label: string; on
     return (
         <button
             onClick={onClick}
-            className="tactile-btn flex items-start gap-2 p-2.5 rounded-xl border border-[#e2e2de] bg-white hover:bg-neutral-50 hover:border-[#141413]/30 transition-all text-left shadow-2xs group"
+            className="tactile-btn flex items-start gap-2 p-2.5 rounded-xl border border-[#e2e2de] dark:border-[#2e2e34] bg-white dark:bg-[#18181b] hover:bg-neutral-50 dark:hover:bg-[#202024] hover:border-[#141413]/30 dark:hover:border-white/30 transition-all text-left shadow-2xs group"
         >
-            <span className="font-doodle text-[17px] font-bold text-[#5b82a6] shrink-0 leading-none pt-0.5 select-none">
+            <span className="font-doodle text-[17px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] shrink-0 leading-none pt-0.5 select-none">
                 {num}
             </span>
-            <span className="text-[12px] font-medium text-[#141413] leading-snug line-clamp-2">
+            <span className="text-[12px] font-medium text-[#141413] dark:text-[#f4f4f6] leading-snug line-clamp-2">
                 {label}
             </span>
         </button>
@@ -199,14 +199,14 @@ function RuleCard({ rule, onToggle, onRemove, onUpdate }: {
     return (
         <div className={cn(
             "rounded-xl border transition-all",
-            rule.enabled ? "bg-white border-[#e6e6e3] shadow-sm" : "bg-neutral-50/60 border-[#e6e6e3] opacity-60"
+            rule.enabled ? "bg-white dark:bg-[#18181b] border-[#e6e6e3] dark:border-[#2e2e34] shadow-sm" : "bg-neutral-50/60 dark:bg-[#141416] border-[#e6e6e3] dark:border-[#2e2e34] opacity-60"
         )}>
             {/* Card Header */}
-            <div className="p-4 flex items-center justify-between border-b border-[#e6e6e3]/60">
+            <div className="p-4 flex items-center justify-between border-b border-[#e6e6e3]/60 dark:border-[#2e2e34]">
                 <div className="flex items-center gap-3">
                     <div className={cn(
                         "p-2 rounded-lg",
-                        rule.enabled ? "bg-neutral-100 text-[#141413]" : "bg-neutral-200/50 text-[#a1a1aa]"
+                        rule.enabled ? "bg-neutral-100 dark:bg-white/[0.08] text-[#141413] dark:text-[#f4f4f6]" : "bg-neutral-200/50 dark:bg-white/[0.04] text-[#a1a1aa] dark:text-[#71717a]"
                     )}>
                         {rule.type === "noDay" && <CalendarX className="w-3.5 h-3.5" />}
                         {rule.type === "timeWindow" && <Clock className="w-3.5 h-3.5" />}
@@ -214,7 +214,7 @@ function RuleCard({ rule, onToggle, onRemove, onUpdate }: {
                         {rule.type === "maxGap" && <Hourglass className="w-3.5 h-3.5" />}
                     </div>
                     <div>
-                        <h3 className="text-[13px] font-semibold text-[#141413]">{rule.label}</h3>
+                        <h3 className="text-[13px] font-semibold text-[#141413] dark:text-[#f4f4f6]">{rule.label}</h3>
                         {!isValid() && (
                             <span className="text-[11px] text-rose-500 font-medium flex items-center gap-1 mt-0.5">
                                 <AlertCircle className="w-3 h-3" /> Incomplete
@@ -226,7 +226,7 @@ function RuleCard({ rule, onToggle, onRemove, onUpdate }: {
                     <Switch checked={rule.enabled} onChange={onToggle} />
                     <button
                         onClick={onRemove}
-                        className="p-1.5 hover:bg-rose-50 hover:text-rose-600 rounded-md transition-colors text-neutral-400"
+                        className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors text-neutral-400 dark:text-[#71717a]"
                     >
                         <Trash2 className="w-3.5 h-3.5" />
                     </button>

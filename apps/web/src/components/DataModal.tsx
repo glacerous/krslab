@@ -240,24 +240,24 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
             {/* Modal Card */}
             <div
                 id="tour-data-modal"
-                className="relative w-full max-w-2xl bg-white border border-[#e6e6e3] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in zoom-in-95 duration-200"
+                className="relative w-full max-w-2xl bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header (No Database Icon, Clean Editorial) */}
-                <div className="p-5 px-6 border-b border-[#e6e6e3] flex items-center justify-between bg-[#fbfbfa]">
+                <div className="p-5 px-6 border-b border-[#e6e6e3] dark:border-[#2e2e34] flex items-center justify-between bg-[#fbfbfa] dark:bg-[#18181b]">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-neutral-100 border border-[#e6e6e3] flex items-center justify-center text-[#141413]">
+                        <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-[#27272a] border border-[#e6e6e3] dark:border-[#3f3f46] flex items-center justify-center text-[#141413] dark:text-[#f4f4f6]">
                             {isEditMode ? (
-                                <FileText className="w-4 h-4 text-[#5b82a6]" />
+                                <FileText className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc]" />
                             ) : (
-                                <Calendar className="w-4 h-4 text-[#5b82a6]" />
+                                <Calendar className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc]" />
                             )}
                         </div>
                         <div>
-                            <h2 className="text-[17px] font-semibold text-[#141413] tracking-tight">
+                            <h2 className="text-[17px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight">
                                 {isEditMode ? "Edit schedule source" : "Import BIMA schedule"}
                             </h2>
-                            <p className="text-[12.5px] text-[#6e6e77]">
+                            <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa]">
                                 {isEditMode
                                     ? "Rename this source or paste updated BIMA schedule text."
                                     : "Paste your Jadwal Dosen table from bima.upnyk.ac.id."}
@@ -267,7 +267,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
 
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-100 transition-colors"
+                        className="p-1.5 rounded-lg text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                         title="Close modal"
                     >
                         <X className="w-4 h-4" />
@@ -278,7 +278,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                 <div className="p-6 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
                     {/* 1. Source Name Input */}
                     <div className="space-y-1.5">
-                        <label className="text-[12.5px] font-medium text-[#141413]">
+                        <label className="text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6]">
                             Source name
                         </label>
                         <input
@@ -290,33 +290,33 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                     ? "Source name"
                                     : "e.g. Semester 4 Informatika (optional — auto-named if left blank)"
                             }
-                            className="w-full px-3 py-2 rounded-xl bg-[#fafaf9] border border-[#e2e2de] focus:border-[#141413] focus:bg-white outline-none text-[13px] text-[#141413] placeholder:text-[#a1a1aa] transition-colors"
+                            className="w-full px-3 py-2 rounded-xl bg-[#fafaf9] dark:bg-[#141416] border border-[#e2e2de] dark:border-[#2e2e34] focus:border-[#141413] dark:focus:border-[#f4f4f6] focus:bg-white dark:focus:bg-[#18181b] outline-none text-[13px] text-[#141413] dark:text-[#f4f4f6] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors"
                         />
                     </div>
 
                     {/* 2. Compact 3-Step Doodle Hint (No Nested Grey Boxes!) */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 py-1 select-none">
                         <div className="flex items-center gap-2">
-                            <span className="font-doodle text-[18px] font-bold text-[#5b82a6] leading-none shrink-0">
+                            <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] leading-none shrink-0">
                                 01
                             </span>
-                            <span className="text-[12px] text-[#6e6e77] leading-tight">
-                                Open BIMA → <strong className="text-[#141413] font-medium">Jadwal Dosen</strong>
+                            <span className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
+                                Open BIMA → <strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Jadwal Dosen</strong>
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="font-doodle text-[18px] font-bold text-[#5b82a6] leading-none shrink-0">
+                            <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] leading-none shrink-0">
                                 02
                             </span>
-                            <span className="text-[12px] text-[#6e6e77] leading-tight">
-                                Copy all table rows (<kbd className="font-mono text-[10px] bg-[#f3f3f0] border border-[#e2e2de] px-1 py-0.5 rounded">Ctrl+C</kbd>)
+                            <span className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
+                                Copy all table rows (<kbd className="font-mono text-[10px] bg-[#f3f3f0] dark:bg-[#27272a] border border-[#e2e2de] dark:border-[#3f3f46] text-[#141413] dark:text-[#f4f4f6] px-1 py-0.5 rounded">Ctrl+C</kbd>)
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="font-doodle text-[18px] font-bold text-[#5b82a6] leading-none shrink-0">
+                            <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] leading-none shrink-0">
                                 03
                             </span>
-                            <span className="text-[12px] text-[#6e6e77] leading-tight">
+                            <span className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
                                 Paste below
                             </span>
                         </div>
@@ -325,7 +325,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                     {/* 3. Raw BIMA Textarea + Live Feedback */}
                     <div id="tour-bima-paste-area" className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <span className="font-doodle text-[17px] font-bold text-[#5b82a6] select-none">
+                            <span className="font-doodle text-[17px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
                                 bima table data
                             </span>
 
@@ -334,7 +334,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                     <button
                                         type="button"
                                         onClick={handleCopyExistingData}
-                                        className="text-[12px] font-medium text-[#6e6e77] hover:text-[#141413] flex items-center gap-1 transition-colors"
+                                        className="text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] flex items-center gap-1 transition-colors"
                                         title="Copy existing courses to clipboard"
                                     >
                                         <Copy className="w-3.5 h-3.5" />
@@ -346,7 +346,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                     <button
                                         type="button"
                                         onClick={() => setRawText("")}
-                                        className="text-[12px] font-medium text-[#a1a1aa] hover:text-[#141413] transition-colors"
+                                        className="text-[12px] font-medium text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                     >
                                         Clear
                                     </button>
@@ -355,7 +355,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 <button
                                     type="button"
                                     onClick={handlePaste}
-                                    className="text-[12px] font-medium text-[#5b82a6] flex items-center gap-1 hover:underline"
+                                    className="text-[12px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] flex items-center gap-1 hover:underline"
                                 >
                                     <Clipboard className="w-3.5 h-3.5" />
                                     <span>Paste from clipboard</span>
@@ -365,10 +365,10 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
 
                         {/* Summary pill in Edit Mode when rawText is empty */}
                         {isEditMode && editSource && !rawText.trim() && (
-                            <div className="p-2.5 rounded-xl bg-neutral-50 border border-[#e6e6e3] text-[12px] text-[#6e6e77] flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#5b82a6] shrink-0" />
+                            <div className="p-2.5 rounded-xl bg-neutral-50 dark:bg-[#141416] border border-[#e6e6e3] dark:border-[#2e2e34] text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 rounded-full bg-[#5b82a6] dark:bg-[#7dd3fc] shrink-0" />
                                 <span>
-                                    Currently holds <strong className="text-[#141413]">{editSource.subjects.length} courses</strong> ({editSourceTotalClasses} classes) — paste new BIMA text below only if you want to replace the courses.
+                                    Currently holds <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} courses</strong> ({editSourceTotalClasses} classes) — paste new BIMA text below only if you want to replace the courses.
                                 </span>
                             </div>
                         )}
@@ -378,7 +378,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                             onChange={(e) => setRawText(e.target.value)}
                             placeholder="Paste copied table text here (Ctrl + V)...&#10;e.g. INFORMATIKA  123001  Pemrograman Web  3  IF-A  40  Senin 07:00-09:30  Lab. 1"
                             rows={rawText ? 5 : 4}
-                            className="w-full p-3 rounded-xl bg-[#fafaf9] border border-[#e2e2de] focus:border-[#141413] focus:bg-white outline-none font-mono text-[11.5px] text-[#141413] placeholder:text-[#a1a1aa] transition-colors leading-relaxed"
+                            className="w-full p-3 rounded-xl bg-[#fafaf9] dark:bg-[#141416] border border-[#e2e2de] dark:border-[#2e2e34] focus:border-[#141413] dark:focus:border-[#f4f4f6] focus:bg-white dark:focus:bg-[#18181b] outline-none font-mono text-[11.5px] text-[#141413] dark:text-[#f4f4f6] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors leading-relaxed"
                         />
 
                         {/* Live Parser Feedback */}
@@ -387,18 +387,18 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 className={cn(
                                     "px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 animate-in fade-in duration-150",
                                     parseResult.ok
-                                        ? "bg-emerald-50 text-emerald-800 border border-emerald-200/80"
-                                        : "bg-amber-50 text-amber-800 border border-amber-200/80"
+                                        ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/60"
+                                        : "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60"
                                 )}
                             >
                                 {parseResult.ok ? (
                                     <>
-                                        <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                                         <span>✓ Detected {parseResult.subjects.length} courses ({parseResult.classCount} classes)</span>
                                     </>
                                 ) : (
                                     <>
-                                        <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                        <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                                         <span>{parseResult.error}</span>
                                     </>
                                 )}
@@ -408,13 +408,13 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 px-6 border-t border-[#e6e6e3] bg-[#fbfbfa] flex items-center justify-between gap-4">
+                <div className="p-4 px-6 border-t border-[#e6e6e3] dark:border-[#2e2e34] bg-[#fbfbfa] dark:bg-[#18181b] flex items-center justify-between gap-4">
                     <div>
                         {isEditMode ? (
                             <button
                                 type="button"
                                 onClick={handleDeleteSource}
-                                className="text-[12.5px] font-medium text-rose-600 hover:text-rose-700 hover:underline flex items-center gap-1 transition-colors"
+                                className="text-[12.5px] font-medium text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:underline flex items-center gap-1 transition-colors"
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
                                 <span>Delete source</span>
@@ -423,7 +423,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                             <button
                                 type="button"
                                 onClick={handleLoadSample}
-                                className="text-[12.5px] font-medium text-[#5b82a6] hover:text-[#416282] hover:underline transition-colors"
+                                className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:text-[#416282] dark:hover:text-[#bae6fd] hover:underline transition-colors"
                             >
                                 Use sample Informatics data
                             </button>
@@ -434,7 +434,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="btn-tactile-light px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-[#6e6e77] hover:text-[#141413] transition-colors"
+                            className="btn-tactile-light px-3.5 py-1.5 rounded-lg text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                         >
                             Cancel
                         </button>

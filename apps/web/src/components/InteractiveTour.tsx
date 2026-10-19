@@ -720,18 +720,18 @@ export function InteractiveTour({
                     left: `${popoverCoords.left}px`,
                     zIndex: 10002
                 }}
-                className="w-[315px] max-w-[315px] bg-[#fcfcfa] rounded-2xl border border-[#d8d8d4] border-b-[3px] border-b-[#c2c2bc] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
+                className="w-[315px] max-w-[315px] bg-[#fcfcfa] dark:bg-[#1c1c1f] rounded-2xl border border-[#d8d8d4] dark:border-[#2e2e34] border-b-[3px] border-b-[#c2c2bc] dark:border-b-[#383840] shadow-[0_16px_40px_rgba(0,0,0,0.12)] p-5 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header row: doodle label + close */}
                 <div className="flex items-center justify-between">
-                    <span className="font-doodle text-[16.5px] font-bold text-[#5b82a6] select-none">
+                    <span className="font-doodle text-[16.5px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
                         {step.label}
                     </span>
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="text-[#a1a1aa] hover:text-[#141413] transition-colors p-0.5"
+                        className="text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors p-0.5"
                         title="Close tour"
                     >
                         <X className="w-3.5 h-3.5" />
@@ -739,12 +739,12 @@ export function InteractiveTour({
                 </div>
 
                 {/* Title */}
-                <h3 className="text-[15px] font-semibold text-[#141413] mt-1.5 leading-snug">
+                <h3 className="text-[15px] font-semibold text-[#141413] dark:text-[#f4f4f6] mt-1.5 leading-snug">
                     {step.title}
                 </h3>
 
                 {/* Body (1–2 concise sentences) */}
-                <p className="text-[13px] text-[#6e6e77] leading-relaxed mt-2">
+                <p className="text-[13px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-2">
                     {step.body}
                 </p>
 
@@ -754,12 +754,12 @@ export function InteractiveTour({
                         <button
                             type="button"
                             onClick={() => setShowImage(!showImage)}
-                            className="text-[12px] text-[#5b82a6] hover:text-[#141413] underline decoration-dashed underline-offset-4 cursor-pointer"
+                            className="text-[12px] text-[#5b82a6] dark:text-[#7dd3fc] hover:text-[#141413] dark:hover:text-[#f4f4f6] underline decoration-dashed underline-offset-4 cursor-pointer"
                         >
                             {showImage ? "hide example" : "view BIMA table example"}
                         </button>
                         {showImage && (
-                            <div className="mt-2.5 rounded-lg overflow-hidden border border-[#e6e6e3] relative w-full h-32">
+                            <div className="mt-2.5 rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] relative w-full h-32">
                                 <Image
                                     src="/bima_reference.png"
                                     alt="BIMA table reference"
@@ -773,11 +773,11 @@ export function InteractiveTour({
                 )}
 
                 {/* Footer: Single Clean Row */}
-                <div className="mt-4 pt-3 border-t border-[#ecece8] flex items-center justify-between">
+                <div className="mt-4 pt-3 border-t border-[#ecece8] dark:border-[#2e2e34] flex items-center justify-between">
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="text-[12px] text-[#6e6e77] hover:text-[#141413] transition-colors cursor-pointer"
+                        className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
                     >
                         Skip
                     </button>
@@ -787,7 +787,7 @@ export function InteractiveTour({
                             <button
                                 type="button"
                                 onClick={handleBack}
-                                className="text-[12.5px] text-[#6e6e77] hover:text-[#141413] px-2 py-1 transition-colors cursor-pointer"
+                                className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] px-2 py-1 transition-colors cursor-pointer"
                             >
                                 Back
                             </button>

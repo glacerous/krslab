@@ -1134,11 +1134,11 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 4. MAIN WORKSPACE STAGE: (Left Panel + Center Grid)       */}
             {/* ========================================================= */}
-            <div className="flex-1 flex overflow-hidden relative z-10 bg-[#f9f9f8] bg-dot-matrix">
+            <div className="flex-1 flex overflow-hidden relative z-10 bg-[#f9f9f8] dark:bg-[#121214] bg-dot-matrix">
                 {/* Left Panel: Desktop 320px Clean Split (Untouched on lg screens) */}
                 <div
                     id="tour-course-panel"
-                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] bg-white/95"
+                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] dark:border-[#27272a] bg-white/95 dark:bg-[#161618]/95"
                 >
                     <CoursePanel
                         plan={activePlan}
@@ -1155,7 +1155,7 @@ function WorkspaceContent() {
                 {/* Center / Right Panel: Live Interactive ScheduleGrid (100% width on mobile/tablet) */}
                 <div
                     id="krs-grid-capture"
-                    className="flex-1 h-full overflow-hidden bg-[#f9f9f8] bg-dot-matrix relative flex flex-col"
+                    className="flex-1 h-full overflow-hidden bg-[#f9f9f8] dark:bg-[#121214] bg-dot-matrix relative flex flex-col"
                 >
                     <ScheduleGrid
                         selectedClasses={selectedClasses}
@@ -1185,8 +1185,8 @@ function WorkspaceContent() {
 
                 {/* Floating Preview Confirmation Bar */}
                 {previewMapping !== null && (
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 dark:bg-[#1a1a18]/95 backdrop-blur-md border border-[#d8d8d4] dark:border-[#2e2e2b] shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl px-4 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
-                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] pr-1 select-none">
+                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 dark:bg-[#1c1c1f]/95 backdrop-blur-md border border-[#d8d8d4] dark:border-[#2e2e34] shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl px-4 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
+                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] pr-1 select-none">
                             {t.previewingSchedule}
                         </span>
 
@@ -1205,18 +1205,18 @@ function WorkspaceContent() {
                         <button
                             onClick={handleGenerateOrShuffle}
                             disabled={isGenerating}
-                            className="btn-tactile-light px-3.5 py-1.5 rounded-xl text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all select-none shadow-2xs cursor-pointer"
+                            className="btn-tactile-light px-3.5 py-1.5 rounded-xl text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] dark:bg-[#27272a] dark:border-[#383840] flex items-center gap-1.5 transition-all select-none shadow-2xs cursor-pointer"
                             title="Shuffle candidate (Space)"
                         >
-                            <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]", isGenerating && "animate-spin")} />
+                            <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc]", isGenerating && "animate-spin")} />
                             <span>{t.shuffle}</span>
-                            <span className="text-[10px] font-mono text-[#6e6e77] dark:text-[#a1a1aa] bg-neutral-200/60 dark:bg-[#2e2e2b] px-1.5 py-0.2 rounded ml-0.5">Space</span>
+                            <span className="text-[10px] font-mono text-[#6e6e77] dark:text-[#a1a1aa] bg-neutral-200/60 dark:bg-[#383840] px-1.5 py-0.2 rounded ml-0.5">Space</span>
                         </button>
 
                         {/* [ ✕ Cancel Esc ] */}
                         <button
                             onClick={handleCancelPreview}
-                            className="px-3 py-1.5 rounded-xl text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] transition-colors flex items-center gap-1 select-none cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-1 select-none cursor-pointer"
                             title="Discard preview (Esc)"
                         >
                             <X className="w-3.5 h-3.5" />
@@ -1230,13 +1230,13 @@ function WorkspaceContent() {
                 <div className="lg:hidden fixed bottom-5 left-5 z-40">
                     <button
                         onClick={() => setIsMobileCoursesOpen(true)}
-                        className="tactile-btn px-4 py-2.5 rounded-full bg-[#141413] text-white text-[13px] font-medium shadow-xl flex items-center gap-2 hover:bg-[#282826] active:scale-95 transition-all border border-neutral-700 select-none"
+                        className="tactile-btn px-4 py-2.5 rounded-full bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] text-[13px] font-medium shadow-xl flex items-center gap-2 hover:bg-[#282826] active:scale-95 transition-all border border-neutral-700 dark:border-neutral-300 select-none"
                         title="Open Course Catalog & Selected Sections"
                     >
                         <div className="w-2 h-2 rounded-full bg-emerald-400" />
                         <span>Courses ({activePlan.selectedSubjectIds.length})</span>
                         <span className="text-[#a1a1aa]">·</span>
-                        <span className="text-amber-300 font-semibold">+ Add</span>
+                        <span className="text-amber-300 dark:text-amber-600 font-semibold">+ Add</span>
                     </button>
                 </div>
 
@@ -1250,18 +1250,18 @@ function WorkspaceContent() {
                         />
 
                         {/* Slide-over Panel */}
-                        <div className="relative w-full max-w-[340px] sm:max-w-[380px] h-full bg-white shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
+                        <div className="relative w-full max-w-[340px] sm:max-w-[380px] h-full bg-white dark:bg-[#161618] border-r border-[#e6e6e3] dark:border-[#27272a] shadow-2xl flex flex-col z-10 animate-in slide-in-from-left duration-200">
                             {/* Drawer Top Header with Close Button */}
-                            <div className="h-12 px-4 border-b border-[#e6e6e3] flex items-center justify-between bg-neutral-50/80 shrink-0">
+                            <div className="h-12 px-4 border-b border-[#e6e6e3] dark:border-[#27272a] flex items-center justify-between bg-neutral-50/80 dark:bg-[#1c1c1f] shrink-0">
                                 <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-[13.5px] text-[#141413]">Courses</span>
-                                    <span className="text-[11px] font-mono text-[#6e6e77] bg-neutral-200/60 px-1.5 py-0.2 rounded">
+                                    <span className="font-semibold text-[13.5px] text-[#141413] dark:text-[#f4f4f6]">Courses</span>
+                                    <span className="text-[11px] font-mono text-[#6e6e77] dark:text-[#a1a1aa] bg-neutral-200/60 dark:bg-white/[0.08] px-1.5 py-0.2 rounded">
                                         {activePlan.selectedSubjectIds.length} selected
                                     </span>
                                 </div>
                                 <button
                                     onClick={() => setIsMobileCoursesOpen(false)}
-                                    className="p-1.5 rounded-lg hover:bg-neutral-200/60 text-[#6e6e77] hover:text-[#141413] transition-colors"
+                                    className="p-1.5 rounded-lg hover:bg-neutral-200/60 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                     title="Close Drawer"
                                 >
                                     <X className="w-4 h-4" />
@@ -1345,10 +1345,10 @@ function WorkspaceContent() {
                             top: `${sourceMenuCoords.top}px`,
                             left: `${sourceMenuCoords.left}px`,
                         }}
-                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1a1a18] border border-[#e2e2de] dark:border-[#2e2e2b] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] select-none">
+                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
                             {t.scheduleSources}
                         </div>
 
@@ -1363,17 +1363,17 @@ function WorkspaceContent() {
                                         onClick={() => handleSwitchDatasource(ds.id)}
                                         className={cn(
                                             "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
-                                            isActive ? "bg-neutral-100/80 dark:bg-[#20201e] font-medium" : "hover:bg-neutral-50 dark:hover:bg-[#20201e]/60"
+                                            isActive ? "bg-neutral-100/80 dark:bg-white/[0.08] font-medium" : "hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
                                         )}
                                     >
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className="text-[13px] text-[#141413] dark:text-[#f4f4f0] truncate font-medium">
+                                                    <span className="text-[13px] text-[#141413] dark:text-[#f4f4f6] truncate font-medium">
                                                         {ds.name}
                                                     </span>
                                                     {isActive && (
-                                                        <Check className="w-3.5 h-3.5 text-[#141413] dark:text-[#f4f4f0] shrink-0" />
+                                                        <Check className="w-3.5 h-3.5 text-[#141413] dark:text-[#f4f4f6] shrink-0" />
                                                     )}
                                                 </div>
                                                 <div className="text-[11px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
@@ -1396,7 +1396,7 @@ function WorkspaceContent() {
                                                     setDataModalEditSourceId(ds.id);
                                                     openOverlay("bima-import");
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Edit source or rename"
                                             >
                                                 <Pencil className="w-3.5 h-3.5" />
@@ -1409,7 +1409,7 @@ function WorkspaceContent() {
                                                     e.stopPropagation();
                                                     handleDuplicateDatasource(ds.id);
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Duplicate source"
                                             >
                                                 <Copy className="w-3.5 h-3.5" />
@@ -1422,7 +1422,7 @@ function WorkspaceContent() {
                                                     e.stopPropagation();
                                                     handleDeleteDatasource(ds);
                                                 }}
-                                                className="p-1 rounded hover:bg-rose-100 text-[#a1a1aa] hover:text-rose-600 transition-colors"
+                                                className="p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950/40 text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                                                 title="Delete source"
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -1434,7 +1434,7 @@ function WorkspaceContent() {
                         </div>
 
                         {/* Popover Footer Actions */}
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e2b] mt-1 pt-1.5 space-y-0.5">
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] mt-1 pt-1.5 space-y-0.5">
                             <button
                                 type="button"
                                 onClick={() => {
@@ -1442,9 +1442,9 @@ function WorkspaceContent() {
                                     setDataModalEditSourceId(null);
                                     openOverlay("bima-import");
                                 }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors select-none"
                             >
-                                <Plus className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]" />
+                                <Plus className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc]" />
                                 <span>+ {t.importNewBima}</span>
                             </button>
 
@@ -1454,7 +1454,7 @@ function WorkspaceContent() {
                                     setIsSourceMenuOpen(false);
                                     handleLoadSample();
                                 }}
-                                className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-50 dark:hover:bg-[#20201e]/60 flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1 rounded-lg text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-50 dark:hover:bg-white/[0.04] flex items-center gap-2 transition-colors select-none"
                             >
                                 <span>{t.loadSample}</span>
                             </button>
@@ -1490,10 +1490,10 @@ function WorkspaceContent() {
                             top: `${planMenuCoords.top}px`,
                             left: `${planMenuCoords.left}px`,
                         }}
-                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1a1a18] border border-[#e2e2de] dark:border-[#2e2e2b] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] select-none flex items-center justify-between">
+                        <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none flex items-center justify-between">
                             <span>{t.schedulePlans}</span>
                             <span className="text-[11px] font-sans font-normal text-[#a1a1aa]">
                                 {sourcePlans.length} {sourcePlans.length === 1 ? "plan" : "plans"}
@@ -1522,7 +1522,7 @@ function WorkspaceContent() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setConfirmDeletePlanId(null)}
-                                                    className="text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] px-2 py-0.5 rounded transition-colors"
+                                                    className="text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] px-2 py-0.5 rounded transition-colors"
                                                 >
                                                     {t.cancel}
                                                 </button>
@@ -1545,7 +1545,7 @@ function WorkspaceContent() {
                                     return (
                                         <div
                                             key={p.id}
-                                            className="p-1.5 rounded-lg bg-neutral-100/90 dark:bg-[#20201e] border border-[#d8d8d4] dark:border-[#2e2e2b] flex items-center gap-1.5"
+                                            className="p-1.5 rounded-lg bg-neutral-100/90 dark:bg-[#202024] border border-[#d8d8d4] dark:border-[#2e2e34] flex items-center gap-1.5"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             <input
@@ -1560,20 +1560,20 @@ function WorkspaceContent() {
                                                         setEditingPlanIdInMenu(null);
                                                     }
                                                 }}
-                                                className="flex-1 min-w-0 px-2 py-1 text-[13px] font-medium bg-white dark:bg-[#1a1a18] border border-[#d8d8d4] dark:border-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] rounded-md outline-none focus:border-[#141413] dark:focus:border-[#f4f4f0]"
+                                                className="flex-1 min-w-0 px-2 py-1 text-[13px] font-medium bg-white dark:bg-[#141416] border border-[#d8d8d4] dark:border-[#2e2e34] text-[#141413] dark:text-[#f4f4f6] rounded-md outline-none focus:border-[#141413] dark:focus:border-[#f4f4f6]"
                                                 autoFocus
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => handleSaveMenuRename(p.id)}
-                                                className="px-2 py-1 text-[11.5px] font-medium bg-[#141413] dark:bg-[#f4f4f0] text-white dark:text-[#141413] rounded-md hover:bg-neutral-800 transition-colors"
+                                                className="px-2 py-1 text-[11.5px] font-medium bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] rounded-md hover:bg-neutral-800 transition-colors"
                                             >
                                                 {t.save}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setEditingPlanIdInMenu(null)}
-                                                className="px-1.5 py-1 text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
+                                                className="px-1.5 py-1 text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                             >
                                                 {t.cancel}
                                             </button>
@@ -1597,17 +1597,17 @@ function WorkspaceContent() {
                                         }}
                                         className={cn(
                                             "p-2 rounded-lg flex items-center justify-between gap-2 cursor-pointer transition-colors group select-none",
-                                            isActive ? "bg-neutral-100/80 dark:bg-[#20201e] font-medium" : "hover:bg-neutral-50 dark:hover:bg-[#20201e]/60"
+                                            isActive ? "bg-neutral-100/80 dark:bg-white/[0.08] font-medium" : "hover:bg-neutral-50 dark:hover:bg-white/[0.04]"
                                         )}
                                     >
                                         <div className="flex items-center gap-2 min-w-0 flex-1">
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5">
-                                                    <span className={cn("text-[13px] text-[#141413] dark:text-[#f4f4f0] truncate", isActive && "font-semibold")}>
+                                                    <span className={cn("text-[13px] text-[#141413] dark:text-[#f4f4f6] truncate", isActive && "font-semibold")}>
                                                         {p.name}
                                                     </span>
                                                     {isActive && (
-                                                        <Check className="w-3.5 h-3.5 text-[#141413] dark:text-[#f4f4f0] shrink-0" />
+                                                        <Check className="w-3.5 h-3.5 text-[#141413] dark:text-[#f4f4f6] shrink-0" />
                                                     )}
                                                 </div>
                                                 <div className="text-[11px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
@@ -1630,7 +1630,7 @@ function WorkspaceContent() {
                                                     setMenuPlanNameInput(p.name);
                                                     setConfirmDeletePlanId(null);
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Rename plan"
                                             >
                                                 <Pencil className="w-3.5 h-3.5" />
@@ -1643,7 +1643,7 @@ function WorkspaceContent() {
                                                     e.stopPropagation();
                                                     handleDuplicatePlan(p.id);
                                                 }}
-                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-[#2e2e2b] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] transition-colors"
+                                                className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Duplicate plan"
                                             >
                                                 <Copy className="w-3.5 h-3.5" />
@@ -1658,7 +1658,7 @@ function WorkspaceContent() {
                                                         setConfirmDeletePlanId(p.id);
                                                         setEditingPlanIdInMenu(null);
                                                     }}
-                                                    className="p-1 rounded hover:bg-rose-100 text-[#a1a1aa] hover:text-rose-600 transition-colors"
+                                                    className="p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950/40 text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                                                     title="Delete plan"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
@@ -1671,16 +1671,16 @@ function WorkspaceContent() {
                         </div>
 
                         {/* Popover Footer Actions */}
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e2b] mt-1 pt-1.5 space-y-0.5">
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] mt-1 pt-1.5 space-y-0.5">
                             <button
                                 type="button"
                                 onClick={() => {
                                     handleDuplicatePlan(activePlan.id);
                                     setIsPlanMenuOpen(false);
                                 }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors select-none"
                             >
-                                <Copy className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]" />
+                                <Copy className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc]" />
                                 <span>{t.duplicateCurrentPlan}</span>
                             </button>
                             <button
@@ -1689,9 +1689,9 @@ function WorkspaceContent() {
                                     handleCreateNewPlan();
                                     setIsPlanMenuOpen(false);
                                 }}
-                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] flex items-center gap-2 transition-colors select-none"
+                                className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors select-none"
                             >
-                                <Plus className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7da2c4]" />
+                                <Plus className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc]" />
                                 <span>+ {t.createNewPlan}</span>
                             </button>
                         </div>
@@ -1716,16 +1716,16 @@ function WorkspaceContent() {
                             top: `${prefsCoords.top}px`,
                             left: `${prefsCoords.left}px`,
                         }}
-                        className="w-[280px] bg-white dark:bg-[#1a1a18] border border-[#e2e2de] dark:border-[#2e2e2b] rounded-xl shadow-2xl p-3 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left space-y-3"
+                        className="w-[280px] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-3 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left space-y-3"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Account / Cloud Sync */}
-                        <div className="flex items-start gap-2.5 p-2 rounded-lg bg-neutral-50 dark:bg-[#20201e] border border-neutral-200/60 dark:border-[#2e2e2b]">
-                            <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-[#2e2e2b] flex items-center justify-center shrink-0 mt-0.5 text-[#6e6e77] dark:text-[#a1a1aa]">
+                        <div className="flex items-start gap-2.5 p-2 rounded-lg bg-neutral-50 dark:bg-[#141416] border border-neutral-200/60 dark:border-[#2e2e34]">
+                            <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-[#27272a] flex items-center justify-center shrink-0 mt-0.5 text-[#6e6e77] dark:text-[#a1a1aa]">
                                 <User className="w-3.5 h-3.5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="text-[12px] font-semibold text-[#141413] dark:text-[#f4f4f0] truncate">
+                                <div className="text-[12px] font-semibold text-[#141413] dark:text-[#f4f4f6] truncate">
                                     {t.localWorkspace}
                                 </div>
                                 <div className="text-[10.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate mb-1">
@@ -1738,7 +1738,7 @@ function WorkspaceContent() {
                                             description: "All your data is safely saved in your browser's local storage."
                                         });
                                     }}
-                                    className="text-[11px] font-medium text-[#5b82a6] dark:text-[#7da2c4] hover:underline flex items-center gap-1 select-none"
+                                    className="text-[11px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline flex items-center gap-1 select-none"
                                 >
                                     <span>{t.signInToSync}</span>
                                     <span className="text-[9.5px] opacity-75">({t.comingSoonBadge})</span>
@@ -1751,15 +1751,15 @@ function WorkspaceContent() {
                             <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
                                 {t.languageLabel}
                             </div>
-                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#20201e] rounded-lg">
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#141416] rounded-lg">
                                 <button
                                     type="button"
                                     onClick={() => setLanguage("en")}
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all text-center",
                                         language === "en"
-                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
-                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                                     )}
                                 >
                                     English (EN)
@@ -1770,8 +1770,8 @@ function WorkspaceContent() {
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all text-center",
                                         language === "id"
-                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
-                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                                     )}
                                 >
                                     Indonesia (ID)
@@ -1784,15 +1784,15 @@ function WorkspaceContent() {
                             <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
                                 {t.appearanceLabel}
                             </div>
-                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#20201e] rounded-lg">
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#141416] rounded-lg">
                                 <button
                                     type="button"
                                     onClick={() => setTheme("light")}
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
                                         theme !== "dark"
-                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
-                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                                     )}
                                 >
                                     <Sun className="w-3 h-3" />
@@ -1804,8 +1804,8 @@ function WorkspaceContent() {
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
                                         theme === "dark"
-                                            ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs"
-                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                                     )}
                                 >
                                     <Moon className="w-3 h-3" />
@@ -1819,7 +1819,7 @@ function WorkspaceContent() {
                             <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
                                 {t.sksCapLabel}
                             </div>
-                            <div className="grid grid-cols-4 gap-1 p-0.5 bg-neutral-100 dark:bg-[#20201e] rounded-lg">
+                            <div className="grid grid-cols-4 gap-1 p-0.5 bg-neutral-100 dark:bg-[#141416] rounded-lg">
                                 {[20, 22, 24, 99].map((cap) => (
                                     <button
                                         key={cap}
@@ -1828,8 +1828,8 @@ function WorkspaceContent() {
                                         className={cn(
                                             "py-1 text-[12px] font-medium rounded-md transition-all text-center",
                                             maxSks === cap
-                                                ? "bg-white dark:bg-[#2e2e2b] text-[#141413] dark:text-[#f4f4f0] shadow-xs font-semibold"
-                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0]"
+                                                ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs font-semibold"
+                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                                         )}
                                     >
                                         {cap === 99 ? "∞" : cap}
@@ -1839,14 +1839,14 @@ function WorkspaceContent() {
                         </div>
 
                         {/* Footer Navigation Links */}
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e2b] pt-2 space-y-0.5">
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2 space-y-0.5">
                             <button
                                 type="button"
                                 onClick={() => {
                                     setIsPrefsOpen(false);
                                     setIsWelcomeManuallyOpen(true);
                                 }}
-                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] transition-colors"
+                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                             >
                                 {t.openWelcome}
                             </button>
@@ -1856,7 +1856,7 @@ function WorkspaceContent() {
                                     setIsPrefsOpen(false);
                                     openOverlay("tour");
                                 }}
-                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f0] hover:bg-neutral-100 dark:hover:bg-[#20201e] transition-colors"
+                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                             >
                                 {t.startTutorial}
                             </button>

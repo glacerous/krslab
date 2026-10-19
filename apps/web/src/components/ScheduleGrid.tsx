@@ -588,15 +588,15 @@ export function ScheduleGrid({
                     )}
                 >
                     {/* Header Days - Gaegu Doodle Font text-[20px] (Z-Index 20 so header popovers float above) */}
-                    <div className="flex bg-white dark:bg-[#1a1a18] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#2e2e2b] sticky top-0">
+                    <div className="flex bg-[#fafaf9] dark:bg-[#161618] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#27272a] sticky top-0">
                         {/* Top-left corner time label in Gaegu text-[17px] */}
                         <div
                             className={cn(
-                                "w-14 border-r border-[#e6e6e3] dark:border-[#2e2e2b] flex items-center justify-center p-2 bg-neutral-50/60 dark:bg-[#161615] sticky left-0 z-20",
+                                "w-14 border-r border-[#e6e6e3] dark:border-[#27272a] flex items-center justify-center p-2 bg-neutral-50/60 dark:bg-[#161618] sticky left-0 z-20",
                                 compact && "w-12"
                             )}
                         >
-                            <span className="font-doodle font-bold text-[17px] text-[#6e6e77] dark:text-[#a1a19a] leading-none">
+                            <span className="font-doodle font-bold text-[17px] text-[#6e6e77] dark:text-[#a1a1aa] leading-none">
                                 time
                             </span>
                         </div>
@@ -604,11 +604,11 @@ export function ScheduleGrid({
                             <div
                                 key={day}
                                 className={cn(
-                                    "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] dark:border-[#2e2e2b] bg-white dark:bg-[#1a1a18]",
+                                    "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] dark:border-[#27272a] bg-[#fafaf9] dark:bg-[#161618]",
                                     compact && "py-1 px-2"
                                 )}
                             >
-                                <span className="font-doodle font-bold text-[20px] text-[#141413] dark:text-[#f4f4f0] tracking-normal leading-tight">
+                                <span className="font-doodle font-bold text-[20px] text-[#141413] dark:text-[#f4f4f6] tracking-normal leading-tight">
                                     {compact ? day.substring(0, 3) : day}
                                 </span>
                             </div>
@@ -633,8 +633,8 @@ export function ScheduleGrid({
                                         className={cn(
                                             "w-full relative",
                                             slot.isMajor
-                                                ? "border-b border-[#e6e6e3]/90"
-                                                : "border-b border-[#e6e6e3]/40"
+                                                ? "border-b border-[#e6e6e3]/90 dark:border-[#27272a]"
+                                                : "border-b border-[#e6e6e3]/40 dark:border-[#202023]"
                                         )}
                                     />
                                 ))}
@@ -643,7 +643,7 @@ export function ScheduleGrid({
                             {/* Time Column - Space Mono Hourly Labels */}
                             <div
                                 className={cn(
-                                    "w-14 border-r border-[#e6e6e3] dark:border-[#2e2e2b] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 dark:bg-[#161615]/95 backdrop-blur-md",
+                                    "w-14 border-r border-[#e6e6e3] dark:border-[#27272a] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 dark:bg-[#161618]/95 backdrop-blur-md",
                                     compact && "w-12"
                                 )}
                                 style={{ paddingTop: `${TOP_OFFSET}px` }}
@@ -655,7 +655,7 @@ export function ScheduleGrid({
                                         className="pr-2.5 relative flex items-start justify-end"
                                     >
                                         {slot.isMajor && (
-                                            <span className="font-mono text-[11px] font-medium text-[#6e6e77] dark:text-[#a1a19a] tabular-nums -mt-2">
+                                            <span className="font-mono text-[11px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] tabular-nums -mt-2">
                                                 {slot.h.toString().padStart(2, "0")}:00
                                             </span>
                                         )}
@@ -668,7 +668,7 @@ export function ScheduleGrid({
                                 {DAYS.map((day) => (
                                     <div
                                         key={day}
-                                        className="flex-1 border-r last:border-r-0 border-[#e6e6e3]/50 bg-transparent"
+                                        className="flex-1 border-r last:border-r-0 border-[#e6e6e3]/50 dark:border-[#27272a]/60 bg-transparent"
                                     />
                                 ))}
                             </div>
@@ -719,9 +719,11 @@ export function ScheduleGrid({
                                                                         "absolute left-[4px] right-[4px] rounded-xl border-[1.5px] border-dashed transition-all duration-300 overflow-hidden flex flex-col justify-between pointer-events-auto cursor-pointer z-40 select-none animate-in fade-in zoom-in-95 duration-200",
                                                                         isGhostCompact ? "px-2 py-1.5" : "p-2.5",
                                                                         conflictInfo.hasConflict
-                                                                            ? "border-rose-400 bg-rose-50/90 text-rose-800 shadow-sm"
-                                                                            : "border-amber-500 bg-amber-50/90 text-amber-900 shadow-sm",
-                                                                        isMagneticHovered && "scale-[1.02] ring-2 ring-amber-500 shadow-lg z-50"
+                                                                            ? "border-rose-400 dark:border-rose-500/80 bg-rose-50/90 dark:bg-rose-500/[0.12] text-rose-800 dark:text-rose-200 shadow-sm"
+                                                                            : !currentActiveClassId
+                                                                                ? "border-[#5b82a6]/70 dark:border-sky-400/70 bg-[#f0f6fc]/85 dark:bg-sky-500/[0.12] hover:bg-[#e4effa] dark:hover:bg-sky-500/[0.20] text-[#141413] dark:text-[#f4f4f6] shadow-sm"
+                                                                                : "border-amber-500 dark:border-amber-400/80 bg-amber-50/90 dark:bg-amber-500/[0.12] hover:bg-amber-100/90 dark:hover:bg-amber-500/[0.20] text-[#141413] dark:text-[#f4f4f6] shadow-sm",
+                                                                        isMagneticHovered && "scale-[1.02] ring-2 ring-amber-500 dark:ring-amber-400 shadow-lg z-50"
                                                                     )}
                                                                     style={{
                                                                         top: `${pos.top + 2}px`,
@@ -736,16 +738,16 @@ export function ScheduleGrid({
                                                                     {isGhostCompact ? (
                                                                         <div className="flex flex-col h-full justify-between">
                                                                             <div className="flex items-center justify-between gap-1 text-[11px] leading-tight">
-                                                                                <span className="font-semibold text-[#141413] truncate">Kelas {sec.className}</span>
-                                                                                <span className="font-mono text-[9.5px] text-[#6e6e77] tabular-nums shrink-0">{m.start}–{m.end}</span>
+                                                                                <span className="font-semibold text-[#141413] dark:text-[#f4f4f6] truncate">Kelas {sec.className}</span>
+                                                                                <span className="font-mono text-[9.5px] text-[#6e6e77] dark:text-[#cbd5e1] tabular-nums shrink-0">{m.start}–{m.end}</span>
                                                                             </div>
                                                                             <div className="truncate">
                                                                                 {conflictInfo.hasConflict ? (
-                                                                                    <span className="text-[10px] font-medium text-rose-600 flex items-center gap-1">
+                                                                                    <span className="text-[10px] font-medium text-rose-600 dark:text-rose-400 flex items-center gap-1">
                                                                                         <AlertTriangle className="w-2.5 h-2.5 shrink-0" /> Clashes
                                                                                     </span>
                                                                                 ) : (
-                                                                                    <span className="font-doodle font-bold text-[13px] text-[#5b82a6] select-none">
+                                                                                    <span className="font-doodle font-bold text-[13px] text-[#5b82a6] dark:text-[#7dd3fc] select-none">
                                                                                         ← drop here
                                                                                     </span>
                                                                                 )}
@@ -754,22 +756,22 @@ export function ScheduleGrid({
                                                                     ) : (
                                                                         <>
                                                                             <div>
-                                                                                <div className="font-semibold text-[12px] text-[#141413] leading-tight">
+                                                                                <div className="font-semibold text-[12px] text-[#141413] dark:text-[#f4f4f6] leading-tight">
                                                                                     Kelas {sec.className}
                                                                                 </div>
-                                                                                <div className="text-[11px] text-[#6e6e77] mt-0.5 font-medium">
+                                                                                <div className="text-[11px] text-[#6e6e77] dark:text-[#cbd5e1] mt-0.5 font-medium">
                                                                                     <span className="font-mono">{m.start}–{m.end}</span>
-                                                                                    {m.room && <span> · {m.room}</span>}
+                                                                                    {m.room && <span className="text-[#4a4a52] dark:text-[#cbd5e1]"> · {m.room}</span>}
                                                                                 </div>
                                                                             </div>
 
                                                                             <div className="mt-auto pt-1">
                                                                                 {conflictInfo.hasConflict ? (
-                                                                                    <span className="text-[11px] font-medium text-rose-600 flex items-center gap-1">
+                                                                                    <span className="text-[11px] font-medium text-rose-600 dark:text-rose-400 flex items-center gap-1">
                                                                                         <AlertTriangle className="w-3 h-3" /> clashes with {conflictInfo.clashingName || "class"}
                                                                                     </span>
                                                                                 ) : (
-                                                                                    <span className="font-doodle font-bold text-[15px] text-[#5b82a6] select-none">
+                                                                                    <span className="font-doodle font-bold text-[15px] text-[#5b82a6] dark:text-[#7dd3fc] select-none">
                                                                                         ← click or drop here
                                                                                     </span>
                                                                                 )}
@@ -817,17 +819,17 @@ export function ScheduleGrid({
                                                     className={cn(
                                                         // Clean solid white card, flowing naturally from top
                                                         "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
-                                                        "bg-white dark:bg-[#20201e] border border-[#dcdcd6] dark:border-[#333330] border-b-[2px] border-b-[#c6c6be] dark:border-b-[#282826] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0] dark:hover:border-[#444440]",
+                                                        "bg-white dark:bg-[#1c1c1f] border border-[#dcdcd6] dark:border-[#323238] border-b-[2px] border-b-[#c6c6be] dark:border-b-[#42424a] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:border-[#b8b8b0] dark:hover:border-[#44444a]",
                                                         layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
-                                                        isFocused && "border-[#141413] dark:border-[#f4f4f0] ring-1 ring-[#141413] dark:ring-[#f4f4f0] shadow-md -translate-y-[1px] z-30",
+                                                        isFocused && "border-[#141413] dark:border-[#f4f4f6] ring-1 ring-[#141413] dark:ring-[#f4f4f6] shadow-md -translate-y-[1px] z-30",
                                                         isThisCardDragging
-                                                            ? "!z-50 shadow-2xl ring-2 ring-[#141413] dark:ring-[#f4f4f0] cursor-grabbing"
+                                                            ? "!z-50 shadow-2xl ring-2 ring-[#141413] dark:ring-[#f4f4f6] cursor-grabbing"
                                                             : "cursor-grab active:cursor-grabbing hover:shadow-md",
                                                         isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70 dark:bg-rose-950/40",
                                                         // Cascading overlap expansion on hover
-                                                        layout.isOverlapping && !isThisCardDragging && "krs-cascading-node hover:!z-50 hover:shadow-xl hover:border-[#141413]/40 dark:hover:border-[#f4f4f0]/40",
+                                                        layout.isOverlapping && !isThisCardDragging && "krs-cascading-node hover:!z-50 hover:shadow-xl hover:border-[#141413]/40 dark:hover:border-[#f4f4f6]/40",
                                                         // Hover-to-expand for short duration nodes
-                                                        !isThisCardDragging && layout.durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40 dark:hover:border-[#f4f4f0]/40"
+                                                        !isThisCardDragging && layout.durationMin <= 90 && "hover:!h-auto hover:!z-50 hover:shadow-xl hover:overflow-visible hover:border-[#141413]/40 dark:hover:border-[#f4f4f6]/40"
                                                     )}
                                                     style={{
                                                         top: `${layout.top}px`,
@@ -869,11 +871,11 @@ export function ScheduleGrid({
                                                         <div className="flex flex-col h-full justify-between">
                                                             {/* Row 1: Course Name on left + [Badge] + Lock on right */}
                                                             <div className="flex items-center justify-between gap-1.5 min-w-0">
-                                                                <h4 className="text-[12px] font-semibold text-[#141413] truncate group-hover:whitespace-normal group-hover:line-clamp-none leading-tight min-w-0 flex-1">
+                                                                <h4 className="text-[12px] font-semibold text-[#141413] dark:text-[#f4f4f6] truncate group-hover:whitespace-normal group-hover:line-clamp-none leading-tight min-w-0 flex-1">
                                                                     {cls.subjectName}
                                                                 </h4>
                                                                 <div className="flex items-center gap-1 shrink-0">
-                                                                    <span className="px-1 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[9.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                    <span className="px-1 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2a2a30] border border-[#e2e2de] dark:border-[#3f3f46] text-[9.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
                                                                     {onToggleFreeze && (
@@ -887,13 +889,13 @@ export function ScheduleGrid({
                                                                             className={cn(
                                                                                 "w-3.5 h-3.5 rounded flex items-center justify-center shrink-0 transition-colors",
                                                                                 isFrozen
-                                                                                    ? "text-[#141413] bg-neutral-100"
-                                                                                    : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                                    ? "text-[#141413] dark:text-[#f4f4f6] bg-neutral-100 dark:bg-white/[0.08]"
+                                                                                    : "text-[#a1a1aa] dark:text-[#71717a] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] opacity-0 group-hover:opacity-100"
                                                                             )}
                                                                             title={isFrozen ? "Click to unlock" : "Click to lock"}
                                                                         >
                                                                             {isFrozen ? (
-                                                                                <Lock className="w-2.5 h-2.5 text-[#141413]" />
+                                                                                <Lock className="w-2.5 h-2.5 text-[#141413] dark:text-[#f4f4f6]" />
                                                                             ) : (
                                                                                 <Unlock className="w-2.5 h-2.5" />
                                                                             )}
@@ -904,16 +906,16 @@ export function ScheduleGrid({
 
                                                             {/* Row 2: Time + Room */}
                                                             <div className={cn(
-                                                                "text-[#6e6e77] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight",
+                                                                "text-[#6e6e77] dark:text-[#a1a1aa] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight",
                                                                 layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10px]"
                                                             )}>
                                                                 <span>{m.start}–{m.end}</span>
-                                                                {m.room && <span className="font-sans font-medium text-[#4a4a52]">· {m.room}</span>}
+                                                                {m.room && <span className="font-sans font-medium text-[#4a4a52] dark:text-[#d4d4d8]">· {m.room}</span>}
                                                             </div>
 
                                                             {/* Hidden expandable details on hover (reveals full room & lecturer) */}
                                                             {cls.lecturers?.[0] && (
-                                                                <div className="hidden group-hover:block text-[10px] text-[#71717a] truncate mt-1 pt-1 border-t border-[#e6e6e3] font-sans">
+                                                                <div className="hidden group-hover:block text-[10px] text-[#71717a] dark:text-[#9ca3af] truncate mt-1 pt-1 border-t border-[#e6e6e3] dark:border-[#2e2e34] font-sans">
                                                                     {cls.lecturers[0]}
                                                                 </div>
                                                             )}
@@ -924,11 +926,11 @@ export function ScheduleGrid({
                                                             {/* Row 1: Section + Time + Lock */}
                                                             <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
                                                                 <div className="flex items-center gap-1.5 min-w-0">
-                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2a2a30] border border-[#e2e2de] dark:border-[#3f3f46] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
                                                                     <span className={cn(
-                                                                        "font-mono text-[#6e6e77] whitespace-nowrap tabular-nums",
+                                                                        "font-mono text-[#6e6e77] dark:text-[#a1a1aa] whitespace-nowrap tabular-nums",
                                                                         layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10.5px]"
                                                                     )}>
                                                                         {m.start}–{m.end}
@@ -945,13 +947,13 @@ export function ScheduleGrid({
                                                                         className={cn(
                                                                             "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
                                                                             isFrozen
-                                                                                ? "text-[#141413] bg-neutral-100"
-                                                                                : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                                ? "text-[#141413] dark:text-[#f4f4f6] bg-neutral-100 dark:bg-white/[0.08]"
+                                                                                : "text-[#a1a1aa] dark:text-[#71717a] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] opacity-0 group-hover:opacity-100"
                                                                         )}
                                                                         title={isFrozen ? "Click to unlock" : "Click to lock"}
                                                                     >
                                                                         {isFrozen ? (
-                                                                            <Lock className="w-3 h-3 text-[#141413]" />
+                                                                            <Lock className="w-3 h-3 text-[#141413] dark:text-[#f4f4f6]" />
                                                                         ) : (
                                                                             <Unlock className="w-3 h-3" />
                                                                         )}
@@ -961,7 +963,7 @@ export function ScheduleGrid({
 
                                                             {/* Row 2: Course Name (wrapped onto 2 lines, never single-line truncate) */}
                                                             <h4 className={cn(
-                                                                "font-semibold text-[#141413] mt-1 leading-tight",
+                                                                "font-semibold text-[#141413] dark:text-[#f4f4f6] mt-1 leading-tight",
                                                                 layout.isOverlapping
                                                                     ? "text-[12px] line-clamp-2"
                                                                     : "text-[12.5px] line-clamp-2 group-hover:line-clamp-none"
@@ -971,14 +973,14 @@ export function ScheduleGrid({
 
                                                             {/* Row 3: Room */}
                                                             {m.room && (
-                                                                <div className="text-[10.5px] font-medium text-[#4a4a52] truncate mt-0.5 leading-tight">
+                                                                <div className="text-[10.5px] font-medium text-[#4a4a52] dark:text-[#d4d4d8] truncate mt-0.5 leading-tight">
                                                                     {m.room}
                                                                 </div>
                                                             )}
 
                                                             {/* Row 4: Lecturer */}
                                                             {cls.lecturers?.[0] && (
-                                                                <div className="text-[10px] text-[#71717a] font-normal truncate mt-0.5 leading-tight">
+                                                                <div className="text-[10px] text-[#71717a] dark:text-[#9ca3af] font-normal truncate mt-0.5 leading-tight">
                                                                     {cls.lecturers[0]}
                                                                 </div>
                                                             )}
@@ -989,11 +991,11 @@ export function ScheduleGrid({
                                                             {/* Row 1: Section & Time + Lock Icon */}
                                                             <div className="flex items-center justify-between gap-1.5 shrink-0 min-w-0">
                                                                 <div className="flex items-center gap-1.5 min-w-0">
-                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] border border-[#e2e2de] text-[10.5px] font-semibold text-[#141413] shrink-0 leading-none">
+                                                                    <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2a2a30] border border-[#e2e2de] dark:border-[#3f3f46] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
                                                                         {cls.className}
                                                                     </span>
                                                                     <span className={cn(
-                                                                        "font-mono text-[#6e6e77] whitespace-nowrap tabular-nums",
+                                                                        "font-mono text-[#6e6e77] dark:text-[#a1a1aa] whitespace-nowrap tabular-nums",
                                                                         layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10.5px]"
                                                                     )}>
                                                                         {m.start}–{m.end}
@@ -1011,13 +1013,13 @@ export function ScheduleGrid({
                                                                         className={cn(
                                                                             "w-4 h-4 rounded flex items-center justify-center shrink-0 transition-colors",
                                                                             isFrozen
-                                                                                ? "text-[#141413] bg-neutral-100"
-                                                                                : "text-[#a1a1aa] hover:text-[#141413] hover:bg-neutral-100 opacity-0 group-hover:opacity-100"
+                                                                                ? "text-[#141413] dark:text-[#f4f4f6] bg-neutral-100 dark:bg-white/[0.08]"
+                                                                                : "text-[#a1a1aa] dark:text-[#71717a] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] opacity-0 group-hover:opacity-100"
                                                                         )}
                                                                         title={isFrozen ? "Click to unlock class in solver" : "Click to lock this class"}
                                                                     >
                                                                         {isFrozen ? (
-                                                                            <Lock className="w-3 h-3 text-[#141413]" />
+                                                                            <Lock className="w-3 h-3 text-[#141413] dark:text-[#f4f4f6]" />
                                                                         ) : (
                                                                             <Unlock className="w-3 h-3" />
                                                                         )}
@@ -1027,7 +1029,7 @@ export function ScheduleGrid({
 
                                                             {/* Row 2: Course Name */}
                                                             <h4 className={cn(
-                                                                "font-semibold text-[#141413] leading-tight line-clamp-2 mt-1.5",
+                                                                "font-semibold text-[#141413] dark:text-[#f4f4f6] leading-tight line-clamp-2 mt-1.5",
                                                                 layout.isOverlapping ? "text-[12px]" : "text-[13.5px] leading-snug"
                                                             )}>
                                                                 {cls.subjectName}
@@ -1035,14 +1037,14 @@ export function ScheduleGrid({
 
                                                             {/* Row 3: Room */}
                                                             {m.room && (
-                                                                <div className="text-[11px] font-medium text-[#4a4a52] leading-tight truncate mt-1">
+                                                                <div className="text-[11px] font-medium text-[#4a4a52] dark:text-[#d4d4d8] leading-tight truncate mt-1">
                                                                     {m.room}
                                                                 </div>
                                                             )}
 
                                                             {/* Row 4: Lecturer */}
                                                             {cls.lecturers?.[0] && (
-                                                                <div className="text-[10.5px] text-[#71717a] leading-tight truncate mt-0.5">
+                                                                <div className="text-[10.5px] text-[#71717a] dark:text-[#9ca3af] leading-tight truncate mt-0.5">
                                                                     {cls.lecturers[0]}
                                                                 </div>
                                                             )}

@@ -89,11 +89,11 @@ export function CoursePanel({
     };
 
     return (
-        <div className="w-full h-full flex flex-col bg-white/95 dark:bg-[#1a1a18]/95 px-6 py-6 select-none overflow-hidden">
+        <div className="w-full h-full flex flex-col bg-white/95 dark:bg-[#161618]/95 px-6 py-6 select-none overflow-hidden">
             {/* 1. Editorial Intro Paragraph (Inspired by nexvyn.dev) */}
-            <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a19a] leading-relaxed mb-6 shrink-0">
+            <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mb-6 shrink-0">
                 {t.dragIntroPre}
-                <span className="text-[#141413] dark:text-[#f4f4f0] font-medium border-b-[1.5px] border-dashed border-amber-500 pb-[1px]">
+                <span className="text-[#141413] dark:text-[#f4f4f6] font-medium border-b-[1.5px] border-dashed border-amber-500 pb-[1px]">
                     {t.dragIntroHighlight}
                 </span>
                 {t.dragIntroPost}
@@ -101,14 +101,14 @@ export function CoursePanel({
 
             {/* 2. Section Header & Mode Toggle */}
             <div className="flex items-baseline justify-between mb-1.5 shrink-0">
-                <h3 className="font-doodle text-[19px] font-bold text-[#6e6e77] dark:text-[#a1a19a] tracking-tight">
+                <h3 className="font-doodle text-[19px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] tracking-tight">
                     {activeTab === "selected" ? t.selectedCourses : t.addCourses}
                 </h3>
 
                 <button
                     id="tour-add-course-btn"
                     onClick={() => onTabChange(activeTab === "selected" ? "catalog" : "selected")}
-                    className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] dark:text-[#a1a19a] dark:hover:text-[#f4f4f0] transition-colors"
+                    className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] dark:text-[#a1a1aa] dark:hover:text-[#f4f4f6] transition-colors"
                 >
                     {activeTab === "selected" ? t.addCourseBtn : t.viewSelected}
                 </button>
@@ -117,12 +117,12 @@ export function CoursePanel({
             {/* Subtle Active Source Context Header */}
             <div
                 key={datasource.id}
-                className="flex items-center gap-1.5 text-[12px] text-[#6e6e77] dark:text-[#a1a19a] mb-3 px-0.5 shrink-0 animate-in fade-in duration-200"
+                className="flex items-center gap-1.5 text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] mb-3 px-0.5 shrink-0 animate-in fade-in duration-200"
             >
-                <span className="font-medium text-[#141413] dark:text-[#f4f4f0] truncate max-w-[170px]" title={datasource.name}>
+                <span className="font-medium text-[#141413] dark:text-[#f4f4f6] truncate max-w-[170px]" title={datasource.name}>
                     {datasource.name}
                 </span>
-                <span className="text-[#a1a1aa]">·</span>
+                <span className="text-[#a1a1aa] dark:text-[#71717a]">·</span>
                 <span className="whitespace-nowrap">
                     {datasource.subjects.length} {t.coursesAvailable}
                 </span>
@@ -133,12 +133,12 @@ export function CoursePanel({
                 <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
                     {selectedSubjects.length === 0 ? (
                         <div className="py-12 text-center space-y-2">
-                            <p className="text-[13px] text-[#6e6e77] dark:text-[#a1a19a]">
+                            <p className="text-[13px] text-[#6e6e77] dark:text-[#a1a1aa]">
                                 {t.noCoursesYet}
                             </p>
                             <button
                                 onClick={() => onTabChange("catalog")}
-                                className="font-doodle text-[16px] font-bold text-[#141413] dark:text-[#f4f4f0] underline decoration-dashed decoration-amber-500 underline-offset-4"
+                                className="font-doodle text-[16px] font-bold text-[#141413] dark:text-[#f4f4f6] underline decoration-dashed decoration-amber-500 underline-offset-4"
                             >
                                 {t.browseCatalog}
                             </button>
@@ -161,13 +161,13 @@ export function CoursePanel({
                                         onMouseEnter={() => onHoverSubject?.(sub.subjectId)}
                                         onMouseLeave={() => onHoverSubject?.(null)}
                                         className={cn(
-                                            "flex items-center gap-3 p-2 -mx-2 rounded-xl cursor-pointer transition-all hover:bg-neutral-100/70 dark:hover:bg-neutral-800/70",
-                                            isExpanded && "bg-neutral-100/60 dark:bg-neutral-800/60"
+                                            "flex items-center gap-3 p-2 -mx-2 rounded-xl cursor-pointer transition-all hover:bg-neutral-100/70 dark:hover:bg-white/[0.04]",
+                                            isExpanded && "bg-neutral-100/60 dark:bg-white/[0.06]"
                                         )}
                                         onClick={() => setExpandedSubjectId(isExpanded ? null : sub.subjectId)}
                                     >
                                         {/* Handwritten Doodle Index Number (01, 02, ...) */}
-                                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7da2c4] w-6 shrink-0 tabular-nums select-none leading-none">
+                                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] w-6 shrink-0 tabular-nums select-none leading-none">
                                             {indexNumber}
                                         </span>
 
@@ -175,10 +175,10 @@ export function CoursePanel({
                                         <div className="flex-1 min-w-0">
                                             {/* Row 1: Name + SKS */}
                                             <div className="flex items-baseline justify-between gap-1.5">
-                                                <h4 className="text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] truncate leading-tight">
+                                                <h4 className="text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f6] truncate leading-tight">
                                                     {sub.name}
                                                 </h4>
-                                                <span className="font-doodle text-[15px] font-bold text-[#6e6e77] dark:text-[#a1a19a] shrink-0 leading-none">
+                                                <span className="font-doodle text-[15px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] shrink-0 leading-none">
                                                     {sub.sks} sks
                                                 </span>
                                             </div>
@@ -191,11 +191,11 @@ export function CoursePanel({
                                                             {currentClass.className}
                                                         </span>
                                                     ) : (
-                                                        <span className="px-1.5 py-0.5 bg-amber-50 border border-amber-200 rounded text-[10.5px] font-medium text-amber-800 shrink-0 leading-none">
+                                                        <span className="px-1.5 py-0.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded text-[10.5px] font-medium text-amber-800 dark:text-amber-300 shrink-0 leading-none">
                                                             No Class
                                                         </span>
                                                     )}
-                                                    <p className="text-[12px] text-[#6e6e77] truncate leading-tight">
+                                                    <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] truncate leading-tight">
                                                         {meeting
                                                             ? `${meeting.day}, ${meeting.start}–${meeting.end}`
                                                             : "No schedule set"}
@@ -215,13 +215,13 @@ export function CoursePanel({
                                                             toast.success(isFrozen ? "Class unlocked" : "Class locked");
                                                         }}
                                                         className={cn(
-                                                            "p-1 rounded text-[#6e6e77] hover:text-[#141413] transition-colors",
-                                                            isFrozen && "text-blue-600 opacity-100"
+                                                            "p-1 rounded text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-200/50 dark:hover:bg-white/[0.08] transition-colors",
+                                                            isFrozen && "text-blue-600 dark:text-blue-400 opacity-100"
                                                         )}
                                                         title={isFrozen ? "Unlock class" : "Lock class"}
                                                     >
                                                         {isFrozen ? (
-                                                            <Lock className="w-3.5 h-3.5 text-blue-600" />
+                                                            <Lock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
                                                         ) : (
                                                             <Unlock className="w-3.5 h-3.5" />
                                                         )}
@@ -232,7 +232,7 @@ export function CoursePanel({
                                                             removeSubjectFromPlan(plan.id, sub.subjectId);
                                                             toast.info(`Removed ${sub.name}`);
                                                         }}
-                                                        className="p-1 rounded text-[#6e6e77] hover:text-rose-600 transition-colors"
+                                                        className="p-1 rounded text-[#6e6e77] dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-neutral-200/50 dark:hover:bg-white/[0.08] transition-colors"
                                                         title="Remove course"
                                                     >
                                                         <X className="w-3.5 h-3.5" />
@@ -244,8 +244,8 @@ export function CoursePanel({
 
                                     {/* Section Switcher Accordion with Doodle Hint */}
                                     {isExpanded && (
-                                        <div className="ml-9 pl-3 pr-1 py-1.5 space-y-1 border-l-2 border-[#e6e6e3] dark:border-[#2e2e2b] animate-in slide-in-from-top-1 duration-150">
-                                            <div className="font-doodle text-[13.5px] font-bold text-[#5b82a6] dark:text-[#7da2c4] -rotate-1 pb-0.5 select-none">
+                                        <div className="ml-9 pl-3 pr-1 py-1.5 space-y-1 border-l-2 border-[#e6e6e3] dark:border-[#27272a] animate-in slide-in-from-top-1 duration-150">
+                                            <div className="font-doodle text-[13.5px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] -rotate-1 pb-0.5 select-none">
                                                 {t.clickToSwap}
                                             </div>
                                             {sub.classes.map((cls) => {
@@ -267,8 +267,8 @@ export function CoursePanel({
                                                         className={cn(
                                                             "px-2.5 py-1.5 rounded-lg text-xs cursor-pointer transition-colors flex items-center justify-between",
                                                             isSelected
-                                                                ? "bg-[#141413] text-white font-medium"
-                                                                : "text-[#6e6e77] hover:text-[#141413] hover:bg-neutral-100/80"
+                                                                ? "bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] font-medium"
+                                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100/80 dark:hover:bg-white/[0.06]"
                                                         )}
                                                     >
                                                         <div className="truncate">
@@ -276,7 +276,7 @@ export function CoursePanel({
                                                                 Kelas {cls.className}
                                                             </span>
                                                             {m && (
-                                                                <span className={isSelected ? "text-neutral-300" : "text-[#a1a1aa]"}>
+                                                                <span className={isSelected ? "text-neutral-300 dark:text-neutral-700" : "text-[#a1a1aa] dark:text-[#71717a]"}>
                                                                     {m.day} {m.start}–{m.end}
                                                                 </span>
                                                             )}
@@ -302,12 +302,12 @@ export function CoursePanel({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder={t.searchPlaceholder}
-                            className="w-full pl-8 pr-7 py-1.5 text-xs bg-neutral-100/70 dark:bg-neutral-800/70 border border-[#e6e6e3] dark:border-[#2e2e2b] rounded-lg outline-none focus:border-[#141413] dark:focus:border-[#f4f4f0] text-[#141413] dark:text-[#f4f4f0] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors"
+                            className="w-full pl-8 pr-7 py-1.5 text-xs bg-neutral-100/70 dark:bg-[#202023] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-lg outline-none focus:border-[#141413] dark:focus:border-[#f4f4f6] text-[#141413] dark:text-[#f4f4f6] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery("")}
-                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a1a1aa] hover:text-[#141413]"
+                                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a1a1aa] dark:text-[#71717a] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                             >
                                 <X className="w-3 h-3" />
                             </button>
@@ -328,8 +328,8 @@ export function CoursePanel({
                                     className={cn(
                                         "p-2 -mx-1.5 rounded-xl cursor-pointer transition-colors flex items-center justify-between gap-2.5",
                                         isSelected
-                                            ? "bg-neutral-100 text-[#141413]"
-                                            : "hover:bg-neutral-100/60 text-[#141413]"
+                                            ? "bg-neutral-100/90 dark:bg-white/[0.08] border border-neutral-200/80 dark:border-white/[0.14] text-[#141413] dark:text-white"
+                                            : "bg-transparent hover:bg-neutral-100/70 dark:hover:bg-white/[0.04] text-[#141413] dark:text-[#f4f4f6]"
                                     )}
                                 >
                                     <div className="min-w-0 flex-1">
@@ -337,11 +337,11 @@ export function CoursePanel({
                                             <h4 className="text-[13px] font-medium truncate">
                                                 {sub.name}
                                             </h4>
-                                            <span className="font-doodle text-[15px] font-bold text-[#6e6e77] shrink-0 leading-none">
+                                            <span className="font-doodle text-[15px] font-bold text-[#6e6e77] dark:text-[#9ca3af] shrink-0 leading-none">
                                                 {sub.sks} sks
                                             </span>
                                         </div>
-                                        <p className="text-[11.5px] text-[#6e6e77] truncate">
+                                        <p className="text-[11.5px] text-[#6e6e77] dark:text-[#9ca3af] truncate">
                                             <span className="font-mono">{sub.code}</span> · {sub.classes.length} classes
                                         </p>
                                     </div>
@@ -350,8 +350,8 @@ export function CoursePanel({
                                         className={cn(
                                             "w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors",
                                             isSelected
-                                                ? "bg-[#141413] border-[#141413] text-white"
-                                                : "border-[#d4d4d0]"
+                                                ? "bg-[#141413] dark:bg-[#f4f4f6] border-[#141413] dark:border-[#f4f4f6] text-white dark:text-[#141413]"
+                                                : "border-[#d4d4d0] dark:border-[#3f3f46]"
                                         )}
                                     >
                                         {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
