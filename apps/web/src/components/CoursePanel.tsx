@@ -101,43 +101,19 @@ export function CoursePanel({
                 {t.dragIntroPost}
             </p>
 
-            {/* 2. Section Header & Mode Toggle */}
-            <div className="flex items-baseline justify-between mb-1.5 shrink-0">
-                <h3 className="font-doodle text-[19px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] tracking-tight">
+            {/* 2. Section Header & Mode Toggle (Strictly 2 single-line items with whitespace-nowrap) */}
+            <div className="flex items-baseline justify-between mb-3 shrink-0 gap-2">
+                <h3 className="font-doodle text-[19px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] tracking-tight whitespace-nowrap">
                     {activeTab === "selected" ? t.selectedCourses : t.addCourses}
                 </h3>
 
-                <div className="flex items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => setIsCustomModalOpen(true)}
-                        className="font-doodle text-[13.5px] font-bold text-[#5b82a6] hover:text-[#416282] dark:text-[#7dd3fc] dark:hover:text-[#bae6fd] transition-colors"
-                        title={language === "id" ? "Tambah mata kuliah manual" : "Add custom course manually"}
-                    >
-                        {language === "id" ? "+ matkul manual" : "+ custom course"}
-                    </button>
-                    <button
-                        id="tour-add-course-btn"
-                        onClick={() => onTabChange(activeTab === "selected" ? "catalog" : "selected")}
-                        className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] dark:text-[#a1a1aa] dark:hover:text-[#f4f4f6] transition-colors"
-                    >
-                        {activeTab === "selected" ? t.addCourseBtn : t.viewSelected}
-                    </button>
-                </div>
-            </div>
-
-            {/* Subtle Active Source Context Header */}
-            <div
-                key={datasource.id}
-                className="flex items-center gap-1.5 text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] mb-3 px-0.5 shrink-0 animate-in fade-in duration-200"
-            >
-                <span className="font-medium text-[#141413] dark:text-[#f4f4f6] truncate max-w-[170px]" title={datasource.name}>
-                    {datasource.name}
-                </span>
-                <span className="text-[#a1a1aa] dark:text-[#71717a]">·</span>
-                <span className="whitespace-nowrap">
-                    {datasource.subjects.length} {t.coursesAvailable}
-                </span>
+                <button
+                    id="tour-add-course-btn"
+                    onClick={() => onTabChange(activeTab === "selected" ? "catalog" : "selected")}
+                    className="font-doodle text-[15px] font-bold text-[#6e6e77] hover:text-[#141413] dark:text-[#a1a1aa] dark:hover:text-[#f4f4f6] transition-colors whitespace-nowrap shrink-0"
+                >
+                    {activeTab === "selected" ? t.addCourseBtn : t.viewSelected}
+                </button>
             </div>
 
             {/* 3. Course List Rows (Clean Typography-First with Doodle Index Numbers) */}
@@ -307,7 +283,21 @@ export function CoursePanel({
             ) : (
                 /* Course Search & Catalog View */
                 <div className="flex-1 flex flex-col min-h-0">
-                    <div id="tour-catalog-search-area" className="relative mb-3">
+                    {/* Active Source Context Header (Only in Catalog View) */}
+                    <div
+                        key={datasource.id}
+                        className="flex items-center gap-1.5 text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] mb-2 px-0.5 shrink-0 animate-in fade-in duration-200"
+                    >
+                        <span className="font-medium text-[#141413] dark:text-[#f4f4f6] truncate max-w-[170px]" title={datasource.name}>
+                            {datasource.name}
+                        </span>
+                        <span className="text-[#a1a1aa] dark:text-[#71717a]">·</span>
+                        <span className="whitespace-nowrap">
+                            {datasource.subjects.length} {t.coursesAvailable}
+                        </span>
+                    </div>
+
+                    <div id="tour-catalog-search-area" className="relative mb-2">
                         <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#a1a1aa] dark:text-[#71717a]" />
                         <input
                             type="text"
@@ -324,6 +314,21 @@ export function CoursePanel({
                                 <X className="w-3 h-3" />
                             </button>
                         )}
+                    </div>
+
+                    {/* Quick Custom Course Trigger Row */}
+                    <div
+                        onClick={() => setIsCustomModalOpen(true)}
+                        className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline py-1 mb-1.5 px-0.5 flex items-center justify-between cursor-pointer select-none shrink-0"
+                    >
+                        <span>
+                            {language === "id"
+                                ? "+ Buat matkul manual"
+                                : "+ Create custom course manually"}
+                        </span>
+                        <span className="font-doodle text-[12.5px] text-[#5b82a6]/80 dark:text-[#7dd3fc]/80 font-bold">
+                            custom
+                        </span>
                     </div>
 
                     <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
