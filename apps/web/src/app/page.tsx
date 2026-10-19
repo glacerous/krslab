@@ -1883,12 +1883,7 @@ function WorkspaceContent() {
             {/* Welcome Greeting Screen */}
             <WelcomeScreen
                 isOpen={mounted && (!hasCompletedWelcome || isWelcomeManuallyOpen)}
-                onImportTable={() => {
-                    setIsWelcomeManuallyOpen(false);
-                    shouldLaunchTourAfterImportRef.current = true;
-                    openOverlay("bima-import");
-                }}
-                onExploreSample={() => {
+                onContinue={() => {
                     setIsWelcomeManuallyOpen(false);
                     if (datasources.length === 0) {
                         const { parseBimaMasterWithDebug } = require("@krs/engine");
@@ -1902,12 +1897,6 @@ function WorkspaceContent() {
                         setActiveTab("selected");
                         toast.success("Loaded Sample Informatics Schedule!");
                     }
-                    setTimeout(() => {
-                        triggerTour();
-                    }, 100);
-                }}
-                onSkip={() => {
-                    setIsWelcomeManuallyOpen(false);
                     setTimeout(() => {
                         triggerTour();
                     }, 100);
