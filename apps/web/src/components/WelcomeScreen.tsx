@@ -5,14 +5,16 @@ import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { getTranslation } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { BrandLogo } from "@/components/BrandLogo";
 
 interface WelcomeScreenProps {
     isOpen: boolean;
     onImportTable: () => void;
     onExploreSample: () => void;
+    onSkip?: () => void;
 }
 
-export function WelcomeScreen({ isOpen, onImportTable, onExploreSample }: WelcomeScreenProps) {
+export function WelcomeScreen({ isOpen, onImportTable, onExploreSample, onSkip }: WelcomeScreenProps) {
     const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
     const {
@@ -30,6 +32,9 @@ export function WelcomeScreen({ isOpen, onImportTable, onExploreSample }: Welcom
 
     const handleComplete = () => {
         setHasCompletedWelcome(true);
+        if (onSkip) {
+            onSkip();
+        }
     };
 
     const handleImport = () => {
@@ -48,15 +53,8 @@ export function WelcomeScreen({ isOpen, onImportTable, onExploreSample }: Welcom
         <div className="fixed inset-0 z-[200] overflow-y-auto bg-[#f9f9f8] dark:bg-[#121214] bg-dot-matrix flex flex-col justify-between py-8 px-6 animate-in fade-in duration-200 select-none">
             {/* Top Navigation Bar — aligned to the same max-w-[500px] vertical column */}
             <header className="max-w-[500px] w-full mx-auto flex items-center justify-between shrink-0">
-                {/* Brand */}
-                <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-lg bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] font-bold text-xs flex items-center justify-center font-mono shadow-xs">
-                        K
-                    </div>
-                    <span className="font-semibold text-[15px] text-[#141413] dark:text-[#f4f4f6] tracking-tight">
-                        krslab
-                    </span>
-                </div>
+                {/* Custom Brand Logo */}
+                <BrandLogo />
 
                 {/* Step indicator & Skip */}
                 <div className="flex items-center gap-4">

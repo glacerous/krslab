@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
+import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
 
 function WorkspaceContent() {
@@ -885,13 +886,8 @@ function WorkspaceContent() {
             <header className="h-14 border-b border-[#e6e6e3] dark:border-[#2e2e2b] bg-white/90 dark:bg-[#1a1a18]/90 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
                 <div className="flex items-center gap-2.5 shrink-0 min-w-0">
-                    {/* Minimal Dark Squircle Mark + Brand Wordmark */}
-                    <div className="flex items-center gap-2 select-none shrink-0">
-                        <div className="w-6 h-6 rounded-[7px] bg-[#141413] dark:bg-[#f4f4f0] text-white dark:text-[#141413] flex items-center justify-center font-bold text-[12px] shadow-sm">
-                            K
-                        </div>
-                        <span className="text-[14px] font-medium text-[#141413] dark:text-[#f4f4f0] tracking-tight hidden sm:inline">KRSlab</span>
-                    </div>
+                    {/* Custom Brand Logo with Timetable Mark & Doodle lab */}
+                    <BrandLogo />
 
                     <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm shrink-0 font-light">/</span>
 
