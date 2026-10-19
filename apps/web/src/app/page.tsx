@@ -874,10 +874,34 @@ function WorkspaceContent() {
     // ==========================================
     if (!_hasHydrated || !mounted) {
         return (
-            <div className="h-screen w-full flex items-center justify-center bg-[#f9f9f8]">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="w-7 h-7 border-2 border-[#141413] border-t-transparent rounded-full animate-spin" />
-                    <span className="text-xs font-medium text-[#6e6e77]">
+            <div
+                style={{
+                    minHeight: "100vh",
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#f9f9f8",
+                    fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+                }}
+                className="h-screen w-full flex items-center justify-center bg-[#f9f9f8] dark:bg-[#141418]"
+            >
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+                    <div
+                        style={{
+                            width: "28px",
+                            height: "28px",
+                            border: "2.5px solid #141413",
+                            borderTopColor: "transparent",
+                            borderRadius: "50%",
+                            animation: "spin 0.8s linear infinite"
+                        }}
+                        className="w-7 h-7 border-2 border-[#141413] dark:border-white border-t-transparent dark:border-t-transparent rounded-full animate-spin"
+                    />
+                    <span
+                        style={{ fontSize: "12.5px", fontWeight: 500, color: "#6e6e77" }}
+                        className="text-xs font-medium text-[#6e6e77] dark:text-[#a1a1aa]"
+                    >
                         Loading studio...
                     </span>
                 </div>

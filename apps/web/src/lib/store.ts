@@ -323,8 +323,8 @@ export const useAppStore = create<AppStore>()(
 
             deduplicateDatasources: () => {
                 set((state) => {
-                    const sampleSources = state.datasources.filter(
-                        (d) => d.id.startsWith("sample") || d.name.toLowerCase().includes("sample")
+                    const sampleSources = (state.datasources || []).filter(
+                        (d) => d?.id?.startsWith("sample") || d?.name?.toLowerCase().includes("sample")
                     );
 
                     let cleanedDatasources = state.datasources;
@@ -1331,6 +1331,10 @@ export const useAppStore = create<AppStore>()(
         }),
         {
             name: "krs-plan-next-gen",
+            partialize: (state) => {
+                const { _hasHydrated, isGenerating, isDataModalOpen, isCustomCourseModalOpen, ...rest } = state;
+                return rest;
+            },
             onRehydrateStorage: () => (state) => {
                 state?.setHasHydrated(true);
                 state?.deduplicateDatasources();
