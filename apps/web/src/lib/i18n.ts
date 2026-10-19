@@ -85,48 +85,36 @@ export interface Translations {
     exploreSampleBtn: string;
     tryStudioNote: string;
 
-    // Step-by-Step Onboarding Flow
+    // Step-by-Step Onboarding Flow (nexvyn editorial style)
     onboardingStep: string;
-    onboardingOf: string;
     skipSetup: string;
     continueBtn: string;
     backBtn: string;
-    liveDeskPreviewNote: string;
-    mon: string;
-    tue: string;
-    wed: string;
-    thu: string;
-    fri: string;
-    step1Eyebrow: string;
-    step1Headline: string;
-    step1Sub: string;
-    warmPaperTitle: string;
-    warmPaperSub: string;
-    darkInkTitle: string;
-    darkInkSub: string;
-    switchesInstantlyNote: string;
-    step2Eyebrow: string;
-    step2Headline: string;
-    step2Sub: string;
-    loadBalancedTitle: string;
-    loadBalancedSub: string;
-    loadFullTitle: string;
-    loadFullSub: string;
-    loadUnlimitedTitle: string;
-    loadUnlimitedSub: string;
-    recommendedBadge: string;
-    step3Eyebrow: string;
-    step3Headline: string;
-    step3Sub: string;
-    pasteBimaTitle: string;
-    pasteBimaSub: string;
-    exploreSampleTitle: string;
-    exploreSampleSub: string;
-    tryIn1ClickBadge: string;
-    syncTitle: string;
-    syncSub: string;
-    signInBtn: string;
-    syncComingSoonBadge: string;
+    welcomeTitle: string;
+    welcomeSubtitle: string;
+    welcomeDescPre: string;
+    welcomeDescHighlight: string;
+    welcomeDescPost: string;
+    languageInline: string;
+    appearanceInline: string;
+    switchesLiveLine1: string;
+    switchesLiveLine2: string;
+    step2Title: string;
+    step2Desc: string;
+    step2Cap20: string;
+    step2Cap24: string;
+    step2CapUnlimited: string;
+    selectedDoodle: string;
+    defaultDoodle: string;
+    step3Header: string;
+    step3ImportTitle: string;
+    step3ImportDesc: string;
+    step3SampleTitle: string;
+    step3SampleDoodle: string;
+    step3SampleDesc: string;
+    cloudSyncPre: string;
+    cloudSyncHighlight: string;
+    cloudSyncPost: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -215,48 +203,36 @@ export const translations: Record<Language, Translations> = {
         exploreSampleBtn: "Explore with sample courses",
         tryStudioNote: "← try the studio first",
 
-        // Step-by-Step Onboarding Flow
+        // Step-by-Step Onboarding Flow (nexvyn editorial style)
         onboardingStep: "step",
-        onboardingOf: "of",
-        skipSetup: "Skip setup →",
+        skipSetup: "Skip →",
         continueBtn: "Continue →",
         backBtn: "← Back",
-        liveDeskPreviewNote: "live desk preview",
-        mon: "Mon",
-        tue: "Tue",
-        wed: "Wed",
-        thu: "Thu",
-        fri: "Fri",
-        step1Eyebrow: "01 · language & canvas",
-        step1Headline: "Tune your workspace before we start.",
-        step1Sub: "Pick the canvas feel that's easiest on your eyes.",
-        warmPaperTitle: "Warm Paper",
-        warmPaperSub: "Crisp daylight architect sheet",
-        darkInkTitle: "Dark Ink",
-        darkInkSub: "Low-glare night studio",
-        switchesInstantlyNote: "switches every label in the studio instantly",
-        step2Eyebrow: "02 · semester workload",
-        step2Headline: "Pick your SKS safety cap.",
-        step2Sub: "We'll track your credit count as you pick courses and warn you if you go over.",
-        loadBalancedTitle: "20 SKS · Balanced Load",
-        loadBalancedSub: "Ideal for lighter semesters or taking 6–7 focused courses.",
-        loadFullTitle: "24 SKS · Full Semester Cap",
-        loadFullSub: "Standard maximum university credit load.",
-        loadUnlimitedTitle: "Unlimited · Free Exploration",
-        loadUnlimitedSub: "No credit cap — great for comparing extra electives freely.",
-        recommendedBadge: "recommended",
-        step3Eyebrow: "03 · load your courses",
-        step3Headline: "Start with your campus schedule or test the studio.",
-        step3Sub: "Choose how you'd like to load your courses into the planner.",
-        pasteBimaTitle: "Paste my BIMA / SIAKAD schedule",
-        pasteBimaSub: "Copy your Jadwal Dosen table and paste it in — rooms, times, and lecturers parse automatically.",
-        exploreSampleTitle: "Explore with sample courses",
-        exploreSampleSub: "Jump straight into a pre-loaded Informatics schedule to test dragging, locking, and auto-scheduling.",
-        tryIn1ClickBadge: "try it in 1 click",
-        syncTitle: "Sync across devices",
-        syncSub: "Sign in to back up your plans and sources to the cloud",
-        signInBtn: "Sign in",
-        syncComingSoonBadge: "coming soon · saved locally for now"
+        welcomeTitle: "Welcome to KRSlab",
+        welcomeSubtitle: "Academic Schedule Studio",
+        welcomeDescPre: "I built this workspace to take the headache out of planning your semester KRS. Paste your raw course table, drag classes on the grid, and find every ",
+        welcomeDescHighlight: "conflict-free",
+        welcomeDescPost: " combination.",
+        languageInline: "Language —",
+        appearanceInline: "Appearance —",
+        switchesLiveLine1: "switches live",
+        switchesLiveLine2: "as you click",
+        step2Title: "How heavy is your semester?",
+        step2Desc: "Pick a credit cap so the studio can track your load as you add courses.",
+        step2Cap20: "balanced load, 6–7 courses",
+        step2Cap24: "standard maximum semester load",
+        step2CapUnlimited: "free exploration with no cap",
+        selectedDoodle: "selected ✓",
+        defaultDoodle: "default",
+        step3Header: "start scheduling",
+        step3ImportTitle: "Import BIMA / SIAKAD table",
+        step3ImportDesc: "Copy rows from Jadwal Dosen and paste them straight in.",
+        step3SampleTitle: "Explore with sample courses",
+        step3SampleDoodle: "← psst, try this first",
+        step3SampleDesc: "Jump straight into a pre-loaded Informatics schedule.",
+        cloudSyncPre: "Cloud sync across devices is ",
+        cloudSyncHighlight: "coming soon",
+        cloudSyncPost: " — your plans save automatically in this browser."
     },
     id: {
         // Top bar & Header
@@ -343,48 +319,36 @@ export const translations: Record<Language, Translations> = {
         exploreSampleBtn: "Coba dengan matkul contoh",
         tryStudioNote: "← coba studio langsung",
 
-        // Step-by-Step Onboarding Flow
+        // Step-by-Step Onboarding Flow (nexvyn editorial style)
         onboardingStep: "langkah",
-        onboardingOf: "dari",
-        skipSetup: "Lewati penyiapan →",
+        skipSetup: "Lewati →",
         continueBtn: "Lanjut →",
         backBtn: "← Kembali",
-        liveDeskPreviewNote: "pratinjau mejamu",
-        mon: "Sen",
-        tue: "Sel",
-        wed: "Rab",
-        thu: "Kam",
-        fri: "Jum",
-        step1Eyebrow: "01 · bahasa & kanvas",
-        step1Headline: "Atur ruang kerjamu sebelum kita mulai.",
-        step1Sub: "Pilih tema kanvas yang paling nyaman untuk matamu.",
-        warmPaperTitle: "Warm Paper",
-        warmPaperSub: "Lembar arsitek terang di siang hari",
-        darkInkTitle: "Dark Ink",
-        darkInkSub: "Studio malam minim silau",
-        switchesInstantlyNote: "mengubah semua label studio seketika",
-        step2Eyebrow: "02 · beban semester",
-        step2Headline: "Pilih batas aman SKS semestermu.",
-        step2Sub: "Kami akan memantau jumlah SKS saat memilih matkul dan mengingatkan jika berlebih.",
-        loadBalancedTitle: "20 SKS · Beban Seimbang",
-        loadBalancedSub: "Ideal untuk semester santai atau mengambil 6–7 matkul fokus.",
-        loadFullTitle: "24 SKS · Batas Penuh Kampus",
-        loadFullSub: "Beban kredit maksimal standar universitas.",
-        loadUnlimitedTitle: "Tanpa Batas · Eksplorasi Bebas",
-        loadUnlimitedSub: "Tanpa batas kredit — leluasa membandingkan banyak matkul pilihan.",
-        recommendedBadge: "disarankan",
-        step3Eyebrow: "03 · muat mata kuliah",
-        step3Headline: "Mulai dengan jadwal kampusmu atau uji coba studio.",
-        step3Sub: "Pilih cara memulai penyusunan rencana jadwalmu.",
-        pasteBimaTitle: "Tempel jadwal BIMA / SIAKAD saya",
-        pasteBimaSub: "Salin tabel Jadwal Dosen dan tempel — ruang, jam, dan dosen terurai otomatis.",
-        exploreSampleTitle: "Coba dengan matkul contoh",
-        exploreSampleSub: "Langsung masuk ke jadwal Informatika yang sudah terisi untuk mencoba geser, kunci, dan susun otomatis.",
-        tryIn1ClickBadge: "coba 1 klik",
-        syncTitle: "Sinkronisasi antar perangkat",
-        syncSub: "Masuk untuk mencadangkan rencana dan sumber ke cloud",
-        signInBtn: "Masuk akun",
-        syncComingSoonBadge: "segera hadir · saat ini tersimpan lokal"
+        welcomeTitle: "Selamat datang di KRSlab",
+        welcomeSubtitle: "Studio Jadwal Kuliah",
+        welcomeDescPre: "Ruang kerja ini dibuat agar menyusun KRS tidak lagi memusingkan. Tempel tabel jadwal dari portal kampus, geser kelas di kanvas, dan temukan kombinasi ",
+        welcomeDescHighlight: "bebas bentrok",
+        welcomeDescPost: ".",
+        languageInline: "Bahasa —",
+        appearanceInline: "Tampilan —",
+        switchesLiveLine1: "berubah langsung",
+        switchesLiveLine2: "saat diklik",
+        step2Title: "Berapa batas SKS semestermu?",
+        step2Desc: "Pilih batas SKS agar studio dapat memantau beban kredit saat kamu memilih mata kuliah.",
+        step2Cap20: "beban seimbang, 6–7 matkul",
+        step2Cap24: "batas maksimum standar semester",
+        step2CapUnlimited: "eksplorasi bebas tanpa batas",
+        selectedDoodle: "terpilih ✓",
+        defaultDoodle: "standar",
+        step3Header: "mulai menyusun",
+        step3ImportTitle: "Impor tabel BIMA / SIAKAD",
+        step3ImportDesc: "Salin baris dari Jadwal Dosen dan tempel langsung.",
+        step3SampleTitle: "Coba dengan matkul contoh",
+        step3SampleDoodle: "← coba ini dulu",
+        step3SampleDesc: "Langsung masuk ke jadwal Informatika yang sudah terisi.",
+        cloudSyncPre: "Sinkronisasi cloud antar perangkat akan ",
+        cloudSyncHighlight: "segera hadir",
+        cloudSyncPost: " — rencana jadwalmu tersimpan otomatis di browser ini."
     }
 };
 
