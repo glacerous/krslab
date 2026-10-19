@@ -100,6 +100,7 @@ function WorkspaceContent() {
     const [sourceMenuCoords, setSourceMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const [planMenuCoords, setPlanMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const [prefsCoords, setPrefsCoords] = useState<{ top: number; left: number } | null>(null);
+    const shouldLaunchTourAfterImportRef = useRef(false);
 
     const updateSourceMenuCoords = useCallback(() => {
         if (sourceTriggerRef.current) {
@@ -246,6 +247,9 @@ function WorkspaceContent() {
         if (overlay === "bima-import") {
             setIsDataModalOpen(true);
         } else if (overlay === "tour") {
+            if (typeof window !== "undefined") {
+                localStorage.removeItem("krs_tour_completed");
+            }
             setTourStep(0);
             updateSourceMenuCoords();
             setIsSourceMenuOpen(true);
@@ -255,6 +259,14 @@ function WorkspaceContent() {
             setIsDataModalOpen(false);
         }
     }, [setIsDataModalOpen, updateSourceMenuCoords]);
+
+    const triggerTour = useCallback(() => {
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("krs_tour_completed");
+        }
+        setTourStep(0);
+        openOverlay("tour");
+    }, [openOverlay]);
 
     // Sync external store isDataModalOpen changes (e.g., from direct actions)
     useEffect(() => {
@@ -1296,6 +1308,12 @@ function WorkspaceContent() {
                 onClose={() => {
                     if (activeOverlay !== "tour") {
                         closeOverlay();
+                        if (shouldLaunchTourAfterImportRef.current) {
+                            shouldLaunchTourAfterImportRef.current = false;
+                            setTimeout(() => {
+                                triggerTour();
+                            }, 100);
+                        }
                     }
                 }}
                 editSourceId={dataModalEditSourceId}
@@ -1867,6 +1885,7 @@ function WorkspaceContent() {
                 isOpen={mounted && (!hasCompletedWelcome || isWelcomeManuallyOpen)}
                 onImportTable={() => {
                     setIsWelcomeManuallyOpen(false);
+                    shouldLaunchTourAfterImportRef.current = true;
                     openOverlay("bima-import");
                 }}
                 onExploreSample={() => {
@@ -1883,6 +1902,15 @@ function WorkspaceContent() {
                         setActiveTab("selected");
                         toast.success("Loaded Sample Informatics Schedule!");
                     }
+                    setTimeout(() => {
+                        triggerTour();
+                    }, 100);
+                }}
+                onSkip={() => {
+                    setIsWelcomeManuallyOpen(false);
+                    setTimeout(() => {
+                        triggerTour();
+                    }, 100);
                 }}
             />
         </div>
