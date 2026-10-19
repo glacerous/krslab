@@ -32,7 +32,7 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
             {/* 1. Top Header Bar: Brand Logo & Quiet Inline Toggles */}
             <header className="max-w-3xl w-full mx-auto flex items-center justify-between pt-2">
                 {/* Brand Mark */}
-                <BrandLogo />
+                <BrandLogo height={36} />
 
                 {/* Quiet Toggles */}
                 <div className="flex items-center gap-2.5 text-[13px] text-[#6e6e77] dark:text-[#a1a1aa]">

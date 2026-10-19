@@ -7,13 +7,13 @@ export default function manifest(): MetadataRoute.Manifest {
         description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts and design your weekly layout.",
         start_url: "/",
         display: "standalone",
-        background_color: "#0a0a0a",
-        theme_color: "#84cc16",
+        background_color: "#141413",
+        theme_color: "#141413",
         icons: [
             {
-                src: "/favicon.ico",
+                src: "/icon.svg",
                 sizes: "any",
-                type: "image/x-icon",
+                type: "image/svg+xml",
             },
             {
                 src: "/og-image.png",

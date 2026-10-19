@@ -977,7 +977,7 @@ function WorkspaceContent() {
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
                 <div className="flex items-center gap-2.5 shrink-0 min-w-0">
                     {/* Custom Brand Logo with Timetable Mark & Doodle lab */}
-                    <BrandLogo />
+                    <BrandLogo height={32} />
 
                     <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm shrink-0 font-light">/</span>
 
