@@ -1,6 +1,15 @@
 "use client";
 
+import { useEffect } from "react";
+import { useAppStore } from "@/lib/store";
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
+    const language = useAppStore((state) => state.language);
+
+    useEffect(() => {
+        document.documentElement.lang = language;
+    }, [language]);
+
     return (
         <div className="flex flex-col h-screen overflow-hidden bg-background text-foreground">
             <a
