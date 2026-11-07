@@ -18,9 +18,6 @@
         "build": "tsc -b",
         "dev": "tsc --watch"
     },
-    "dependencies": {
-        "krsplan-engine": "workspace:*"
-    },
     "devDependencies": {
         "typescript": "^5.7.2"
     }

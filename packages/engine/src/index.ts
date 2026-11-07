@@ -1,7 +1,5 @@
-import { Schedule } from "krsplan-engine";
 import { MeetingRaw, ClassScheduleRaw, SubjectRaw } from "./base-types";
 
-export { Schedule };
 export type { MeetingRaw, ClassScheduleRaw, SubjectRaw };
 
 export const DAY_NORMALIZATION_MAP: Record<string, string> = {
@@ -574,10 +572,19 @@ export function parseBimaMasterWithDebug(text: string): BimaParseResult {
 }
 
 export function checkMeetingConflict(m1: MeetingRaw, m2: MeetingRaw): boolean {
+  if (m1.day !== m2.day) return false;
   try {
-    const s1 = Schedule.buildFromString(`${m1.day} ${m1.start}-${m1.end}`);
-    const s2 = Schedule.buildFromString(`${m2.day} ${m2.start}-${m2.end}`);
-    return s1.isOverlap(s2);
+    const [startH1, startM1] = m1.start.split(":").map(Number);
+    const [endH1, endM1] = m1.end.split(":").map(Number);
+    const [startH2, startM2] = m2.start.split(":").map(Number);
+    const [endH2, endM2] = m2.end.split(":").map(Number);
+
+    const start1 = startH1 * 60 + (startM1 || 0);
+    const end1 = endH1 * 60 + (endM1 || 0);
+    const start2 = startH2 * 60 + (startM2 || 0);
+    const end2 = endH2 * 60 + (endM2 || 0);
+
+    return Math.max(start1, start2) < Math.min(end1, end2);
   } catch (e) {
     console.warn("Invalid schedule format for overlap check:", m1, m2);
     return false;
