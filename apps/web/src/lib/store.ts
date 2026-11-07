@@ -1331,11 +1331,59 @@ export const useAppStore = create<AppStore>()(
         }),
         {
             name: "krs-plan-next-gen",
+            version: 1,
             partialize: (state) => {
                 const { _hasHydrated, isGenerating, isDataModalOpen, isCustomCourseModalOpen, ...rest } = state;
                 return rest;
             },
-            onRehydrateStorage: () => (state) => {
+            migrate: (persistedState: unknown, version: number) => {
+                if (!persistedState || typeof persistedState !== "object") {
+                    return {} as AppStore;
+                }
+                const old = persistedState as Partial<AppStore>;
+
+                const migratedDatasources = Array.isArray(old.datasources)
+                    ? old.datasources.map((ds) => ({
+                          ...ds,
+                          subjects: Array.isArray(ds?.subjects) ? ds.subjects : [],
+                      }))
+                    : [];
+
+                const migratedPlans = Array.isArray(old.plans)
+                    ? old.plans.map((p) => ({
+                          ...p,
+                          selectedSubjectIds: Array.isArray(p?.selectedSubjectIds) ? p.selectedSubjectIds : [],
+                          selectedClassBySubjectId: p?.selectedClassBySubjectId || {},
+                          rules: Array.isArray(p?.rules) ? p.rules : [],
+                          frozenSubjectIds: Array.isArray(p?.frozenSubjectIds) ? p.frozenSubjectIds : [],
+                          previewOverrides: p?.previewOverrides || {},
+                          savedVariants: Array.isArray(p?.savedVariants) ? p.savedVariants : [],
+                      }))
+                    : [];
+
+                return {
+                    ...old,
+                    datasources: migratedDatasources,
+                    plans: migratedPlans,
+                    activePlanId: old.activePlanId ?? null,
+                    activeDatasourceId: old.activeDatasourceId ?? null,
+                    language: old.language === "id" ? "id" : "en",
+                    maxSks: typeof old.maxSks === "number" && old.maxSks > 0 ? old.maxSks : 24,
+                    hasCompletedWelcome: Boolean(old.hasCompletedWelcome),
+                } as AppStore;
+            },
+            onRehydrateStorage: () => (state, error) => {
+                if (error) {
+                    console.error("Failed to rehydrate store, falling back to clean state:", error);
+                    try {
+                        if (typeof window !== "undefined") {
+                            localStorage.removeItem("krs-plan-next-gen");
+                        }
+                    } catch (_) {}
+                    const cleanState = useAppStore.getState();
+                    cleanState.setHasHydrated(true);
+                    return;
+                }
                 state?.setHasHydrated(true);
                 state?.deduplicateDatasources();
             },
