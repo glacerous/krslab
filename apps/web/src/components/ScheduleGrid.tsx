@@ -722,10 +722,21 @@ export function ScheduleGrid({
                                                                     key={`ghost-${sec.classId}-${mIdx}`}
                                                                     data-tour="ghost-dropzone"
                                                                     data-ghost-class-id={sec.classId}
+                                                                    role="button"
+                                                                    tabIndex={0}
+                                                                    aria-label={`Switch ${activeGhostSubject.name} to section ${sec.className}, ${m.day} ${m.start}–${m.end}${conflictInfo.hasConflict ? `, clashes with ${conflictInfo.clashingName || "other class"}` : ""}`}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         onSelectClass?.(activeGhostSubject.subjectId, sec.classId);
                                                                         setFocusedSubjectId(null);
+                                                                    }}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === "Enter" || e.key === " ") {
+                                                                            e.preventDefault();
+                                                                            e.stopPropagation();
+                                                                            onSelectClass?.(activeGhostSubject.subjectId, sec.classId);
+                                                                            setFocusedSubjectId(null);
+                                                                        }
                                                                     }}
                                                                     className={cn(
                                                                         "absolute left-[4px] right-[4px] rounded-xl border-[1.5px] border-dashed transition-all duration-300 overflow-hidden flex flex-col justify-between pointer-events-auto cursor-pointer z-40 select-none animate-in fade-in zoom-in-95 duration-200",
@@ -818,12 +829,59 @@ export function ScheduleGrid({
                                                 activeDraggingCard?.meetingIdx === mIdx &&
                                                 isDragging;
 
+                                            const conflictingClasses = isConflicting
+                                                ? selectedClasses.filter(
+                                                      (other) => other.classId !== cls.classId && checkClassConflict(cls as any, other as any)
+                                                  )
+                                                : [];
+                                            const conflictingNames = conflictingClasses
+                                                .map((c) => c.subjectName || c.subjectCode)
+                                                .filter(Boolean)
+                                                .join(", ");
+                                            const cardAriaLabel = `${cls.subjectName}, ${cls.className}, ${m.day} ${m.start}–${m.end}${
+                                                isConflicting
+                                                    ? conflictingNames
+                                                        ? `, conflicts with ${conflictingNames}`
+                                                        : ", has schedule conflict"
+                                                    : ""
+                                            }`;
+
                                             return (
                                                 <div
                                                     key={key}
                                                     id={entryIdx === 0 && mIdx === 0 ? "tour-first-node" : undefined}
                                                     data-subject-id={subjectId}
                                                     data-class-id={cls.classId}
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    aria-label={cardAriaLabel}
+                                                    aria-expanded={isFocused}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" || e.key === " ") {
+                                                            e.preventDefault();
+                                                            setFocusedSubjectId((prev) => (prev === subjectId ? null : subjectId));
+                                                            onBlockClick?.(subjectId);
+                                                        } else if (e.key === "Escape") {
+                                                            e.preventDefault();
+                                                            setFocusedSubjectId(null);
+                                                        } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                                                            const sub = allSubjects.find((s) => s.subjectId === subjectId);
+                                                            if (sub && sub.classes.length > 1) {
+                                                                e.preventDefault();
+                                                                const currIdx = sub.classes.findIndex((c) => c.classId === cls.classId);
+                                                                const nextIdx = (currIdx + 1) % sub.classes.length;
+                                                                onSelectClass?.(subjectId, sub.classes[nextIdx].classId);
+                                                            }
+                                                        } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                                                            const sub = allSubjects.find((s) => s.subjectId === subjectId);
+                                                            if (sub && sub.classes.length > 1) {
+                                                                e.preventDefault();
+                                                                const currIdx = sub.classes.findIndex((c) => c.classId === cls.classId);
+                                                                const prevIdx = (currIdx - 1 + sub.classes.length) % sub.classes.length;
+                                                                onSelectClass?.(subjectId, sub.classes[prevIdx].classId);
+                                                            }
+                                                        }
+                                                    }}
                                                     onPointerDown={(e) => handlePointerDown(e, cls, mIdx)}
                                                     onPointerMove={handlePointerMove}
                                                     onPointerUp={handlePointerUp}
