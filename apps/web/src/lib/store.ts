@@ -744,7 +744,7 @@ export const useAppStore = create<AppStore>()(
 
                     let blockerSubjects: { subjectId: string; subjectName: string; hits?: number; reason?: string }[] | undefined;
                     if (genResult.blockerSubjects) {
-                        blockerSubjects = genResult.blockerSubjects.map(b => {
+                        blockerSubjects = genResult.blockerSubjects.map((b: any) => {
                             const sub = datasource.subjects.find(s => s.subjectId === b.subjectId);
                             return {
                                 ...b,
@@ -775,7 +775,7 @@ export const useAppStore = create<AppStore>()(
 
                     // Pick one that differs from current selection if possible
                     const currentMapping = plan.selectedClassBySubjectId;
-                    const differingVariant = serializedVariants.find((m) =>
+                    const differingVariant = serializedVariants.find((m: any) =>
                         Object.entries(m).some(([sId, cId]) => currentMapping[sId] !== cId)
                     );
                     const chosen = differingVariant || serializedVariants[0];
@@ -882,7 +882,7 @@ export const useAppStore = create<AppStore>()(
 
                     let blockerSubjects: { subjectId: string; subjectName: string; hits?: number; reason?: string }[] | undefined;
                     if (genResult.blockerSubjects) {
-                        blockerSubjects = genResult.blockerSubjects.map(b => {
+                        blockerSubjects = genResult.blockerSubjects.map((b: any) => {
                             const sub = datasource.subjects.find(s => s.subjectId === b.subjectId);
                             return {
                                 ...b,
@@ -1089,7 +1089,7 @@ export const useAppStore = create<AppStore>()(
                     failureSummary = genResult.failureSummary;
 
                     if (genResult.blockerSubjects) {
-                        blockerSubjects = genResult.blockerSubjects.map(b => {
+                        blockerSubjects = genResult.blockerSubjects.map((b: any) => {
                             const sub = datasource.subjects.find(s => s.subjectId === b.subjectId);
                             return {
                                 ...b,

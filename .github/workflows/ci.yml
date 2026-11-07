@@ -30,6 +30,9 @@ jobs:
       - name: Run Next.js lint
         run: pnpm --filter web exec next lint
 
+      - name: Build engine package
+        run: pnpm --filter @krs/engine build
+
       - name: Typecheck all workspace packages
         run: pnpm -r exec tsc --noEmit
 

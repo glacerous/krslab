@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, Subject } from "@/lib/store";
 import { parseBimaMasterWithDebug } from "@krs/engine";
 import { SAMPLE_BIMA_TEXT } from "@/lib/sample-data";
 import { toast } from "sonner";
@@ -72,7 +72,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         try {
             const res = parseBimaMasterWithDebug(trimmed);
             const subjects = res.subjects || [];
-            const classCount = subjects.reduce((sum, s) => sum + s.classes.length, 0);
+            const classCount = subjects.reduce((sum: number, s: Subject) => sum + s.classes.length, 0);
             if (subjects.length === 0) {
                 return {
                     ok: false,
@@ -140,7 +140,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
         const sampleName = isId ? "Sampel Informatika" : "Sample Informatics";
         const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
-        const sampleSubIds = parsed.subjects.slice(0, 5).map(s => s.subjectId);
+        const sampleSubIds = parsed.subjects.slice(0, 5).map((s: Subject) => s.subjectId);
         useAppStore.getState().updatePlan(planId, {
             name: "Plan 1",
             selectedSubjectIds: sampleSubIds
@@ -233,7 +233,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
             );
 
             if (sourceName.toLowerCase().includes("sample")) {
-                const sampleSubIds = parseResult.subjects.slice(0, 5).map(s => s.subjectId);
+                const sampleSubIds = parseResult.subjects.slice(0, 5).map((s: Subject) => s.subjectId);
                 useAppStore.getState().updatePlan(planId, {
                     selectedSubjectIds: sampleSubIds
                 });
