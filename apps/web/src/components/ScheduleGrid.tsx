@@ -88,6 +88,16 @@ export function ScheduleGrid({
     const [isSpringingBack, setIsSpringingBack] = useState(false);
     const [justDroppedSubjectId, setJustDroppedSubjectId] = useState<string | null>(null);
     const [droppedOptimisticPicks, setDroppedOptimisticPicks] = useState<Record<string, string>>({});
+    const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || !window.matchMedia) return;
+        const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+        setPrefersReducedMotion(mediaQuery.matches);
+        const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+        mediaQuery.addEventListener?.("change", handler);
+        return () => mediaQuery.removeEventListener?.("change", handler);
+    }, []);
 
     // Clean up optimistic picks once parent selectedClasses catches up
     useEffect(() => {
@@ -923,7 +933,9 @@ export function ScheduleGrid({
                                                               }),
                                                         opacity: 1, // ALWAYS 100% OPAQUE
                                                         willChange: isThisCardDragging ? "transform" : "left, top, height, width",
-                                                        transition: isThisCardDragging || isThisCardJustDropped
+                                                        transition: prefersReducedMotion
+                                                            ? "none"
+                                                            : isThisCardDragging || isThisCardJustDropped
                                                             ? (isSpringingBack ? "transform 200ms ease-out" : "none")
                                                             : "left 300ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), width 300ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
                                                         ...(isThisCardDragging

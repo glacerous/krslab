@@ -298,4 +298,29 @@
   .animate-sheet-swap {
     animation: sheet-swap 260ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
+
+  /* Accessible Reduced Motion Support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+
+    .animate-scribble,
+    .animate-pen-stroke,
+    .animate-sheet-swap,
+    .animate-node-settle {
+      animation: none !important;
+      stroke-dashoffset: 0 !important;
+    }
+
+    [data-sonner-toaster] [data-sonner-toast] {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
 }
