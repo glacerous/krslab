@@ -74,6 +74,17 @@
     border-color: #2e2e2b;
   }
 
+  /* Brand-style visible focus ring (tactile ink in light mode, crisp chalk in dark mode) */
+  :focus-visible {
+    outline: 2px solid #141413;
+    outline-offset: 2px;
+  }
+
+  .dark :focus-visible {
+    outline: 2px solid #f4f4f6;
+    outline-offset: 2px;
+  }
+
   body {
     background-color: #f9f9f8;
     color: #141413;
