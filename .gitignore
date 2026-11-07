@@ -142,3 +142,6 @@ vite.config.ts.timestamp-*
 
 .vercel
 .env*.local
+
+build_output.txt
+*output*.txt

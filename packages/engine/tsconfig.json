@@ -18,18 +18,8 @@
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
-        "baseUrl": ".",
-        "paths": {
-            "krsplan-engine": [
-                "../krsplan-engine/src"
-            ]
-        }
+        "baseUrl": "."
     },
-    "references": [
-        {
-            "path": "../krsplan-engine"
-        }
-    ],
     "include": [
         "src/**/*"
     ],
