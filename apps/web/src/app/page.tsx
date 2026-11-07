@@ -1242,6 +1242,7 @@ function WorkspaceContent() {
                             isPrefsOpen && "bg-neutral-200/80 dark:bg-[#2e2e2b]"
                         )}
                         title={t.preferences}
+                        aria-label={t.preferences}
                     >
                         <SlidersHorizontal className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
                     </button>
@@ -1277,6 +1278,7 @@ function WorkspaceContent() {
                         <button
                             onClick={() => setSolverDiagnostics(null)}
                             className="p-1 rounded hover:bg-rose-100"
+                            aria-label="Dismiss diagnostic notice"
                         >
                             <X className="w-3.5 h-3.5" />
                         </button>
@@ -1387,6 +1389,7 @@ function WorkspaceContent() {
                             onClick={handleCancelPreview}
                             className="px-3 py-1.5 rounded-xl text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-1 select-none cursor-pointer"
                             title="Discard preview (Esc)"
+                            aria-label="Discard preview (Esc)"
                         >
                             <X className="w-3.5 h-3.5" />
                             <span>{t.cancel}</span>
@@ -1401,6 +1404,7 @@ function WorkspaceContent() {
                         onClick={() => setIsMobileCoursesOpen(true)}
                         className="tactile-btn px-4 py-2.5 rounded-full bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] text-[13px] font-medium shadow-xl flex items-center gap-2 hover:bg-[#282826] active:scale-95 transition-all border border-neutral-700 dark:border-neutral-300 select-none"
                         title="Open Course Catalog & Selected Sections"
+                        aria-label="Open Course Catalog and Selected Sections"
                     >
                         <div className="w-2 h-2 rounded-full bg-emerald-400" />
                         <span>Courses ({activePlan.selectedSubjectIds.length})</span>
@@ -1432,6 +1436,7 @@ function WorkspaceContent() {
                                     onClick={() => setIsMobileCoursesOpen(false)}
                                     className="p-1.5 rounded-lg hover:bg-neutral-200/60 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                     title="Close Drawer"
+                                    aria-label="Close Drawer"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -1583,6 +1588,7 @@ function WorkspaceContent() {
                                                 }}
                                                 className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Edit source or rename"
+                                                aria-label={`Edit or rename source ${ds.name}`}
                                             >
                                                 <Pencil className="w-3.5 h-3.5" />
                                             </button>
@@ -1596,6 +1602,7 @@ function WorkspaceContent() {
                                                 }}
                                                 className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Duplicate source"
+                                                aria-label={`Duplicate source ${ds.name}`}
                                             >
                                                 <Copy className="w-3.5 h-3.5" />
                                             </button>
@@ -1609,6 +1616,7 @@ function WorkspaceContent() {
                                                 }}
                                                 className="p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950/40 text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                                                 title="Delete source"
+                                                aria-label={`Delete source ${ds.name}`}
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>
@@ -1839,6 +1847,7 @@ function WorkspaceContent() {
                                                 }}
                                                 className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Rename plan"
+                                                aria-label={`Rename plan ${p.name}`}
                                             >
                                                 <Pencil className="w-3.5 h-3.5" />
                                             </button>
@@ -1852,6 +1861,7 @@ function WorkspaceContent() {
                                                 }}
                                                 className="p-1 rounded hover:bg-neutral-200/70 dark:hover:bg-white/[0.08] text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                                                 title="Duplicate plan"
+                                                aria-label={`Duplicate plan ${p.name}`}
                                             >
                                                 <Copy className="w-3.5 h-3.5" />
                                             </button>
@@ -1867,6 +1877,7 @@ function WorkspaceContent() {
                                                     }}
                                                     className="p-1 rounded hover:bg-rose-100 dark:hover:bg-rose-950/40 text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 transition-colors"
                                                     title="Delete plan"
+                                                    aria-label={`Delete plan ${p.name}`}
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>

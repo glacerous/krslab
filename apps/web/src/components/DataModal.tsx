@@ -302,6 +302,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                         onClick={onClose}
                         className="p-1.5 rounded-lg text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                         title="Close modal"
+                        aria-label="Close modal"
                     >
                         <X className="w-4 h-4" />
                     </button>

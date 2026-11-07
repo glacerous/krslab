@@ -39,6 +39,7 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
                     {/* EN / ID live language toggle */}
                     <button
                         type="button"
+                        aria-label="Toggle language between English and Indonesian"
                         onClick={() => setLanguage(language === "en" ? "id" : "en")}
                         className="hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
                         title="Toggle language (EN / ID)"
@@ -59,6 +60,7 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
                     {/* Warm Paper / Dark Ink live theme toggle */}
                     <button
                         type="button"
+                        aria-label="Toggle appearance between Warm Paper and Dark Ink"
                         onClick={() => setTheme(isDarkMode ? "light" : "dark")}
                         className="hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
                         title="Toggle appearance"

@@ -99,6 +99,7 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
                             <button
                                 onClick={onClose}
                                 className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/[0.08] rounded-lg transition-colors text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                aria-label="Close rules drawer"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -229,6 +230,7 @@ function RuleCard({ rule, onToggle, onRemove, onUpdate }: {
                     <button
                         onClick={onRemove}
                         className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors text-neutral-400 dark:text-[#71717a]"
+                        aria-label={`Remove rule ${rule.id}`}
                     >
                         <Trash2 className="w-3.5 h-3.5" />
                     </button>

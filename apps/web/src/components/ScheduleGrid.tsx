@@ -893,6 +893,7 @@ export function ScheduleGrid({
                                                                     {onToggleFreeze && (
                                                                         <button
                                                                             type="button"
+                                                                            aria-label={isFrozen ? `Unlock ${cls.subjectName}` : `Lock ${cls.subjectName}`}
                                                                             onPointerDown={(e) => e.stopPropagation()}
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
@@ -951,6 +952,7 @@ export function ScheduleGrid({
                                                                 {onToggleFreeze && (
                                                                     <button
                                                                         type="button"
+                                                                        aria-label={isFrozen ? `Unlock ${cls.subjectName}` : `Lock ${cls.subjectName}`}
                                                                         onPointerDown={(e) => e.stopPropagation()}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();
@@ -1017,6 +1019,7 @@ export function ScheduleGrid({
                                                                 {onToggleFreeze && (
                                                                     <button
                                                                         type="button"
+                                                                        aria-label={isFrozen ? `Unlock ${cls.subjectName}` : `Lock ${cls.subjectName}`}
                                                                         onPointerDown={(e) => e.stopPropagation()}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation();

@@ -240,6 +240,7 @@ export function CustomCourseModal({ isOpen, onClose }: CustomCourseModalProps) {
                         onClick={onClose}
                         className="p-1.5 rounded-lg text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
                         title="Close modal"
+                        aria-label="Close modal"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -355,6 +356,7 @@ export function CustomCourseModal({ isOpen, onClose }: CustomCourseModalProps) {
                                                 onClick={() => handleRemoveSection(idx)}
                                                 className="text-neutral-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors p-1"
                                                 title={isId ? "Hapus kelas ini" : "Remove section"}
+                                                aria-label={isId ? `Hapus kelas ${sec.className || idx + 1}` : `Remove section ${sec.className || idx + 1}`}
                                             >
                                                 <Trash2 className="w-3.5 h-3.5" />
                                             </button>

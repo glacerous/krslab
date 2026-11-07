@@ -733,6 +733,7 @@ export function InteractiveTour({
                         onClick={handleClose}
                         className="text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors p-0.5"
                         title="Close tour"
+                        aria-label="Close interactive tour"
                     >
                         <X className="w-3.5 h-3.5" />
                     </button>

@@ -235,6 +235,7 @@ export function CoursePanel({
                                                             isFrozen && "text-blue-600 dark:text-blue-400 opacity-100"
                                                         )}
                                                         title={isFrozen ? "Unlock class" : "Lock class"}
+                                                        aria-label={isFrozen ? `Unlock section for ${sub.name}` : `Lock section for ${sub.name}`}
                                                     >
                                                         {isFrozen ? (
                                                             <Lock className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
@@ -250,6 +251,7 @@ export function CoursePanel({
                                                         }}
                                                         className="p-1 rounded text-[#6e6e77] dark:text-[#a1a1aa] hover:text-rose-600 dark:hover:text-rose-400 hover:bg-neutral-200/50 dark:hover:bg-white/[0.08] transition-colors"
                                                         title="Remove course"
+                                                        aria-label={`Remove ${sub.name} from plan`}
                                                     >
                                                         <X className="w-3.5 h-3.5" />
                                                     </button>
@@ -346,6 +348,7 @@ export function CoursePanel({
                                     <button
                                         onClick={() => setSearchQuery("")}
                                         className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#a1a1aa] dark:text-[#71717a] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                        aria-label="Clear search input"
                                     >
                                         <X className="w-3 h-3" />
                                     </button>
