@@ -23,7 +23,6 @@ import {
     Check,
     AlertTriangle,
     Trash2,
-    Calendar,
     ArrowRight,
     AlertCircle,
     Info,
@@ -32,7 +31,6 @@ import {
     RotateCw,
     Pencil,
     Copy,
-    FileText,
     SlidersHorizontal,
     User
 } from "lucide-react";
@@ -49,6 +47,7 @@ function WorkspaceContent() {
         activeDatasourceId,
         setActivePlanId,
         setActiveDatasourceId,
+        addDatasource,
         addPlan,
         updatePlan,
         deletePlan,
@@ -437,7 +436,23 @@ function WorkspaceContent() {
 
     // Ensure there is always an active plan and datasource if data exists
     useEffect(() => {
-        if (!_hasHydrated || datasources.length === 0) return;
+        if (!_hasHydrated) return;
+
+        if (datasources.length === 0) {
+            const newDsId = addDatasource(language === "id" ? "Jadwal Saya" : "My Schedule", []);
+            setActiveDatasourceId(newDsId);
+            const newPlanId = addPlan({
+                name: "Plan 1",
+                datasourceId: newDsId,
+                selectedSubjectIds: [],
+                selectedClassBySubjectId: {},
+                rules: [],
+                savedVariants: []
+            });
+            setActivePlanId(newPlanId);
+            setActiveTab("catalog");
+            return;
+        }
 
         let currentDsId = activeDatasourceId;
         if (!currentDsId || !datasources.some(d => d.id === currentDsId)) {
@@ -469,7 +484,7 @@ function WorkspaceContent() {
                 setActiveTab("catalog");
             }
         }
-    }, [_hasHydrated, datasources, activeDatasourceId, plans, activePlanId, setActiveDatasourceId, setActivePlanId, addPlan]);
+    }, [_hasHydrated, datasources, activeDatasourceId, plans, activePlanId, setActiveDatasourceId, setActivePlanId, addPlan, addDatasource, language]);
 
     // Reset preview candidate whenever active plan changes
     useEffect(() => {
@@ -905,111 +920,6 @@ function WorkspaceContent() {
                         Loading studio...
                     </span>
                 </div>
-            </div>
-        );
-    }
-
-    if (datasources.length === 0) {
-        return (
-            <div className="min-h-screen bg-[#f9f9f8] bg-dot-matrix flex flex-col items-center justify-center p-6 text-[#141413] relative overflow-hidden font-sans">
-                <div className="max-w-xl w-full space-y-8 relative z-10 text-center animate-in fade-in zoom-in-95 duration-500">
-                    {/* Header */}
-                    <div className="space-y-3">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-neutral-200/60 border border-[#e6e6e3] text-[#6e6e77] text-xs font-medium">
-                            <span>Effortless KRS Schedule Solver</span>
-                        </div>
-                        <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-[#141413]">
-                            Welcome to KRSlab
-                        </h1>
-                        <p className="text-sm md:text-base text-[#6e6e77] max-w-md mx-auto leading-relaxed">
-                            Pick your courses, set your preferences, and let the automated solver resolve all your class conflicts in 1 click.
-                        </p>
-                    </div>
-
-                    {/* Action Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
-                        {/* Option 1: Sample Data */}
-                        <div
-                            onClick={() => {
-                                const { parseBimaMasterWithDebug } = require("@krs/engine");
-                                const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
-                                const sampleName = language === "id" ? "Sampel Informatika" : "Sample Informatics";
-                                const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
-                                const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
-                                const sampleClasses: Record<string, string> = {};
-                                const assignedClasses: any[] = [];
-                                for (const subId of sampleSubIds) {
-                                    const sub = parsed.subjects.find((s: any) => s.subjectId === subId);
-                                    if (!sub?.classes?.length) continue;
-                                    let picked = sub.classes.find((candidate: any) =>
-                                        !assignedClasses.some((assigned: any) => checkClassConflict(candidate, assigned))
-                                    );
-                                    if (!picked) picked = sub.classes[0];
-                                    sampleClasses[subId] = picked.classId;
-                                    assignedClasses.push(picked);
-                                }
-                                useAppStore.getState().updatePlan(planId, {
-                                    name: "Semester 4",
-                                    selectedSubjectIds: sampleSubIds,
-                                    selectedClassBySubjectId: sampleClasses
-                                });
-                                toast.success("Sample Data Loaded!", {
-                                    id: "sample-toast",
-                                    description: "5 courses pre-selected. Click Auto-Schedule to see the solver in action!"
-                                });
-                            }}
-                            className="p-6 rounded-2xl bg-white border border-[#e6e6e3] shadow-sm hover:border-[#141413] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-                        >
-                            <div className="space-y-2">
-                                <div className="w-10 h-10 rounded-xl bg-neutral-100 text-[#141413] flex items-center justify-center font-bold">
-                                    <Calendar className="w-5 h-5 text-[#141413]" />
-                                </div>
-                                <h3 className="text-base font-semibold text-[#141413] group-hover:text-black transition-colors">
-                                    Try Sample Data
-                                </h3>
-                                <p className="text-xs text-[#6e6e77] leading-relaxed">
-                                    Instantly load a realistic Informatics schedule (Senin–Sabtu) to test the solver without logging into BIMA.
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-[#141413] pt-2">
-                                <span>Load Sample Now</span>
-                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-
-                        {/* Option 2: Paste BIMA Data */}
-                        <div
-                            onClick={() => {
-                                setDataModalEditSourceId(null);
-                                openOverlay("bima-import");
-                            }}
-                            className="p-6 rounded-2xl bg-white border border-[#e6e6e3] shadow-sm hover:border-[#141413] hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between space-y-4"
-                        >
-                            <div className="space-y-2">
-                                <div className="w-10 h-10 rounded-xl bg-neutral-100 text-[#141413] flex items-center justify-center font-bold group-hover:text-black transition-colors">
-                                    <FileText className="w-5 h-5 text-[#5b82a6]" />
-                                </div>
-                                <h3 className="text-base font-semibold text-[#141413] group-hover:text-black transition-colors">
-                                    Import BIMA Schedule
-                                </h3>
-                                <p className="text-xs text-[#6e6e77] leading-relaxed">
-                                    Copy the &quot;Jadwal Dosen&quot; table from your university BIMA portal and paste it directly.
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-xs font-medium text-[#6e6e77] group-hover:text-[#141413] pt-2">
-                                <span>Paste Table Data</span>
-                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* BIMA Import Modal in Empty State */}
-                <DataModal
-                    isOpen={activeOverlay === "bima-import"}
-                    onClose={closeOverlay}
-                    editSourceId={dataModalEditSourceId}
-                />
             </div>
         );
     }
@@ -2089,35 +1999,6 @@ function WorkspaceContent() {
                 isOpen={mounted && (!hasCompletedWelcome || isWelcomeManuallyOpen)}
                 onContinue={() => {
                     setIsWelcomeManuallyOpen(false);
-                    if (datasources.length === 0) {
-                        const { parseBimaMasterWithDebug } = require("@krs/engine");
-                        const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
-                        const sampleName = language === "id" ? "Sampel Informatika" : "Sample Informatics";
-                        const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
-                        const sampleSubIds = parsed.subjects.slice(0, 5).map((s: any) => s.subjectId);
-                        const sampleClasses: Record<string, string> = {};
-                        const assignedClasses: any[] = [];
-                        for (const subId of sampleSubIds) {
-                            const sub = parsed.subjects.find((s: any) => s.subjectId === subId);
-                            if (!sub?.classes?.length) continue;
-                            let picked = sub.classes.find((candidate: any) =>
-                                !assignedClasses.some((assigned: any) => checkClassConflict(candidate, assigned))
-                            );
-                            if (!picked) picked = sub.classes[0];
-                            sampleClasses[subId] = picked.classId;
-                            assignedClasses.push(picked);
-                        }
-                        useAppStore.getState().updatePlan(planId, {
-                            name: "Semester 4",
-                            selectedSubjectIds: sampleSubIds,
-                            selectedClassBySubjectId: sampleClasses
-                        });
-                        setActiveTab("selected");
-                        toast.success("Loaded Sample Informatics Schedule!");
-                    }
-                    setTimeout(() => {
-                        triggerTour();
-                    }, 100);
                 }}
             />
         </div>

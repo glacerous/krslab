@@ -16,11 +16,14 @@ test.describe("KRSlab Smoke Test", () => {
             await closeTourBtn.click();
         }
 
-        // 3. Load Sample Data if empty state is present
-        const trySampleBtn = page.getByText("Try Sample Data");
-        if (await trySampleBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
-            await trySampleBtn.click();
-        }
+        // 3. Load Sample Data via source menu
+        const sourceBtn = page.locator("#tour-datasource-btn");
+        await expect(sourceBtn).toBeVisible({ timeout: 10000 });
+        await sourceBtn.click();
+
+        const loadSampleBtn = page.getByRole("button", { name: /load sample|muat sampel/i });
+        await expect(loadSampleBtn).toBeVisible({ timeout: 5000 });
+        await loadSampleBtn.click();
 
         // Verify schedule card nodes appear on the grid
         const firstCard = page.locator("[data-subject-id]").first();
