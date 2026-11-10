@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useCallback } from "react";
-import { X, ArrowRight, RotateCcw, Sparkles } from "lucide-react";
+import React, { useEffect, useRef } from "react";
+import { X, Trash2, Clock, CalendarX, Calendar, Hourglass, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Rule, TimeWindowRule, NoDayRule, MaxDaysPerWeekRule, MaxGapRule, Day } from "@krs/engine";
 import { createPortal } from "react-dom";
@@ -16,180 +16,73 @@ interface RulesLabProps {
     onGenerate: () => void;
 }
 
-const ALL_DAYS: Day[] = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-
-// Hand-drawn doodle SVG icons matching KRSlab papercraft style
-function DoodleWeekendIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="10" cy="10" r="4.5" />
-            <path d="M10 2.5v1.8M10 15.7v1.8M2.5 10h1.8M15.7 10h1.8M4.7 4.7l1.3 1.3M14 14l1.3 1.3M4.7 15.3l1.3-1.3M14 6l1.3-1.3" />
-        </svg>
-    );
-}
-
-function DoodleClockIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="10" cy="10" r="7" />
-            <path d="M10 6.2v4.2l3 1.8" />
-            <path d="M16.5 3.5l1 1M18.5 2.5l-1 1" />
-        </svg>
-    );
-}
-
-function DoodleCompactIcon({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M11 2.5L4.5 11h5l-1.5 6.5 7.5-9h-5.5L11 2.5z" />
-        </svg>
-    );
-}
-
-function DoodleCalendarX({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4.5" width="14" height="12.5" rx="2.5" />
-            <path d="M6.5 2.5v3M13.5 2.5v3M3 8.5h14" />
-            <path d="M7.8 11.2l4.4 4.4M12.2 11.2l-4.4 4.4" />
-        </svg>
-    );
-}
-
-function DoodleTimeWindow({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="10" cy="10" r="7" />
-            <path d="M10 5.8v4.5l3.2 2" />
-        </svg>
-    );
-}
-
-function DoodleDaysCount({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="4.5" width="14" height="12.5" rx="2.5" />
-            <path d="M6.5 2.5v3M13.5 2.5v3M3 8.5h14" />
-            <circle cx="7" cy="12" r="1" fill="currentColor" />
-            <circle cx="10" cy="12" r="1" fill="currentColor" />
-            <circle cx="13" cy="12" r="1" fill="currentColor" />
-            <circle cx="7" cy="14.5" r="1" fill="currentColor" />
-        </svg>
-    );
-}
-
-function DoodleHourglass({ className }: { className?: string }) {
-    return (
-        <svg className={className} viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5.5 3.5h9M5.5 16.5h9" />
-            <path d="M6.5 3.5c0 4 3.5 4.5 3.5 6.5s-3.5 2.5-3.5 6.5h7c0-4-3.5-4.5-3.5-6.5s3.5-2.5 3.5-6.5h-7z" />
-        </svg>
-    );
-}
+const DAYS: Day[] = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
 export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: RulesLabProps) {
-    const language = useAppStore((s) => s.language);
-    const isId = language === "id";
+    const listRef = useRef<HTMLDivElement>(null);
 
-    // Index rules by type for O(1) canonical access
-    const ruleByType = useMemo(() => {
-        const map = new Map<string, Rule>();
-        for (const r of rules) {
-            map.set(r.type, r);
-        }
-        return map;
-    }, [rules]);
+    const toggleRule = (id: string) => {
+        onUpdateRules(rules.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)));
+    };
 
-    const activeRulesCount = useMemo(() => {
-        return rules.filter(r => {
-            if (!r.enabled) return false;
-            if (r.type === "noDay") return Array.isArray(r.days) && r.days.length > 0;
-            return true;
-        }).length;
-    }, [rules]);
+    const removeRule = (id: string) => {
+        onUpdateRules(rules.filter((r) => r.id !== id));
+    };
 
-    // Handle ESC to close and ENTER to run
+    const updateRuleData = (id: string, data: Partial<Rule>) => {
+        onUpdateRules(rules.map((r) => (r.id === id ? ({ ...r, ...data } as Rule) : r)));
+    };
+
+    // ESC to close drawer
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape") {
-                onClose();
-            } else if (e.key === "Enter" && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
-                e.preventDefault();
-                onGenerate();
+            if (e.key === "Escape") onClose();
+        };
+        if (isOpen) window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isOpen, onClose]);
+
+    const addOrFocusRule = (type: Rule["type"]) => {
+        const existing = rules.find((r) => r.type === type);
+        if (existing) {
+            if (!existing.enabled) {
+                toggleRule(existing.id);
             }
-        };
-        if (isOpen) {
-            window.addEventListener("keydown", handleKeyDown);
+            const el = document.getElementById(`rule-card-${existing.id}`);
+            el?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            return;
         }
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [isOpen, onClose, onGenerate]);
 
-    // Helper to update or create a rule by type
-    const upsertRule = useCallback((type: Rule["type"], updater: (current: Rule | undefined) => Rule) => {
-        const existingIdx = rules.findIndex(r => r.type === type);
-        let next: Rule[];
-        if (existingIdx >= 0) {
-            const updated = updater(rules[existingIdx]);
-            next = [...rules];
-            next[existingIdx] = updated;
-        } else {
-            const created = updater(undefined);
-            next = [...rules, created];
+        const id = crypto.randomUUID();
+        let newRule: Rule;
+
+        switch (type) {
+            case "noDay":
+                newRule = { id, type: "noDay", enabled: true, days: ["Sabtu"], label: "Ban Days" };
+                break;
+            case "timeWindow":
+                newRule = {
+                    id,
+                    type: "timeWindow",
+                    enabled: true,
+                    scope: "allDays",
+                    earliestStartMin: 480, // 08:00
+                    latestEndMin: 1080,   // 18:00
+                    label: "Time Window"
+                };
+                break;
+            case "maxDaysPerWeek":
+                newRule = { id, type: "maxDaysPerWeek", enabled: true, maxDays: 4, label: "Max Days on Campus" };
+                break;
+            case "maxGap":
+                newRule = { id, type: "maxGap", enabled: true, maxGapMin: 60, label: "Max Gap Between Classes" };
+                break;
+            default:
+                return;
         }
-        onUpdateRules(next);
-    }, [rules, onUpdateRules]);
 
-    // Reset all rules
-    const handleResetAll = useCallback(() => {
-        onUpdateRules([]);
-    }, [onUpdateRules]);
-
-    // Presets
-    const applyPreset = useCallback((preset: "longWeekend" | "no7am" | "compact4") => {
-        let next = [...rules];
-        const updateOrAdd = (rule: Rule) => {
-            const idx = next.findIndex(r => r.type === rule.type);
-            if (idx >= 0) next[idx] = rule;
-            else next.push(rule);
-        };
-
-        if (preset === "longWeekend") {
-            updateOrAdd({
-                id: crypto.randomUUID(),
-                type: "noDay",
-                enabled: true,
-                days: ["Jumat", "Sabtu"],
-                label: "No Day"
-            });
-        } else if (preset === "no7am") {
-            updateOrAdd({
-                id: crypto.randomUUID(),
-                type: "timeWindow",
-                enabled: true,
-                scope: "allDays",
-                earliestStartMin: 480, // 08:00
-                latestEndMin: 1080,   // 18:00
-                label: "Time Window"
-            });
-        } else if (preset === "compact4") {
-            updateOrAdd({
-                id: crypto.randomUUID(),
-                type: "maxDaysPerWeek",
-                enabled: true,
-                maxDays: 4,
-                label: "Max Days"
-            });
-        }
-        onUpdateRules(next);
-    }, [rules, onUpdateRules]);
-
-    // Rule states
-    const noDayRule = ruleByType.get("noDay") as NoDayRule | undefined;
-    const timeRule = ruleByType.get("timeWindow") as TimeWindowRule | undefined;
-    const maxDaysRule = ruleByType.get("maxDaysPerWeek") as MaxDaysPerWeekRule | undefined;
-    const gapRule = ruleByType.get("maxGap") as MaxGapRule | undefined;
+        onUpdateRules([...rules, newRule]);
+    };
 
     return (
         <>
@@ -197,401 +90,105 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
                 <div className="fixed inset-0 z-[120] animate-in fade-in duration-200">
                     {/* Backdrop */}
                     <div
-                        className="absolute inset-0 bg-black/15 backdrop-blur-[1px] transition-opacity cursor-pointer"
+                        className="absolute inset-0 bg-black/20 backdrop-blur-[1px] transition-opacity cursor-pointer"
                         onClick={onClose}
                     />
 
                     {/* Drawer Panel */}
                     <div
-                        className="absolute top-0 right-0 h-full w-[430px] max-w-[92vw] bg-white dark:bg-[#1c1c1f] border-l border-[#e6e6e3] dark:border-[#2e2e34] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 z-[125]"
+                        className="absolute top-0 right-0 h-full w-[410px] max-w-[90vw] bg-white dark:bg-[#1c1c1f] border-l border-[#e6e6e3] dark:border-[#2e2e34] shadow-2xl flex flex-col animate-in slide-in-from-right duration-300 z-[125]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="p-4 px-5 border-b border-[#e6e6e3] dark:border-[#2e2e34] flex items-center justify-between bg-[#fbfbfa] dark:bg-[#18181b] shrink-0">
-                            <div className="flex items-center gap-2.5">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h2 className="text-[15px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight">
-                                            {isId ? "Aturan & Preferensi" : "Rules & Constraints"}
-                                        </h2>
-                                        {activeRulesCount > 0 && (
-                                            <span className="bg-[#141413] dark:bg-white text-white dark:text-[#141413] rounded-full px-2 py-0.5 text-[11px] font-bold font-mono">
-                                                {activeRulesCount} {isId ? "aktif" : "active"}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] mt-0.5">
-                                        {isId ? "Saring jadwal otomatis sesuai preferensi kuliah" : "Filter auto-schedule combinations to your liking"}
+                        <div className="p-5 px-6 border-b border-[#e6e6e3] dark:border-[#2e2e34] flex items-center justify-between bg-[#fbfbfa] dark:bg-[#18181b] shrink-0">
+                            <div>
+                                <h2 className="text-[16px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight">
+                                    Rules & Preferences
+                                </h2>
+                                <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] mt-0.5">
+                                    Configure solver schedule constraints
+                                </p>
+                            </div>
+                            <button
+                                onClick={onClose}
+                                className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/[0.08] rounded-lg transition-colors text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                aria-label="Close rules drawer"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Rules List */}
+                        <div ref={listRef} className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-white dark:bg-[#1c1c1f]">
+                            {rules.length === 0 ? (
+                                <div className="py-8 px-4 flex flex-col items-center justify-center border border-dashed border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl text-center bg-[#fafaf9]/70 dark:bg-[#18181b]/70 space-y-2">
+                                    <p className="font-doodle text-[17px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] leading-snug max-w-[240px]">
+                                        no rules yet — add one below to filter schedules
                                     </p>
+                                    <svg className="w-5 h-6 text-[#5b82a6] dark:text-[#7dd3fc] stroke-current fill-none stroke-[2] translate-y-1" viewBox="0 0 20 24">
+                                        <path d="M10 2 L10 20" strokeLinecap="round" />
+                                        <path d="M5 15 L10 20 L15 15" strokeLinecap="round" strokeLinejoin="round" />
+                                    </svg>
                                 </div>
-                            </div>
-                            <div className="flex items-center gap-1">
-                                {activeRulesCount > 0 && (
-                                    <button
-                                        onClick={handleResetAll}
-                                        className="text-[12px] font-medium text-[#6e6e77] hover:text-rose-600 dark:hover:text-rose-400 px-2 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer"
-                                        title={isId ? "Hapus semua aturan" : "Reset all rules"}
-                                    >
-                                        <RotateCcw className="w-3 h-3" />
-                                        <span>Reset</span>
-                                    </button>
-                                )}
-                                <button
-                                    onClick={onClose}
-                                    className="p-1.5 hover:bg-neutral-100 dark:hover:bg-white/[0.08] rounded-lg transition-colors text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] cursor-pointer"
-                                    aria-label="Close rules drawer"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
+                            ) : (
+                                rules.map((rule) => (
+                                    <RuleCard
+                                        key={rule.id}
+                                        rule={rule}
+                                        onToggle={() => toggleRule(rule.id)}
+                                        onRemove={() => removeRule(rule.id)}
+                                        onUpdate={(data) => updateRuleData(rule.id, data)}
+                                    />
+                                ))
+                            )}
+
+                            {/* Add Rules Section */}
+                            <div className="pt-4 border-t border-[#e6e6e3] dark:border-[#2e2e34] space-y-2.5">
+                                <div className="flex items-center justify-between">
+                                    <span className="font-doodle text-[19px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
+                                        add a rule
+                                    </span>
+                                    <span className="text-[11px] font-mono text-[#a1a1aa]">
+                                        tap to add / focus
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <AddRuleButton
+                                        num="01"
+                                        label="No free day / Ban day"
+                                        isActive={rules.some((r) => r.type === "noDay" && r.enabled)}
+                                        onClick={() => addOrFocusRule("noDay")}
+                                    />
+                                    <AddRuleButton
+                                        num="02"
+                                        label="Time window"
+                                        isActive={rules.some((r) => r.type === "timeWindow" && r.enabled)}
+                                        onClick={() => addOrFocusRule("timeWindow")}
+                                    />
+                                    <AddRuleButton
+                                        num="03"
+                                        label="Max days on campus"
+                                        isActive={rules.some((r) => r.type === "maxDaysPerWeek" && r.enabled)}
+                                        onClick={() => addOrFocusRule("maxDaysPerWeek")}
+                                    />
+                                    <AddRuleButton
+                                        num="04"
+                                        label="Max gap between classes"
+                                        isActive={rules.some((r) => r.type === "maxGap" && r.enabled)}
+                                        onClick={() => addOrFocusRule("maxGap")}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Quick Presets Bar */}
-                        <div className="px-5 py-2.5 bg-[#f5f5f3] dark:bg-[#151517] border-b border-[#e6e6e3] dark:border-[#2e2e34] shrink-0">
-                            <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-[11px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] flex items-center gap-1">
-                                    <Sparkles className="w-3 h-3 text-amber-500" />
-                                    <span>{isId ? "Preset Cepat:" : "Quick Presets:"}</span>
-                                </span>
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                                <PresetChip
-                                    icon={<DoodleWeekendIcon className="w-3.5 h-3.5 text-amber-500" />}
-                                    label={isId ? "Libur Jum-Sab" : "Free Fri & Sat"}
-                                    isActive={Boolean(noDayRule?.enabled && noDayRule.days.includes("Jumat") && noDayRule.days.includes("Sabtu"))}
-                                    onClick={() => applyPreset("longWeekend")}
-                                />
-                                <PresetChip
-                                    icon={<DoodleClockIcon className="w-3.5 h-3.5 text-sky-500" />}
-                                    label={isId ? "Tanpa Jam 7 Pagi" : "No 7 AM Class"}
-                                    isActive={Boolean(timeRule?.enabled && timeRule.earliestStartMin === 480)}
-                                    onClick={() => applyPreset("no7am")}
-                                />
-                                <PresetChip
-                                    icon={<DoodleCompactIcon className="w-3.5 h-3.5 text-emerald-500" />}
-                                    label={isId ? "Maks 4 Hari" : "4-Day Week"}
-                                    isActive={Boolean(maxDaysRule?.enabled && maxDaysRule.maxDays === 4)}
-                                    onClick={() => applyPreset("compact4")}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Rules List Container */}
-                        <div className="flex-1 overflow-y-auto p-5 space-y-3.5 custom-scrollbar bg-[#fafaf9] dark:bg-[#141416]">
-                            {/* 1. FREE DAYS / BAN DAYS */}
-                            <RuleSectionCard
-                                icon={<DoodleCalendarX className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
-                                title={isId ? "Hari Libur Kuliah" : "Free Days (No Classes)"}
-                                subtitle={isId ? "Pilih hari yang tidak ingin ada perkuliahan" : "Keep specific days completely class-free"}
-                                isEnabled={Boolean(noDayRule?.enabled)}
-                                onToggle={() => {
-                                    upsertRule("noDay", (curr) => {
-                                        if (curr) {
-                                            const nextEnabled = !curr.enabled;
-                                            const days = (curr as NoDayRule).days?.length ? (curr as NoDayRule).days : ["Sabtu"];
-                                            return { ...curr, enabled: nextEnabled, days } as NoDayRule;
-                                        }
-                                        return {
-                                            id: crypto.randomUUID(),
-                                            type: "noDay",
-                                            enabled: true,
-                                            days: ["Sabtu"],
-                                            label: "No Day"
-                                        };
-                                    });
-                                }}
-                            >
-                                <div className="space-y-2 pt-1">
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {ALL_DAYS.map((day) => {
-                                            const isSelected = (noDayRule?.days || []).includes(day);
-                                            return (
-                                                <button
-                                                    key={day}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        upsertRule("noDay", (curr) => {
-                                                            const baseDays = (curr as NoDayRule)?.days || [];
-                                                            const nextDays = isSelected
-                                                                ? baseDays.filter(d => d !== day)
-                                                                : [...baseDays, day];
-                                                            return {
-                                                                id: curr?.id || crypto.randomUUID(),
-                                                                type: "noDay",
-                                                                enabled: true,
-                                                                days: nextDays,
-                                                                label: "No Day"
-                                                            };
-                                                        });
-                                                    }}
-                                                    className={cn(
-                                                        "px-3 py-1.5 rounded-lg text-[11.5px] font-semibold border transition-all select-none cursor-pointer",
-                                                        isSelected
-                                                            ? "bg-amber-500 border-amber-600 text-white shadow-xs"
-                                                            : "bg-white dark:bg-[#1e1e22] border-[#e6e6e3] dark:border-[#2e2e34] text-[#141413] dark:text-[#e4e4e7] hover:bg-neutral-50 dark:hover:bg-[#25252a]"
-                                                    )}
-                                                >
-                                                    {formatDay(day, language)}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {(!noDayRule?.days || noDayRule.days.length === 0) && (
-                                        <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                                            {isId ? "Pilih minimal satu hari untuk diliburkan." : "Tap days above to keep them free."}
-                                        </p>
-                                    )}
-                                </div>
-                            </RuleSectionCard>
-
-                            {/* 2. TIME WINDOW */}
-                            <RuleSectionCard
-                                icon={<DoodleTimeWindow className="w-4 h-4 text-sky-600 dark:text-sky-400" />}
-                                title={isId ? "Rentang Jam Kuliah" : "Class Time Window"}
-                                subtitle={isId ? "Atur batas jam paling pagi dan paling malam" : "Limit earliest start & latest finish hours"}
-                                isEnabled={Boolean(timeRule?.enabled)}
-                                onToggle={() => {
-                                    upsertRule("timeWindow", (curr) => {
-                                        if (curr) return { ...curr, enabled: !curr.enabled };
-                                        return {
-                                            id: crypto.randomUUID(),
-                                            type: "timeWindow",
-                                            enabled: true,
-                                            scope: "allDays",
-                                            earliestStartMin: 480, // 08:00
-                                            latestEndMin: 1080,   // 18:00
-                                            label: "Time Window"
-                                        };
-                                    });
-                                }}
-                            >
-                                <div className="space-y-3 pt-1">
-                                    <div className="grid grid-cols-2 gap-2.5">
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider text-[#6e6e77] dark:text-[#a1a1aa]">
-                                                {isId ? "Paling Pagi" : "Earliest Start"}
-                                            </label>
-                                            <input
-                                                type="time"
-                                                value={formatMinToTime(timeRule?.earliestStartMin ?? 480)}
-                                                onChange={(e) => {
-                                                    const min = parseTimeToMin(e.target.value);
-                                                    upsertRule("timeWindow", (curr) => ({
-                                                        id: curr?.id || crypto.randomUUID(),
-                                                        type: "timeWindow",
-                                                        enabled: true,
-                                                        scope: "allDays",
-                                                        earliestStartMin: min,
-                                                        latestEndMin: (curr as TimeWindowRule)?.latestEndMin ?? 1080,
-                                                        label: "Time Window"
-                                                    }));
-                                                }}
-                                                className="w-full bg-white dark:bg-[#1e1e22] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-lg p-2 text-xs font-mono font-medium text-[#141413] dark:text-[#f4f4f6] focus:outline-none focus:ring-1 focus:ring-[#141413]"
-                                            />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[10px] font-bold uppercase tracking-wider text-[#6e6e77] dark:text-[#a1a1aa]">
-                                                {isId ? "Paling Malam" : "Latest Finish"}
-                                            </label>
-                                            <input
-                                                type="time"
-                                                value={formatMinToTime(timeRule?.latestEndMin ?? 1080)}
-                                                onChange={(e) => {
-                                                    const min = parseTimeToMin(e.target.value);
-                                                    upsertRule("timeWindow", (curr) => ({
-                                                        id: curr?.id || crypto.randomUUID(),
-                                                        type: "timeWindow",
-                                                        enabled: true,
-                                                        scope: "allDays",
-                                                        earliestStartMin: (curr as TimeWindowRule)?.earliestStartMin ?? 480,
-                                                        latestEndMin: min,
-                                                        label: "Time Window"
-                                                    }));
-                                                }}
-                                                className="w-full bg-white dark:bg-[#1e1e22] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-lg p-2 text-xs font-mono font-medium text-[#141413] dark:text-[#f4f4f6] focus:outline-none focus:ring-1 focus:ring-[#141413]"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap gap-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                upsertRule("timeWindow", (curr) => ({
-                                                    id: curr?.id || crypto.randomUUID(),
-                                                    type: "timeWindow",
-                                                    enabled: true,
-                                                    scope: "allDays",
-                                                    earliestStartMin: 480,
-                                                    latestEndMin: (curr as TimeWindowRule)?.latestEndMin ?? 1080,
-                                                    label: "Time Window"
-                                                }));
-                                            }}
-                                            className="px-2 py-1 rounded bg-[#f3f3f0] dark:bg-[#242428] hover:bg-neutral-200 text-[10.5px] font-mono text-[#4a4a52] dark:text-[#d4d4d8] cursor-pointer"
-                                        >
-                                            {isId ? "Mulai 08:00" : "Start 08:00"}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                upsertRule("timeWindow", (curr) => ({
-                                                    id: curr?.id || crypto.randomUUID(),
-                                                    type: "timeWindow",
-                                                    enabled: true,
-                                                    scope: "allDays",
-                                                    earliestStartMin: 540,
-                                                    latestEndMin: (curr as TimeWindowRule)?.latestEndMin ?? 1080,
-                                                    label: "Time Window"
-                                                }));
-                                            }}
-                                            className="px-2 py-1 rounded bg-[#f3f3f0] dark:bg-[#242428] hover:bg-neutral-200 text-[10.5px] font-mono text-[#4a4a52] dark:text-[#d4d4d8] cursor-pointer"
-                                        >
-                                            {isId ? "Mulai 09:00" : "Start 09:00"}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                upsertRule("timeWindow", (curr) => ({
-                                                    id: curr?.id || crypto.randomUUID(),
-                                                    type: "timeWindow",
-                                                    enabled: true,
-                                                    scope: "allDays",
-                                                    earliestStartMin: (curr as TimeWindowRule)?.earliestStartMin ?? 480,
-                                                    latestEndMin: 1020,
-                                                    label: "Time Window"
-                                                }));
-                                            }}
-                                            className="px-2 py-1 rounded bg-[#f3f3f0] dark:bg-[#242428] hover:bg-neutral-200 text-[10.5px] font-mono text-[#4a4a52] dark:text-[#d4d4d8] cursor-pointer"
-                                        >
-                                            {isId ? "Selesai 17:00" : "End 17:00"}
-                                        </button>
-                                    </div>
-                                </div>
-                            </RuleSectionCard>
-
-                            {/* 3. MAX DAYS PER WEEK */}
-                            <RuleSectionCard
-                                icon={<DoodleDaysCount className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-                                title={isId ? "Maksimal Hari Kuliah" : "Max Campus Days / Week"}
-                                subtitle={isId ? "Padatkan perkuliahan dalam beberapa hari saja" : "Condense classes into fewer active days"}
-                                isEnabled={Boolean(maxDaysRule?.enabled)}
-                                onToggle={() => {
-                                    upsertRule("maxDaysPerWeek", (curr) => {
-                                        if (curr) return { ...curr, enabled: !curr.enabled };
-                                        return {
-                                            id: crypto.randomUUID(),
-                                            type: "maxDaysPerWeek",
-                                            enabled: true,
-                                            maxDays: 4,
-                                            label: "Max Days"
-                                        };
-                                    });
-                                }}
-                            >
-                                <div className="space-y-2 pt-1">
-                                    <div className="grid grid-cols-4 gap-1.5">
-                                        {[3, 4, 5, 6].map((daysCount) => {
-                                            const isSelected = (maxDaysRule?.maxDays ?? 4) === daysCount;
-                                            return (
-                                                <button
-                                                    key={daysCount}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        upsertRule("maxDaysPerWeek", (curr) => ({
-                                                            id: curr?.id || crypto.randomUUID(),
-                                                            type: "maxDaysPerWeek",
-                                                            enabled: true,
-                                                            maxDays: daysCount,
-                                                            label: "Max Days"
-                                                        }));
-                                                    }}
-                                                    className={cn(
-                                                        "py-2 rounded-lg text-xs font-semibold border transition-all text-center select-none cursor-pointer",
-                                                        isSelected
-                                                            ? "bg-emerald-600 border-emerald-700 text-white shadow-xs font-bold"
-                                                            : "bg-white dark:bg-[#1e1e22] border-[#e6e6e3] dark:border-[#2e2e34] text-[#141413] dark:text-[#e4e4e7] hover:bg-neutral-50 dark:hover:bg-[#25252a]"
-                                                    )}
-                                                >
-                                                    {daysCount} {isId ? "hari" : "days"}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </RuleSectionCard>
-
-                            {/* 4. MAX GAP BETWEEN CLASSES */}
-                            <RuleSectionCard
-                                icon={<DoodleHourglass className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
-                                title={isId ? "Jeda Maksimal Antarkelas" : "Max Gap Between Classes"}
-                                subtitle={isId ? "Hindari jam kosong yang terlalu lama di kampus" : "Avoid excessive waiting hours between lectures"}
-                                isEnabled={Boolean(gapRule?.enabled)}
-                                onToggle={() => {
-                                    upsertRule("maxGap", (curr) => {
-                                        if (curr) return { ...curr, enabled: !curr.enabled };
-                                        return {
-                                            id: crypto.randomUUID(),
-                                            type: "maxGap",
-                                            enabled: true,
-                                            maxGapMin: 60,
-                                            label: "Max Gap"
-                                        };
-                                    });
-                                }}
-                            >
-                                <div className="space-y-2 pt-1">
-                                    <div className="grid grid-cols-4 gap-1.5">
-                                        {[
-                                            { min: 30, label: "30m" },
-                                            { min: 60, label: "1h" },
-                                            { min: 90, label: "1.5h" },
-                                            { min: 120, label: "2h" }
-                                        ].map((item) => {
-                                            const isSelected = (gapRule?.maxGapMin ?? 60) === item.min;
-                                            return (
-                                                <button
-                                                    key={item.min}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        upsertRule("maxGap", (curr) => ({
-                                                            id: curr?.id || crypto.randomUUID(),
-                                                            type: "maxGap",
-                                                            enabled: true,
-                                                            maxGapMin: item.min,
-                                                            label: "Max Gap"
-                                                        }));
-                                                    }}
-                                                    className={cn(
-                                                        "py-2 rounded-lg text-xs font-semibold border transition-all text-center select-none font-mono cursor-pointer",
-                                                        isSelected
-                                                            ? "bg-purple-600 border-purple-700 text-white shadow-xs font-bold"
-                                                            : "bg-white dark:bg-[#1e1e22] border-[#e6e6e3] dark:border-[#2e2e34] text-[#141413] dark:text-[#e4e4e7] hover:bg-neutral-50 dark:hover:bg-[#25252a]"
-                                                    )}
-                                                >
-                                                    {item.label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </RuleSectionCard>
-                        </div>
-
-                        {/* Sticky Action Footer */}
-                        <div className="p-4 px-5 border-t border-[#e6e6e3] dark:border-[#2e2e34] bg-[#fbfbfa] dark:bg-[#18181b] shrink-0 space-y-2">
+                        {/* Footer */}
+                        <div className="p-4 px-6 border-t border-[#e6e6e3] dark:border-[#2e2e34] bg-[#fbfbfa] dark:bg-[#18181b] shrink-0">
                             <button
                                 onClick={onGenerate}
-                                className="w-full btn-tactile-dark py-3 rounded-xl font-medium text-[13px] text-white flex items-center justify-center gap-2 select-none shadow-sm cursor-pointer"
+                                className="w-full btn-tactile-dark py-2.5 rounded-xl font-medium text-[13px] text-white flex items-center justify-center gap-2 select-none"
                             >
-                                <span>{isId ? "Susun Otomatis" : "Run Auto-Schedule"}</span>
-                                {activeRulesCount > 0 && (
-                                    <span className="bg-white/20 px-1.5 py-0.5 rounded text-[11px] font-mono">
-                                        {activeRulesCount}
-                                    </span>
-                                )}
+                                <span>Run Auto-Schedule</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
-                                <kbd className="hidden sm:inline-block bg-white/15 px-1.5 py-0.5 rounded text-[10px] font-mono text-white/80 ml-1">
-                                    Enter
-                                </kbd>
                             </button>
                         </div>
                     </div>
@@ -602,119 +199,270 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
     );
 }
 
-function PresetChip({
-    icon,
-    label,
-    isActive,
-    onClick
-}: {
-    icon: React.ReactNode;
+function AddRuleButton({ num, label, isActive, onClick }: {
+    num: string;
     label: string;
-    isActive: boolean;
+    isActive?: boolean;
     onClick: () => void;
 }) {
     return (
         <button
-            type="button"
             onClick={onClick}
             className={cn(
-                "px-2.5 py-1 rounded-full text-[11.5px] font-medium border transition-all select-none flex items-center gap-1.5 cursor-pointer",
+                "tactile-btn flex items-start gap-2 p-2.5 rounded-xl border transition-all text-left shadow-2xs group cursor-pointer",
                 isActive
-                    ? "bg-[#141413] text-white border-[#141413] dark:bg-white dark:text-[#141413]"
-                    : "bg-white dark:bg-[#1e1e22] text-[#4a4a52] dark:text-[#d4d4d8] border-[#d8d8d4] dark:border-[#2e2e34] hover:border-[#141413] dark:hover:border-white"
+                    ? "bg-neutral-50 dark:bg-[#202024] border-[#5b82a6]/40 dark:border-[#7dd3fc]/40"
+                    : "bg-white dark:bg-[#18181b] border-[#e2e2de] dark:border-[#2e2e34] hover:bg-neutral-50 dark:hover:bg-[#202024] hover:border-[#141413]/30 dark:hover:border-white/30"
             )}
         >
-            {icon}
-            <span>{label}</span>
+            <span className="font-doodle text-[17px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] shrink-0 leading-none pt-0.5 select-none">
+                {num}
+            </span>
+            <span className="text-[12px] font-medium text-[#141413] dark:text-[#f4f4f6] leading-snug line-clamp-2">
+                {label}
+            </span>
         </button>
     );
 }
 
-function RuleSectionCard({
-    icon,
-    title,
-    subtitle,
-    isEnabled,
-    onToggle,
-    children
-}: {
-    icon: React.ReactNode;
-    title: string;
-    subtitle: string;
-    isEnabled: boolean;
+function RuleCard({ rule, onToggle, onRemove, onUpdate }: {
+    rule: Rule;
     onToggle: () => void;
-    children: React.ReactNode;
+    onRemove: () => void;
+    onUpdate: (data: Partial<Rule>) => void;
 }) {
     return (
-        <div className={cn(
-            "rounded-2xl border transition-all overflow-hidden",
-            isEnabled
-                ? "bg-white dark:bg-[#1c1c1f] border-[#dcdcd6] dark:border-[#2e2e34] shadow-xs"
-                : "bg-white/60 dark:bg-[#18181b]/60 border-[#e6e6e3] dark:border-[#242428] opacity-75 hover:opacity-100"
-        )}>
-            {/* Header row */}
-            <div
-                className="p-3.5 px-4 flex items-center justify-between cursor-pointer select-none"
-                onClick={onToggle}
-            >
+        <div
+            id={`rule-card-${rule.id}`}
+            className={cn(
+                "rounded-xl border transition-all",
+                rule.enabled
+                    ? "bg-white dark:bg-[#18181b] border-[#e6e6e3] dark:border-[#2e2e34] shadow-xs"
+                    : "bg-neutral-50/60 dark:bg-[#141416] border-[#e6e6e3] dark:border-[#2e2e34] opacity-60"
+            )}
+        >
+            {/* Card Header */}
+            <div className="p-3.5 px-4 flex items-center justify-between border-b border-[#e6e6e3]/60 dark:border-[#2e2e34]">
                 <div className="flex items-center gap-3">
-                    <div className={cn(
-                        "p-2 rounded-xl border transition-colors",
-                        isEnabled
-                            ? "bg-neutral-100 dark:bg-white/[0.08] border-[#e6e6e3] dark:border-white/[0.08]"
-                            : "bg-neutral-50 dark:bg-white/[0.02] border-transparent opacity-70"
-                    )}>
-                        {icon}
+                    <div
+                        className={cn(
+                            "p-2 rounded-lg",
+                            rule.enabled
+                                ? "bg-neutral-100 dark:bg-white/[0.08] text-[#141413] dark:text-[#f4f4f6]"
+                                : "bg-neutral-200/50 dark:bg-white/[0.04] text-[#a1a1aa] dark:text-[#71717a]"
+                        )}
+                    >
+                        {rule.type === "noDay" && <CalendarX className="w-3.5 h-3.5" />}
+                        {rule.type === "timeWindow" && <Clock className="w-3.5 h-3.5" />}
+                        {rule.type === "maxDaysPerWeek" && <Calendar className="w-3.5 h-3.5" />}
+                        {rule.type === "maxGap" && <Hourglass className="w-3.5 h-3.5" />}
                     </div>
                     <div>
-                        <h3 className="text-[13px] font-semibold text-[#141413] dark:text-[#f4f4f6] leading-snug">
-                            {title}
+                        <h3 className="text-[13px] font-semibold text-[#141413] dark:text-[#f4f4f6]">
+                            {rule.label}
                         </h3>
-                        <p className="text-[11px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
-                            {subtitle}
-                        </p>
+                        {rule.type === "noDay" && (rule as NoDayRule).days.length === 0 && (
+                            <span className="text-[11px] text-[#a1a1aa] font-mono mt-0.5 block">
+                                tap days below to ban
+                            </span>
+                        )}
                     </div>
                 </div>
-                <button
-                    type="button"
-                    role="switch"
-                    aria-checked={isEnabled}
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onToggle();
-                    }}
-                    className={cn(
-                        "w-9 h-5 rounded-full p-0.5 transition-colors shrink-0 cursor-pointer",
-                        isEnabled ? "bg-[#141413] dark:bg-white" : "bg-[#d8d8d4] dark:bg-[#34343a]"
-                    )}
-                >
-                    <div className={cn(
-                        "w-4 h-4 rounded-full transition-transform",
-                        isEnabled
-                            ? "translate-x-4 bg-white dark:bg-[#141413]"
-                            : "translate-x-0 bg-white"
-                    )} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <Switch checked={rule.enabled} onChange={onToggle} />
+                    <button
+                        onClick={onRemove}
+                        className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-600 dark:hover:text-rose-400 rounded-md transition-colors text-neutral-400 dark:text-[#71717a]"
+                        aria-label={`Remove rule ${rule.id}`}
+                    >
+                        <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                </div>
             </div>
 
-            {/* Expandable configuration area */}
-            {isEnabled && (
-                <div className="px-4 pb-4 border-t border-[#f0f0ed] dark:border-[#242428] bg-[#fdfdfc] dark:bg-[#1a1a1d] animate-in fade-in duration-150">
-                    {children}
+            {/* Card Content */}
+            {rule.enabled && (
+                <div className="p-4 animate-in slide-in-from-top-1 duration-200">
+                    {rule.type === "noDay" && (
+                        <NoDayPicker
+                            selectedDays={(rule as NoDayRule).days}
+                            onChange={(days) => onUpdate({ days })}
+                        />
+                    )}
+                    {rule.type === "timeWindow" && (
+                        <TimeWindowPicker
+                            earliestMin={(rule as TimeWindowRule).earliestStartMin}
+                            latestMin={(rule as TimeWindowRule).latestEndMin}
+                            onChange={(start, end) => onUpdate({ earliestStartMin: start, latestEndMin: end })}
+                        />
+                    )}
+                    {rule.type === "maxDaysPerWeek" && (
+                        <NumberInput
+                            value={(rule as MaxDaysPerWeekRule).maxDays}
+                            min={1}
+                            max={6}
+                            label="Max Days per Week"
+                            onChange={(val) => onUpdate({ maxDays: val })}
+                        />
+                    )}
+                    {rule.type === "maxGap" && (
+                        <NumberInput
+                            value={(rule as MaxGapRule).maxGapMin}
+                            min={15}
+                            max={480}
+                            step={15}
+                            label="Max Gap (Minutes)"
+                            unit="min"
+                            onChange={(val) => onUpdate({ maxGapMin: val })}
+                        />
+                    )}
                 </div>
             )}
         </div>
     );
 }
 
-function formatMinToTime(min: number): string {
-    const h = Math.floor(min / 60);
-    const m = min % 60;
-    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+function Switch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+    return (
+        <button
+            onClick={onChange}
+            className={cn(
+                "w-8 h-4.5 rounded-full p-0.5 transition-colors cursor-pointer",
+                checked ? "bg-[#141413] dark:bg-white" : "bg-neutral-200 dark:bg-neutral-700"
+            )}
+            role="switch"
+            aria-checked={checked}
+        >
+            <div
+                className={cn(
+                    "w-3.5 h-3.5 rounded-full transition-transform shadow-xs",
+                    checked
+                        ? "translate-x-3.5 bg-white dark:bg-[#141413]"
+                        : "translate-x-0 bg-white dark:bg-neutral-300"
+                )}
+            />
+        </button>
+    );
 }
 
-function parseTimeToMin(timeStr: string): number {
-    if (!timeStr) return 480;
-    const [h, m] = timeStr.split(":").map(Number);
-    return (h || 0) * 60 + (m || 0);
+function NoDayPicker({ selectedDays, onChange }: { selectedDays: Day[]; onChange: (days: Day[]) => void }) {
+    const language = useAppStore((s) => s.language);
+    const toggleDay = (day: Day) => {
+        if (selectedDays.includes(day)) {
+            onChange(selectedDays.filter((d) => d !== day));
+        } else {
+            onChange([...selectedDays, day]);
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            <p className="text-[10px] font-mono uppercase text-[#6e6e77] dark:text-[#a1a1aa] tracking-wider">
+                Exclude Days
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+                {DAYS.map((day) => {
+                    const isSelected = selectedDays.includes(day);
+                    return (
+                        <button
+                            key={day}
+                            onClick={() => toggleDay(day)}
+                            className={cn(
+                                "px-3 py-1.5 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer",
+                                isSelected
+                                    ? "bg-[#141413] text-white border-[#141413] dark:bg-white dark:text-[#141413] dark:border-white shadow-2xs"
+                                    : "bg-neutral-50 dark:bg-white/[0.04] border-[#e2e2de] dark:border-[#2e2e34] text-[#6e6e77] dark:text-[#a1a1aa] hover:border-[#141413]/30 dark:hover:border-white/30"
+                            )}
+                        >
+                            {formatDay(day, language)}
+                        </button>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function TimeWindowPicker({ earliestMin, latestMin, onChange }: {
+    earliestMin?: number;
+    latestMin?: number;
+    onChange: (start: number, end: number) => void;
+}) {
+    const formatTime = (min?: number) => {
+        if (min === undefined) return "";
+        const h = Math.floor(min / 60);
+        const m = min % 60;
+        return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+    };
+
+    const handleTimeChange = (type: "start" | "end", val: string) => {
+        if (!val) return;
+        const [h, m] = val.split(":").map(Number);
+        const total = h * 60 + m;
+        if (type === "start") onChange(total, latestMin ?? 1080);
+        else onChange(earliestMin ?? 480, total);
+    };
+
+    return (
+        <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                    <p className="text-[10px] font-mono uppercase text-[#6e6e77] dark:text-[#a1a1aa] tracking-wider">
+                        Earliest Start
+                    </p>
+                    <input
+                        type="time"
+                        value={formatTime(earliestMin)}
+                        onChange={(e) => handleTimeChange("start", e.target.value)}
+                        className="w-full bg-neutral-50 dark:bg-white/[0.04] border border-[#e2e2de] dark:border-[#2e2e34] rounded-lg p-2 text-[12px] font-mono text-[#141413] dark:text-[#f4f4f6] focus:outline-none focus:border-[#141413] dark:focus:border-white transition-colors"
+                    />
+                </div>
+                <div className="space-y-1">
+                    <p className="text-[10px] font-mono uppercase text-[#6e6e77] dark:text-[#a1a1aa] tracking-wider">
+                        Latest End
+                    </p>
+                    <input
+                        type="time"
+                        value={formatTime(latestMin)}
+                        onChange={(e) => handleTimeChange("end", e.target.value)}
+                        className="w-full bg-neutral-50 dark:bg-white/[0.04] border border-[#e2e2de] dark:border-[#2e2e34] rounded-lg p-2 text-[12px] font-mono text-[#141413] dark:text-[#f4f4f6] focus:outline-none focus:border-[#141413] dark:focus:border-white transition-colors"
+                    />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function NumberInput({ value, min, max, label, unit, step = 1, onChange }: {
+    value: number;
+    min: number;
+    max: number;
+    label: string;
+    unit?: string;
+    step?: number;
+    onChange: (val: number) => void;
+}) {
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center justify-between">
+                <p className="text-[10px] font-mono uppercase text-[#6e6e77] dark:text-[#a1a1aa] tracking-wider">
+                    {label}
+                </p>
+                <span className="text-[11px] font-mono font-bold text-[#141413] dark:text-[#f4f4f6] bg-neutral-100 dark:bg-white/[0.08] px-2 py-0.5 rounded">
+                    {value} {unit}
+                </span>
+            </div>
+            <div className="flex items-center gap-3">
+                <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step={step}
+                    value={value}
+                    onChange={(e) => onChange(Number(e.target.value))}
+                    className="flex-1 accent-[#141413] dark:accent-white h-1.5 bg-neutral-200 dark:bg-neutral-700 rounded-full cursor-pointer"
+                />
+            </div>
+        </div>
+    );
 }
