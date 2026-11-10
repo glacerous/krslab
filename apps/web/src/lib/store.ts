@@ -58,7 +58,7 @@ export interface Plan {
     activeSavedVariantId?: string | null;
 }
 
-interface AppStore {
+export interface AppStore {
     datasources: Datasource[];
     plans: Plan[];
     activePlanId: string | null;

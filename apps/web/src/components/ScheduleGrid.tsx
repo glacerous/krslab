@@ -73,7 +73,7 @@ export function ScheduleGrid({
     onOpenImportData,
     onBrowseCatalog
 }: ScheduleGridProps) {
-    const language = useAppStore((state) => state.language);
+    const language = useAppStore((state: any) => state.language);
     const [rowHeight, setRowHeight] = useState(compact ? 56 : 74);
     const [internalFocusedSubjectId, setInternalFocusedSubjectId] = useState<string | null>(null);
     const focusedSubjectId = propFocusedSubjectId !== undefined ? propFocusedSubjectId : internalFocusedSubjectId;

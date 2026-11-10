@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, AppStore } from "@/lib/store";
 
 export default function DatasourceRedirect() {
     const router = useRouter();
-    const setIsDataModalOpen = useAppStore((state) => state.setIsDataModalOpen);
+    const setIsDataModalOpen = useAppStore((state: AppStore) => state.setIsDataModalOpen);
 
     useEffect(() => {
         setIsDataModalOpen(true);

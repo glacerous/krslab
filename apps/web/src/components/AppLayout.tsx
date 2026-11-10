@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAppStore } from "@/lib/store";
+import { useAppStore, AppStore } from "@/lib/store";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-    const language = useAppStore((state) => state.language);
+    const language = useAppStore((state: AppStore) => state.language);
 
     useEffect(() => {
         document.documentElement.lang = language;
