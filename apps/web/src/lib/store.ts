@@ -668,7 +668,11 @@ export const useAppStore = create<AppStore>()(
                     const datasource = state.datasources.find((ds) => ds.id === plan.datasourceId);
                     if (!datasource) return { success: false };
 
-                    const rules = (plan.rules ?? []).filter(r => r.enabled);
+                    const rules = (plan.rules ?? []).filter(r => {
+                        if (!r.enabled) return false;
+                        if (r.type === "noDay" && (!Array.isArray(r.days) || r.days.length === 0)) return false;
+                        return true;
+                    });
                     const validation = validateRules(rules);
                     if (!validation.ok) {
                         return { success: false };
@@ -813,7 +817,11 @@ export const useAppStore = create<AppStore>()(
                     if (targetSubjectIds.length === 0) return { success: false };
 
                     // 1. Gather rules
-                    const rules = (plan.rules ?? []).filter(r => r.enabled);
+                    const rules = (plan.rules ?? []).filter(r => {
+                        if (!r.enabled) return false;
+                        if (r.type === "noDay" && (!Array.isArray(r.days) || r.days.length === 0)) return false;
+                        return true;
+                    });
 
                     // 2. Initial picks from frozen courses
                     const initialPicks: Record<string, Section> = {};
@@ -971,7 +979,11 @@ export const useAppStore = create<AppStore>()(
                     const datasource = state.datasources.find((ds) => ds.id === plan.datasourceId);
                     if (!datasource) return { count: 0 };
 
-                    const rules = (plan.rules ?? []).filter(r => r.enabled);
+                    const rules = (plan.rules ?? []).filter(r => {
+                        if (!r.enabled) return false;
+                        if (r.type === "noDay" && (!Array.isArray(r.days) || r.days.length === 0)) return false;
+                        return true;
+                    });
                     const validation = validateRules(rules);
                     if (!validation.ok) {
                         console.error("Rule validation failed", validation.errors);

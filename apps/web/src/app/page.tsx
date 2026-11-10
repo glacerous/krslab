@@ -1998,6 +1998,7 @@ function WorkspaceContent() {
             <WelcomeScreen
                 isOpen={mounted && (!hasCompletedWelcome || isWelcomeManuallyOpen)}
                 onContinue={() => {
+                    setHasCompletedWelcome(true);
                     setIsWelcomeManuallyOpen(false);
                 }}
             />

@@ -111,7 +111,16 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
                 <div className="divide-y divide-[#e6e6e3] dark:divide-[#27272c] border-y border-[#e6e6e3] dark:border-[#27272c]">
                     {/* Row 1 — Local Browser Workspace (Primary Interactive Row) */}
                     <div
+                        id="welcome-continue-btn"
+                        role="button"
+                        tabIndex={0}
                         onClick={handleContinueInBrowser}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                handleContinueInBrowser();
+                            }
+                        }}
                         className="group py-4 flex items-baseline justify-between cursor-pointer transition-colors"
                     >
                         <div className="flex items-baseline gap-3.5">

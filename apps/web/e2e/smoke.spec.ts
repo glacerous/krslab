@@ -4,10 +4,18 @@ test.describe("KRSlab Smoke Test", () => {
     test("import sample, shuffle, accept, export PNG", async ({ page }) => {
         await page.goto("/");
 
-        // 1. Dismiss Welcome Screen if open
-        const continueBtn = page.getByText("Continue in Browser");
-        if (await continueBtn.isVisible()) {
-            await continueBtn.click();
+        // 1. Wait for hydration and dismiss Welcome Screen if open
+        const welcomeBtn = page.locator("#welcome-continue-btn");
+        const sourceBtn = page.locator("#tour-datasource-btn");
+
+        await Promise.race([
+            welcomeBtn.waitFor({ state: "visible", timeout: 8000 }).catch(() => null),
+            sourceBtn.waitFor({ state: "visible", timeout: 8000 }).catch(() => null)
+        ]);
+
+        if (await welcomeBtn.isVisible()) {
+            await welcomeBtn.click();
+            await expect(welcomeBtn).not.toBeVisible({ timeout: 5000 });
         }
 
         // 2. Dismiss Tour if open
@@ -17,7 +25,6 @@ test.describe("KRSlab Smoke Test", () => {
         }
 
         // 3. Load Sample Data via source menu
-        const sourceBtn = page.locator("#tour-datasource-btn");
         await expect(sourceBtn).toBeVisible({ timeout: 10000 });
         await sourceBtn.click();
 
