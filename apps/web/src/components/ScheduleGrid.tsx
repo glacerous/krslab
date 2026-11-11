@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback, memo } from "react";
 import {
     AlertTriangle,
     Lock,
@@ -21,6 +21,97 @@ const SLOTS = Array.from({ length: 13 * 2 }, (_, i) => {
     const h = Math.floor(i / 2) + START_HOUR;
     const m = (i % 2) * 30;
     return { h, m, isMajor: m === 0 };
+});
+
+const DayHeaders = memo(function DayHeaders({ compact, language }: { compact: boolean; language: string }) {
+    return (
+        <div className="flex bg-[#fafaf9] dark:bg-[#141418] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#1e1e24] sticky top-0">
+            <div
+                className={cn(
+                    "w-14 border-r border-[#e6e6e3] dark:border-[#1e1e24] flex items-center justify-center p-2 bg-neutral-50/60 dark:bg-[#141418] sticky left-0 z-20",
+                    compact && "w-12"
+                )}
+            >
+                <span className="font-doodle font-bold text-[17px] text-[#6e6e77] dark:text-[#a1a1aa] leading-none">
+                    time
+                </span>
+            </div>
+            {DAYS.map((day) => (
+                <div
+                    key={day}
+                    className={cn(
+                        "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] dark:border-[#1e1e24] bg-[#fafaf9] dark:bg-[#141418]",
+                        compact && "py-1 px-2"
+                    )}
+                >
+                    <span className="font-doodle font-bold text-[20px] text-[#141413] dark:text-[#f4f4f6] tracking-normal leading-tight">
+                        {compact ? formatDay(day, language, true) : formatDay(day, language)}
+                    </span>
+                </div>
+            ))}
+        </div>
+    );
+});
+
+const GridBackground = memo(function GridBackground({ rowHeight }: { rowHeight: number }) {
+    return (
+        <div
+            className="absolute inset-0 flex flex-col pointer-events-none"
+            style={{ top: `${TOP_OFFSET}px` }}
+        >
+            {SLOTS.map((slot) => (
+                <div
+                    key={`${slot.h}-${slot.m}`}
+                    style={{ height: `${rowHeight / 2}px` }}
+                    className={cn(
+                        "w-full relative",
+                        slot.isMajor
+                            ? "border-b border-[#e6e6e3]/90 dark:border-[#1e1e24]"
+                            : "border-b border-[#e6e6e3]/40 dark:border-[#1e1e24]/60"
+                    )}
+                />
+            ))}
+        </div>
+    );
+});
+
+const TimeColumn = memo(function TimeColumn({ compact, rowHeight }: { compact: boolean; rowHeight: number }) {
+    return (
+        <div
+            className={cn(
+                "w-14 border-r border-[#e6e6e3] dark:border-[#1e1e24] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 dark:bg-[#141418]/95 backdrop-blur-md",
+                compact && "w-12"
+            )}
+            style={{ paddingTop: `${TOP_OFFSET}px` }}
+        >
+            {SLOTS.map((slot) => (
+                <div
+                    key={`${slot.h}-${slot.m}`}
+                    style={{ height: `${rowHeight / 2}px` }}
+                    className="pr-2.5 relative flex items-start justify-end"
+                >
+                    {slot.isMajor && (
+                        <span className="font-mono text-[11px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] tabular-nums -mt-2">
+                            {slot.h.toString().padStart(2, "0")}:00
+                        </span>
+                    )}
+                </div>
+            ))}
+        </div>
+    );
+});
+
+const DayColumns = memo(function DayColumns() {
+    return (
+        <div className="flex-1 flex pointer-events-none">
+            {DAYS.map((day) => (
+                <div
+                    key={day}
+                    className="flex-1 border-r last:border-r-0 border-[#e6e6e3]/50 dark:border-[#1e1e24] bg-transparent"
+                />
+            ))}
+        </div>
+    );
 });
 
 interface ScheduleGridProps {
@@ -49,12 +140,16 @@ interface PointerDragState {
     meetingIdx: number;
     startX: number;
     startY: number;
+    currentDx: number;
+    currentDy: number;
+    clientX: number;
+    clientY: number;
     isMoved: boolean;
     isDragging: boolean;
     targetElem: HTMLElement | null;
 }
 
-export function ScheduleGrid({
+export const ScheduleGrid = memo(function ScheduleGrid({
     selectedClasses,
     conflicts,
     frozenSubjectIds = [],
@@ -83,12 +178,22 @@ export function ScheduleGrid({
         onFocusSubject?.(nextId);
     }, [focusedSubjectId, onFocusSubject]);
     const [isDragging, setIsDragging] = useState(false);
-    const [dragDelta, setDragDelta] = useState<{ dx: number; dy: number }>({ dx: 0, dy: 0 });
     const [hoveredGhostClassId, setHoveredGhostClassId] = useState<string | null>(null);
     const [isSpringingBack, setIsSpringingBack] = useState(false);
     const [justDroppedSubjectId, setJustDroppedSubjectId] = useState<string | null>(null);
     const [droppedOptimisticPicks, setDroppedOptimisticPicks] = useState<Record<string, string>>({});
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+    const rafIdRef = useRef<number | null>(null);
+    const hoveredGhostRef = useRef<string | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (rafIdRef.current !== null) {
+                cancelAnimationFrame(rafIdRef.current);
+            }
+        };
+    }, []);
 
     useEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) return;
@@ -127,12 +232,36 @@ export function ScheduleGrid({
     const totalHeight = TOP_OFFSET + (SLOTS.length / 2) * rowHeight + 28;
 
     // Trigger grid pulse and clear optimistic picks when selectedClasses change (e.g. Shuffle)
-    const signature = JSON.stringify(selectedClasses.map((c) => c?.classId));
+    const signature = selectedClasses.map((c) => c?.classId || "").join(",");
     useEffect(() => {
         setPulse((p) => p + 1);
         setDroppedOptimisticPicks({});
         setJustDroppedSubjectId(null);
     }, [signature]);
+
+    // Precompute conflict names lookup once per selectedClasses change (O(N^2) once, not inside card render loops)
+    const conflictNamesByClassId = useMemo(() => {
+        const map: Record<string, string> = {};
+        for (let i = 0; i < selectedClasses.length; i++) {
+            const c1 = selectedClasses[i];
+            if (!c1) continue;
+            const names: string[] = [];
+            for (let j = 0; j < selectedClasses.length; j++) {
+                if (i === j) continue;
+                const c2 = selectedClasses[j];
+                if (c2 && checkClassConflict(c1 as any, c2 as any)) {
+                    const name = c2.subjectName || c2.subjectCode;
+                    if (name && !names.includes(name)) {
+                        names.push(name);
+                    }
+                }
+            }
+            if (names.length > 0) {
+                map[c1.classId] = names.join(", ");
+            }
+        }
+        return map;
+    }, [selectedClasses]);
 
     // Close focus on Escape key
     useEffect(() => {
@@ -483,6 +612,10 @@ export function ScheduleGrid({
             meetingIdx,
             startX: e.clientX,
             startY: e.clientY,
+            currentDx: 0,
+            currentDy: 0,
+            clientX: e.clientX,
+            clientY: e.clientY,
             isMoved: false,
             isDragging: false,
             targetElem: target
@@ -516,12 +649,31 @@ export function ScheduleGrid({
         }
 
         if (state.isMoved) {
-            setDragDelta({ dx, dy });
+            state.currentDx = dx;
+            state.currentDy = dy;
+            state.clientX = e.clientX;
+            state.clientY = e.clientY;
 
-            const elements = document.elementsFromPoint(e.clientX, e.clientY);
-            const ghostEl = elements.find((el) => el.hasAttribute("data-ghost-class-id"));
-            const targetClassId = ghostEl?.getAttribute("data-ghost-class-id") || null;
-            setHoveredGhostClassId(targetClassId);
+            if (rafIdRef.current === null) {
+                rafIdRef.current = requestAnimationFrame(() => {
+                    rafIdRef.current = null;
+                    const curState = pointerDragRef.current;
+                    if (!curState || !curState.isMoved) return;
+
+                    if (curState.targetElem) {
+                        curState.targetElem.style.transform = `translate3d(${curState.currentDx}px, ${curState.currentDy}px, 0) scale(1.02)`;
+                        curState.targetElem.style.transition = "none";
+                    }
+
+                    const elements = document.elementsFromPoint(curState.clientX, curState.clientY);
+                    const ghostEl = elements.find((el) => el.hasAttribute("data-ghost-class-id"));
+                    const targetClassId = ghostEl?.getAttribute("data-ghost-class-id") || null;
+                    if (targetClassId !== hoveredGhostRef.current) {
+                        hoveredGhostRef.current = targetClassId;
+                        setHoveredGhostClassId(targetClassId);
+                    }
+                });
+            }
         }
     };
 
@@ -529,21 +681,31 @@ export function ScheduleGrid({
         const state = pointerDragRef.current;
         if (!state) return;
 
+        if (rafIdRef.current !== null) {
+            cancelAnimationFrame(rafIdRef.current);
+            rafIdRef.current = null;
+        }
+
         try {
             state.targetElem?.releasePointerCapture(e.pointerId);
         } catch {}
 
         if (state.isMoved) {
-            if (hoveredGhostClassId) {
+            const targetClassId = hoveredGhostRef.current;
+            if (targetClassId) {
                 const droppedSubId = state.subjectId;
-                const targetClassId = hoveredGhostClassId;
+
+                if (state.targetElem) {
+                    state.targetElem.style.transform = "";
+                    state.targetElem.style.transition = "";
+                }
 
                 setJustDroppedSubjectId(droppedSubId);
                 setDroppedOptimisticPicks((prev) => ({ ...prev, [droppedSubId]: targetClassId }));
                 onSelectClass?.(droppedSubId, targetClassId);
                 setFocusedSubjectId(null);
                 setIsDragging(false);
-                setDragDelta({ dx: 0, dy: 0 });
+                hoveredGhostRef.current = null;
                 setHoveredGhostClassId(null);
                 setActiveDraggingCard(null);
                 pointerDragRef.current = null;
@@ -553,20 +715,31 @@ export function ScheduleGrid({
                 }, 300);
             } else {
                 setIsSpringingBack(true);
-                setDragDelta({ dx: 0, dy: 0 });
+                if (state.targetElem) {
+                    state.targetElem.style.transition = "transform 200ms ease-out";
+                    state.targetElem.style.transform = "translate3d(0, 0, 0) scale(1)";
+                }
                 setTimeout(() => {
+                    if (state.targetElem) {
+                        state.targetElem.style.transform = "";
+                        state.targetElem.style.transition = "";
+                    }
                     setIsSpringingBack(false);
                     setIsDragging(false);
+                    hoveredGhostRef.current = null;
                     setHoveredGhostClassId(null);
                     setActiveDraggingCard(null);
                     pointerDragRef.current = null;
                 }, 200);
             }
         } else {
+            if (state.targetElem) {
+                state.targetElem.style.transform = "";
+                state.targetElem.style.transition = "";
+            }
             setFocusedSubjectId((prev) => (prev === state.subjectId ? null : state.subjectId));
             onBlockClick?.(state.subjectId);
             setIsDragging(false);
-            setDragDelta({ dx: 0, dy: 0 });
             setActiveDraggingCard(null);
             pointerDragRef.current = null;
         }
@@ -576,12 +749,22 @@ export function ScheduleGrid({
         const state = pointerDragRef.current;
         if (!state) return;
 
+        if (rafIdRef.current !== null) {
+            cancelAnimationFrame(rafIdRef.current);
+            rafIdRef.current = null;
+        }
+
         try {
             state.targetElem?.releasePointerCapture(e.pointerId);
         } catch {}
 
+        if (state.targetElem) {
+            state.targetElem.style.transform = "";
+            state.targetElem.style.transition = "";
+        }
+
         setIsDragging(false);
-        setDragDelta({ dx: 0, dy: 0 });
+        hoveredGhostRef.current = null;
         setHoveredGhostClassId(null);
         setActiveDraggingCard(null);
         pointerDragRef.current = null;
@@ -609,33 +792,8 @@ export function ScheduleGrid({
                         compact ? "min-w-[600px]" : "min-w-[680px] lg:min-w-[860px]"
                     )}
                 >
-                    {/* Header Days - Gaegu Doodle Font text-[20px] (Z-Index 20 so header popovers float above) */}
-                    <div className="flex bg-[#fafaf9] dark:bg-[#141418] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#1e1e24] sticky top-0">
-                        {/* Top-left corner time label in Gaegu text-[17px] */}
-                        <div
-                            className={cn(
-                                "w-14 border-r border-[#e6e6e3] dark:border-[#1e1e24] flex items-center justify-center p-2 bg-neutral-50/60 dark:bg-[#141418] sticky left-0 z-20",
-                                compact && "w-12"
-                            )}
-                        >
-                            <span className="font-doodle font-bold text-[17px] text-[#6e6e77] dark:text-[#a1a1aa] leading-none">
-                                time
-                            </span>
-                        </div>
-                        {DAYS.map((day) => (
-                            <div
-                                key={day}
-                                className={cn(
-                                    "flex-1 py-2 px-3 text-center transition-colors border-r last:border-r-0 border-[#e6e6e3] dark:border-[#1e1e24] bg-[#fafaf9] dark:bg-[#141418]",
-                                    compact && "py-1 px-2"
-                                )}
-                            >
-                                <span className="font-doodle font-bold text-[20px] text-[#141413] dark:text-[#f4f4f6] tracking-normal leading-tight">
-                                    {compact ? formatDay(day, language, true) : formatDay(day, language)}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
+                    {/* Header Days */}
+                    <DayHeaders compact={compact} language={language} />
 
                     {/* Grid Area with Architectural Dot Matrix */}
                     <div className="flex-1 relative overflow-y-auto no-scrollbar bg-transparent">
@@ -644,56 +802,13 @@ export function ScheduleGrid({
                             style={{ height: `${totalHeight}px` }}
                         >
                             {/* Grid Background Horizontal Lines */}
-                            <div
-                                className="absolute inset-0 flex flex-col pointer-events-none"
-                                style={{ top: `${TOP_OFFSET}px` }}
-                            >
-                                {SLOTS.map((slot) => (
-                                    <div
-                                        key={`${slot.h}-${slot.m}`}
-                                        style={{ height: `${rowHeight / 2}px` }}
-                                        className={cn(
-                                            "w-full relative",
-                                            slot.isMajor
-                                                ? "border-b border-[#e6e6e3]/90 dark:border-[#1e1e24]"
-                                                : "border-b border-[#e6e6e3]/40 dark:border-[#1e1e24]/60"
-                                        )}
-                                    />
-                                ))}
-                            </div>
+                            <GridBackground rowHeight={rowHeight} />
 
                             {/* Time Column - Space Mono Hourly Labels */}
-                            <div
-                                className={cn(
-                                    "w-14 border-r border-[#e6e6e3] dark:border-[#1e1e24] shrink-0 h-full transition-colors sticky left-0 z-40 bg-white/95 dark:bg-[#141418]/95 backdrop-blur-md",
-                                    compact && "w-12"
-                                )}
-                                style={{ paddingTop: `${TOP_OFFSET}px` }}
-                            >
-                                {SLOTS.map((slot) => (
-                                    <div
-                                        key={`${slot.h}-${slot.m}`}
-                                        style={{ height: `${rowHeight / 2}px` }}
-                                        className="pr-2.5 relative flex items-start justify-end"
-                                    >
-                                        {slot.isMajor && (
-                                            <span className="font-mono text-[11px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] tabular-nums -mt-2">
-                                                {slot.h.toString().padStart(2, "0")}:00
-                                            </span>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                            <TimeColumn compact={compact} rowHeight={rowHeight} />
 
                             {/* Day Column Verticals */}
-                            <div className="flex-1 flex pointer-events-none">
-                                {DAYS.map((day) => (
-                                    <div
-                                        key={day}
-                                        className="flex-1 border-r last:border-r-0 border-[#e6e6e3]/50 dark:border-[#1e1e24] bg-transparent"
-                                    />
-                                ))}
-                            </div>
+                            <DayColumns />
 
                             {/* Overlays Container (Ghost Drop Zones + Active Nodes) */}
                             <div
@@ -839,15 +954,7 @@ export function ScheduleGrid({
                                                 activeDraggingCard?.meetingIdx === mIdx &&
                                                 isDragging;
 
-                                            const conflictingClasses = isConflicting
-                                                ? selectedClasses.filter(
-                                                      (other) => other.classId !== cls.classId && checkClassConflict(cls as any, other as any)
-                                                  )
-                                                : [];
-                                            const conflictingNames = conflictingClasses
-                                                .map((c) => c.subjectName || c.subjectCode)
-                                                .filter(Boolean)
-                                                .join(", ");
+                                            const conflictingNames = isConflicting ? conflictNamesByClassId[cls.classId] || "" : "";
                                             const cardAriaLabel = `${cls.subjectName}, ${cls.className}, ${m.day} ${m.start}–${m.end}${
                                                 isConflicting
                                                     ? conflictingNames
@@ -940,7 +1047,7 @@ export function ScheduleGrid({
                                                             : "left 300ms cubic-bezier(0.22, 1, 0.36, 1), top 340ms cubic-bezier(0.22, 1, 0.36, 1), height 340ms cubic-bezier(0.22, 1, 0.36, 1), width 300ms cubic-bezier(0.22, 1, 0.36, 1), transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease",
                                                         ...(isThisCardDragging
                                                             ? {
-                                                                  transform: `translate3d(${dragDelta.dx}px, ${dragDelta.dy}px, 0) scale(1.02)`,
+                                                                  zIndex: 50,
                                                                   transition: isSpringingBack
                                                                       ? "transform 200ms ease-out"
                                                                       : "none"
@@ -1177,4 +1284,4 @@ export function ScheduleGrid({
             )}
         </div>
     );
-}
+});

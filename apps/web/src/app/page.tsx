@@ -717,6 +717,42 @@ function WorkspaceContent() {
         }
     }, [updateSourceMenuCoords, updatePlanMenuCoords, selectedClasses, activePlan]);
 
+    const handleToggleFreeze = useCallback((subId: string) => {
+        if (activePlan) {
+            toggleFreezeSubject(activePlan.id, subId);
+        }
+    }, [activePlan?.id, toggleFreezeSubject]);
+
+    const handleBlockClick = useCallback((_subId: string) => {
+        setActiveTab("selected");
+    }, []);
+
+    const handleSelectClassOnGrid = useCallback((subId: string, classId: string) => {
+        if (previewMapping) {
+            setPreviewMapping(prev => ({ ...(prev ?? {}), [subId]: classId }));
+        } else if (activePlan) {
+            setSelectedClassForSubject(activePlan.id, subId, classId);
+        }
+        const sub = activeDatasource?.subjects.find(s => s.subjectId === subId);
+        const cls = sub?.classes.find(c => c.classId === classId);
+        toast.success(`Switched to Kelas ${cls?.className || classId}`, { id: "switch-section" });
+    }, [previewMapping, activePlan?.id, setSelectedClassForSubject, activeDatasource?.subjects]);
+
+    const handleOpenCustomCourse = useCallback(() => {
+        setIsCustomCourseModalOpen(true);
+    }, [setIsCustomCourseModalOpen]);
+
+    const handleOpenImportData = useCallback(() => {
+        if (activeDatasource) {
+            setDataModalEditSourceId(activeDatasource.id);
+        }
+        openOverlay("bima-import");
+    }, [activeDatasource?.id, openOverlay]);
+
+    const handleBrowseCatalog = useCallback(() => {
+        setActiveTab("catalog");
+    }, []);
+
 
     // Handler: Auto-Schedule Solver (Generates a single candidate preview without overwriting plan)
     const handleGenerateOrShuffle = useCallback(() => {
@@ -1215,10 +1251,7 @@ function WorkspaceContent() {
                             effectiveMapping={effectiveMapping}
                             onHoverSubject={setHoveredSubjectId}
                             onHoverClass={setHoveredClassId}
-                            onOpenImportModal={() => {
-                                setDataModalEditSourceId(activeDatasource.id);
-                                openOverlay("bima-import");
-                            }}
+                            onOpenImportModal={handleOpenImportData}
                         />
                     </div>
                 </div>
@@ -1232,34 +1265,20 @@ function WorkspaceContent() {
                         <ScheduleGrid
                             selectedClasses={selectedClasses}
                             conflicts={conflicts}
-                            frozenSubjectIds={activePlan?.frozenSubjectIds ?? []}
-                            onToggleFreeze={(subId) => toggleFreezeSubject(activePlan.id, subId)}
-                            onBlockClick={(subId) => {
-                                setActiveTab("selected");
-                            }}
-                            onSelectClass={(subId, classId) => {
-                                if (previewMapping) {
-                                    setPreviewMapping(prev => ({ ...(prev ?? {}), [subId]: classId }));
-                                } else {
-                                    setSelectedClassForSubject(activePlan.id, subId, classId);
-                                }
-                                const sub = activeDatasource.subjects.find(s => s.subjectId === subId);
-                                const cls = sub?.classes.find(c => c.classId === classId);
-                                toast.success(`Switched to Kelas ${cls?.className || classId}`, { id: "switch-section" });
-                            }}
-                            allSubjects={activeDatasource.subjects}
+                            frozenSubjectIds={activePlan?.frozenSubjectIds}
+                            onToggleFreeze={handleToggleFreeze}
+                            onBlockClick={handleBlockClick}
+                            onSelectClass={handleSelectClassOnGrid}
+                            allSubjects={activeDatasource?.subjects}
                             hoveredSubjectId={hoveredSubjectId}
                             hoveredClassId={hoveredClassId}
                             focusedSubjectId={gridFocusedSubjectId}
                             onFocusSubject={setGridFocusedSubjectId}
-                            activeDatasourceName={activeDatasource.name}
-                            activePlanName={activePlan.name}
-                            onOpenCustomCourse={() => setIsCustomCourseModalOpen(true)}
-                            onOpenImportData={() => {
-                                setDataModalEditSourceId(activeDatasource.id);
-                                openOverlay("bima-import");
-                            }}
-                            onBrowseCatalog={() => setActiveTab("catalog")}
+                            activeDatasourceName={activeDatasource?.name}
+                            activePlanName={activePlan?.name}
+                            onOpenCustomCourse={handleOpenCustomCourse}
+                            onOpenImportData={handleOpenImportData}
+                            onBrowseCatalog={handleBrowseCatalog}
                         />
                     </div>
                 </div>

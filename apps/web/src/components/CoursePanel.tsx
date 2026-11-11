@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { Plan, Datasource } from "@/lib/store";
 import { useAppStore } from "@/lib/store";
 import {
@@ -31,7 +31,7 @@ interface CoursePanelProps {
     onOpenImportModal?: () => void;
 }
 
-export function CoursePanel({
+export const CoursePanel = memo(function CoursePanel({
     plan,
     datasource,
     activeTab,
@@ -42,15 +42,13 @@ export function CoursePanel({
     onHoverClass,
     onOpenImportModal
 }: CoursePanelProps) {
-    const {
-        toggleSubjectInPlan,
-        removeSubjectFromPlan,
-        setSelectedClassForSubject,
-        toggleFreezeSubject,
-        setPreviewOverride,
-        setIsCustomCourseModalOpen,
-        language
-    } = useAppStore();
+    const toggleSubjectInPlan = useAppStore((state) => state.toggleSubjectInPlan);
+    const removeSubjectFromPlan = useAppStore((state) => state.removeSubjectFromPlan);
+    const setSelectedClassForSubject = useAppStore((state) => state.setSelectedClassForSubject);
+    const toggleFreezeSubject = useAppStore((state) => state.toggleFreezeSubject);
+    const setPreviewOverride = useAppStore((state) => state.setPreviewOverride);
+    const setIsCustomCourseModalOpen = useAppStore((state) => state.setIsCustomCourseModalOpen);
+    const language = useAppStore((state) => state.language);
 
     const t = useMemo(() => getTranslation(language), [language]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -442,7 +440,7 @@ export function CoursePanel({
             )}
         </div>
     );
-}
+});
 
 function EmptySourceChecklist({
     language,
