@@ -2141,7 +2141,7 @@ function WorkspaceContent() {
                         </div>
 
                         {/* Help Group */}
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2.5 space-y-1">
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2.5 space-y-1.5">
                             <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider px-2">
                                 {t.helpSection}
                             </div>
@@ -2152,9 +2152,15 @@ function WorkspaceContent() {
                                         setIsPrefsOpen(false);
                                         openOverlay("tour");
                                     }}
-                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between gap-2"
                                 >
-                                    {t.startTutorial}
+                                    <span className="flex items-center gap-2">
+                                        <Compass className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                                        <span>{t.startTutorial}</span>
+                                    </span>
+                                    <span className="font-mono text-[10px] text-[#8a8a94] dark:text-[#71717a]">
+                                        6 steps
+                                    </span>
                                 </button>
                                 <button
                                     type="button"
@@ -2162,9 +2168,15 @@ function WorkspaceContent() {
                                         setIsPrefsOpen(false);
                                         onboarding.openVideo("start");
                                     }}
-                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between gap-2"
                                 >
-                                    {t.videoGetStarted}
+                                    <span className="flex items-center gap-2">
+                                        <Video className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                                        <span>{t.videoGetStarted}</span>
+                                    </span>
+                                    <span className="font-mono text-[10px] text-[#8a8a94] dark:text-[#71717a]">
+                                        1:09
+                                    </span>
                                 </button>
                                 <button
                                     type="button"
@@ -2172,22 +2184,40 @@ function WorkspaceContent() {
                                         setIsPrefsOpen(false);
                                         onboarding.openVideo("advanced");
                                     }}
-                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between gap-2"
                                 >
-                                    {t.videoAdvanced}
+                                    <span className="flex items-center gap-2">
+                                        <Video className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                                        <span>{t.videoAdvanced}</span>
+                                    </span>
+                                    <span className="font-mono text-[10px] text-[#8a8a94] dark:text-[#71717a]">
+                                        1:32
+                                    </span>
                                 </button>
+                            </div>
+                            <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-1 space-y-0.5">
                                 <button
                                     type="button"
                                     onClick={() => {
                                         setIsPrefsOpen(false);
                                         onboarding.openWhatsNew();
                                     }}
-                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between"
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between gap-2"
                                 >
-                                    <span>{t.whatsNew}</span>
-                                    {hasUnseenChangelog && (
-                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                                    )}
+                                    <span className="flex items-center gap-2">
+                                        <span className="font-doodle text-[14px] font-bold text-amber-600 dark:text-amber-400 w-3.5 text-center shrink-0">
+                                            ★
+                                        </span>
+                                        <span>{t.whatsNew}</span>
+                                    </span>
+                                    <span className="flex items-center gap-1.5">
+                                        {hasUnseenChangelog && (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                        )}
+                                        <span className="text-[11px] text-[#8a8a94] dark:text-[#71717a]" aria-hidden="true">
+                                            →
+                                        </span>
+                                    </span>
                                 </button>
                                 <button
                                     type="button"
@@ -2195,9 +2225,10 @@ function WorkspaceContent() {
                                         setIsPrefsOpen(false);
                                         setIsWelcomeManuallyOpen(true);
                                     }}
-                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[11.5px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-2"
                                 >
-                                    {t.openWelcome}
+                                    <RotateCw className="w-3.5 h-3.5 shrink-0 opacity-75" />
+                                    <span>{t.openWelcome}</span>
                                 </button>
                             </div>
                         </div>

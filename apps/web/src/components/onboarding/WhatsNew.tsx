@@ -57,7 +57,7 @@ export function WhatsNew({ isOpen, language, onClose, onMarkSeen }: WhatsNewProp
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="whats-new-title"
-                className="absolute top-3 bottom-3 right-3 sm:top-4 sm:bottom-4 sm:right-4 w-[400px] max-w-[calc(100vw-1.5rem)] rounded-2xl bg-[#f9f9f8] dark:bg-[#141418] bg-dot-matrix border border-[#e6e6e3] dark:border-[#2e2e34] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right-4 zoom-in-98 duration-200 z-[125]"
+                className="absolute top-3 bottom-3 right-3 sm:top-4 sm:bottom-4 sm:right-4 w-[440px] sm:w-[460px] max-w-[calc(100vw-1.5rem)] rounded-2xl bg-[#f9f9f8] dark:bg-[#141418] border border-[#e6e6e3] dark:border-[#2e2e34] shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right-4 zoom-in-98 duration-200 z-[125]"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -120,30 +120,31 @@ export function WhatsNew({ isOpen, language, onClose, onMarkSeen }: WhatsNewProp
                                     </time>
                                 </div>
 
-                                <h3 className="text-[14.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight mt-1">
+                                <h3 className="text-[16px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight mt-1.5">
                                     {entry.title[language]}
                                 </h3>
 
-                                <div className={cn("mt-1.5", entry.media && "flex items-start gap-3")}>
-                                    <p className="flex-1 text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
-                                        {entry.summary[language]}
-                                    </p>
-                                    {entry.media && (
+                                {entry.media && (
+                                    <div className="mt-2.5">
                                         <ChangelogMedia
                                             media={entry.media}
                                             lang={language}
-                                            mode="thumb"
+                                            mode={entry.kind === "milestone" ? "card" : "frame"}
                                             title={entry.title[language]}
                                         />
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+
+                                <p className="mt-2.5 text-[13.5px] text-[#52525b] dark:text-[#a1a1aa] leading-relaxed">
+                                    {entry.summary[language]}
+                                </p>
 
                                 {entry.highlights.length > 0 && (
-                                    <ul className="mt-2.5 space-y-1">
+                                    <ul className="mt-2.5 space-y-1.5">
                                         {entry.highlights.map((item, i) => (
                                             <li
                                                 key={i}
-                                                className="flex items-baseline gap-2 text-[12.5px] text-[#141413]/90 dark:text-[#f4f4f6]/90 leading-snug"
+                                                className="flex items-baseline gap-2 text-[13px] text-[#141413]/90 dark:text-[#f4f4f6]/90 leading-snug"
                                             >
                                                 <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] shrink-0">
                                                     ·
