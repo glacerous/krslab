@@ -65,7 +65,7 @@ export function ChangelogView() {
                                 aria-hidden="true"
                                 className={cn(
                                     "absolute -left-[29.5px] top-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-[#f9f9f8] dark:ring-[#121211]",
-                                    entry.milestone
+                                    entry.kind === "milestone"
                                         ? "bg-amber-500"
                                         : idx === 0
                                           ? "bg-[#5b82a6] dark:bg-[#7dd3fc]"
@@ -76,7 +76,7 @@ export function ChangelogView() {
                             <div className="flex items-baseline justify-between gap-4">
                                 <span
                                     className={cn(
-                                        entry.milestone
+                                        entry.kind === "milestone"
                                             ? "font-doodle text-[18px] font-bold text-amber-600 dark:text-amber-400"
                                             : "font-doodle text-[17px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]"
                                     )}
@@ -95,11 +95,9 @@ export function ChangelogView() {
                                 {entry.title[language]}
                             </h2>
 
-                            {entry.note && (
-                                <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
-                                    {entry.note[language]}
-                                </p>
-                            )}
+                            <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
+                                {entry.summary[language]}
+                            </p>
 
                             {entry.highlights.length > 0 && (
                                 <ul className="pt-1 space-y-1.5">

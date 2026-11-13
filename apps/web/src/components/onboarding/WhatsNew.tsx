@@ -92,7 +92,7 @@ export function WhatsNew({ isOpen, language, onClose, onMarkSeen }: WhatsNewProp
                                     aria-hidden="true"
                                     className={cn(
                                         "absolute -left-[24.5px] top-1.5 w-2 h-2 rounded-full ring-4 ring-[#f9f9f8] dark:ring-[#141418]",
-                                        entry.milestone
+                                        entry.kind === "milestone"
                                             ? "bg-amber-500"
                                             : idx === 0
                                               ? "bg-[#5b82a6] dark:bg-[#7dd3fc]"
@@ -104,7 +104,7 @@ export function WhatsNew({ isOpen, language, onClose, onMarkSeen }: WhatsNewProp
                                     <span
                                         className={cn(
                                             "font-doodle text-[16px] font-bold leading-none",
-                                            entry.milestone
+                                            entry.kind === "milestone"
                                                 ? "text-amber-600 dark:text-amber-400"
                                                 : "text-[#5b82a6] dark:text-[#7dd3fc]"
                                         )}
@@ -123,11 +123,9 @@ export function WhatsNew({ isOpen, language, onClose, onMarkSeen }: WhatsNewProp
                                     {entry.title[language]}
                                 </h3>
 
-                                {entry.note && (
-                                    <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-1.5">
-                                        {entry.note[language]}
-                                    </p>
-                                )}
+                                <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-1.5">
+                                    {entry.summary[language]}
+                                </p>
 
                                 {entry.highlights.length > 0 && (
                                     <ul className="mt-2.5 space-y-1">

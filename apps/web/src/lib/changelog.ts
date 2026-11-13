@@ -1,6 +1,16 @@
 import { LocalizedText } from "./onboarding/content";
 
 export type ChangelogTag = "new" | "improved" | "fix" | "milestone";
+export type ChangelogKind = "release" | "milestone";
+
+export interface ChangelogMedia {
+    type: "video" | "image";
+    src: string;
+    poster?: string;
+    alt: LocalizedText;
+    aspect: "16/9" | "4/3" | "1.91/1";
+    durationSec?: number;
+}
 
 export interface ChangelogHighlight {
     tag: ChangelogTag;
@@ -10,23 +20,27 @@ export interface ChangelogHighlight {
 export interface ChangelogEntry {
     version: string;
     date: string; // ISO YYYY-MM-DD
+    kind: ChangelogKind;
     badge?: LocalizedText;
     title: LocalizedText;
-    note?: LocalizedText;
-    milestone?: boolean;
+    summary: LocalizedText;
     highlights: ChangelogHighlight[];
+    media?: ChangelogMedia;
+    announce?: boolean;
 }
 
 export const CHANGELOG: ChangelogEntry[] = [
     {
         version: "0.2.0",
         date: "2026-11-13",
+        kind: "release",
+        announce: true,
         badge: { en: "v0.2.0, latest", id: "v0.2.0, terbaru" },
         title: {
             en: "Video guides & release notes",
             id: "Video panduan & catatan rilis",
         },
-        note: {
+        summary: {
             en: "Recorded two quick videos so you can see the whole flow, from pasting BIMA to shuffling rules, without guessing.",
             id: "Bikin dua video singkat biar langsung kebayang alurnya, dari tempel BIMA sampai acak jadwal pakai aturan.",
         },
@@ -53,16 +67,28 @@ export const CHANGELOG: ChangelogEntry[] = [
                 },
             },
         ],
+        media: {
+            type: "video",
+            src: "/changelog/v0-2-0-intro.mp4",
+            poster: "/changelog/v0-2-0-intro-poster.jpg",
+            alt: {
+                en: "Intro card opening the 1-minute video tutorial with chapters",
+                id: "Kartu intro membuka video tutorial 1 menit beserta daftar bagian",
+            },
+            aspect: "16/9",
+            durationSec: 8,
+        },
     },
     {
         version: "0.1.0",
         date: "2026-11-08",
+        kind: "release",
         badge: { en: "v0.1.0, revamp", id: "v0.1.0, perombakan" },
         title: {
             en: "The workspace revamp",
             id: "Perombakan ruang kerja",
         },
-        note: {
+        summary: {
             en: "Rebuilt the studio around one calm canvas. Dropped the cluttered popups, sped up card dragging, and started every session clean.",
             id: "Bangun ulang ruang kerja jadi satu kanvas yang tenang. Pop-up yang numpuk dibuang, geser kartu lebih mulus, dan sesi baru langsung rapi.",
         },
@@ -89,21 +115,67 @@ export const CHANGELOG: ChangelogEntry[] = [
                 },
             },
         ],
+        media: {
+            type: "video",
+            src: "/changelog/v0-1-0-drag.mp4",
+            poster: "/changelog/v0-1-0-drag-poster.jpg",
+            alt: {
+                en: "Dragging a clashing course card onto a dashed alternative slot",
+                id: "Menyeret kartu jadwal bentrok ke slot alternatif bertitik",
+            },
+            aspect: "16/9",
+            durationSec: 8,
+        },
+    },
+    {
+        version: "milestone-632",
+        date: "2026-01-21",
+        kind: "milestone",
+        badge: { en: "★ milestone", id: "★ pencapaian" },
+        title: {
+            en: "632 visitors in the first week",
+            id: "632 pengunjung di minggu pertama",
+        },
+        summary: {
+            en: "5,623 page views in 7 days, 99% from Indonesia, with a peak above 150 visitors in a single day.",
+            id: "5.623 tampilan halaman dalam 7 hari, 99% dari Indonesia, dengan puncak lebih dari 150 pengunjung dalam sehari.",
+        },
+        highlights: [],
+        media: {
+            type: "image",
+            src: "/changelog/milestone-632.webp",
+            alt: {
+                en: "KRSlab milestone card: 632 visitors in 7 days, 5,623 page views, 99% Indonesia",
+                id: "Kartu pencapaian KRSlab: 632 pengunjung dalam 7 hari, 5.623 tampilan halaman, 99% Indonesia",
+            },
+            aspect: "1.91/1",
+        },
     },
     {
         version: "0.0.1",
         date: "2026-01-13",
+        kind: "release",
         badge: { en: "v0.0.1, first launch", id: "v0.0.1, rilis perdana" },
         title: {
             en: "The very first version of KRSlab",
             id: "Versi pertama KRSlab",
         },
-        note: {
+        summary: {
             en: "First public release before January KRS season: a rough BIMA table parser, conflict checker, and weekly grid running 100% in the browser.",
             id: "Rilis publik pertama menjelang KRS Januari: parser tabel BIMA sederhana, cek bentrok, dan grid mingguan yang jalan 100% di browser.",
         },
         highlights: [],
+        media: {
+            type: "image",
+            src: "/changelog/v0-0-1-launch.jpg",
+            alt: {
+                en: "Screenshot of the first KRSlab release from January 2026",
+                id: "Tangkapan layar rilis pertama KRSlab dari Januari 2026",
+            },
+            aspect: "16/9",
+        },
     },
 ];
 
-export const LATEST_CHANGELOG_VERSION = CHANGELOG[0]?.version ?? "0.2.0";
+export const LATEST_CHANGELOG_ENTRY = CHANGELOG[0];
+export const LATEST_CHANGELOG_VERSION = LATEST_CHANGELOG_ENTRY?.version ?? "0.2.0";
