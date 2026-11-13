@@ -956,12 +956,24 @@ function WorkspaceContent() {
         toast.info("Preview discarded", { id: "preview-action" });
     }, []);
 
+    // Clear stuck sidebar hover highlights on Alt+Tab / window blur
+    useEffect(() => {
+        const clearHover = () => {
+            setHoveredSubjectId(null);
+            setHoveredClassId(null);
+        };
+        window.addEventListener("blur", clearHover);
+        return () => window.removeEventListener("blur", clearHover);
+    }, []);
+
     // Keyboard shortcuts:
     // When previewing: Enter to accept, Space to shuffle, Escape to cancel
     // When not previewing: Space to generate candidate
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
+            const target = e.target as HTMLElement | null;
+            if (target && (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) || target.isContentEditable)) return;
+            if (document.querySelector('[role="dialog"]')) return;
 
             if (previewMapping !== null) {
                 if (e.key === "Enter") {
@@ -1485,7 +1497,7 @@ function WorkspaceContent() {
                     className="hidden lg:flex w-[320px] shrink-0 h-full flex-col relative z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418] overflow-hidden"
                 >
                     {isDragRemoveHover && (
-                        <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/90 dark:bg-rose-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2.5 pointer-events-none animate-in fade-in duration-150">
+                        <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/92 dark:bg-rose-950/90 flex flex-col items-center justify-center gap-2.5 pointer-events-none animate-in fade-in duration-150">
                             <div
                                 className="relative text-rose-600 dark:text-rose-400 flex items-center justify-center"
                                 style={

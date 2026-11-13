@@ -143,6 +143,7 @@ interface PointerDragState {
     subjectId: string;
     classId: string;
     meetingIdx: number;
+    pointerId: number;
     subjectName: string;
     className: string;
     timeText: string;
@@ -216,6 +217,12 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     const hoveredGhostRef = useRef<string | null>(null);
     const isRemoveZoneRef = useRef(false);
     const floatingCardRef = useRef<HTMLDivElement | null>(null);
+    const cachedGhostRectsRef = useRef<{ classId: string; left: number; right: number; top: number; bottom: number }[]>([]);
+    const cachedLeftPanelRightRef = useRef<number | null>(null);
+    const springTimeoutRef = useRef<number | null>(null);
+    const removeCardTimeoutRef = useRef<number | null>(null);
+    const removeOverlayTimeoutRef = useRef<number | null>(null);
+    const justDroppedTimeoutRef = useRef<number | null>(null);
 
     const updateRemoveHover = useCallback((next: boolean) => {
         if (isRemoveZoneRef.current === next) return;
@@ -224,13 +231,90 @@ export const ScheduleGrid = memo(function ScheduleGrid({
         onDragRemoveHoverChange?.(next);
     }, [onDragRemoveHoverChange]);
 
+    const clearDragTimeouts = useCallback(() => {
+        if (springTimeoutRef.current !== null) {
+            window.clearTimeout(springTimeoutRef.current);
+            springTimeoutRef.current = null;
+        }
+        if (removeCardTimeoutRef.current !== null) {
+            window.clearTimeout(removeCardTimeoutRef.current);
+            removeCardTimeoutRef.current = null;
+        }
+        if (removeOverlayTimeoutRef.current !== null) {
+            window.clearTimeout(removeOverlayTimeoutRef.current);
+            removeOverlayTimeoutRef.current = null;
+        }
+        if (justDroppedTimeoutRef.current !== null) {
+            window.clearTimeout(justDroppedTimeoutRef.current);
+            justDroppedTimeoutRef.current = null;
+        }
+    }, []);
+
+    const cancelActiveDrag = useCallback(() => {
+        if (rafIdRef.current !== null) {
+            cancelAnimationFrame(rafIdRef.current);
+            rafIdRef.current = null;
+        }
+        clearDragTimeouts();
+
+        const state = pointerDragRef.current;
+        if (state) {
+            try {
+                state.targetElem?.releasePointerCapture(state.pointerId);
+            } catch {}
+            if (state.targetElem) {
+                state.targetElem.style.transform = "";
+                state.targetElem.style.transition = "";
+            }
+            pointerDragRef.current = null;
+        }
+
+        cachedGhostRectsRef.current = [];
+        cachedLeftPanelRightRef.current = null;
+        hoveredGhostRef.current = null;
+        setFloatingCard(null);
+        setIsSpringingBack(false);
+        setIsDragging(false);
+        setHoveredGhostClassId(null);
+        updateRemoveHover(false);
+        setActiveDraggingCard(null);
+    }, [clearDragTimeouts, updateRemoveHover]);
+
     useEffect(() => {
         return () => {
             if (rafIdRef.current !== null) {
                 cancelAnimationFrame(rafIdRef.current);
             }
+            clearDragTimeouts();
         };
-    }, []);
+    }, [clearDragTimeouts]);
+
+    // Always cancel stuck drag on Alt+Tab, window blur, tab switch, or context menu
+    useEffect(() => {
+        const handleWindowBlur = () => {
+            if (pointerDragRef.current) cancelActiveDrag();
+        };
+        const handleVisibilityChange = () => {
+            if (document.hidden && pointerDragRef.current) cancelActiveDrag();
+        };
+        const handleContextMenu = () => {
+            if (pointerDragRef.current) cancelActiveDrag();
+        };
+        const handleGlobalPointerCancel = () => {
+            if (pointerDragRef.current) cancelActiveDrag();
+        };
+
+        window.addEventListener("blur", handleWindowBlur);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        window.addEventListener("contextmenu", handleContextMenu);
+        window.addEventListener("pointercancel", handleGlobalPointerCancel);
+        return () => {
+            window.removeEventListener("blur", handleWindowBlur);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            window.removeEventListener("contextmenu", handleContextMenu);
+            window.removeEventListener("pointercancel", handleGlobalPointerCancel);
+        };
+    }, [cancelActiveDrag]);
 
     useEffect(() => {
         if (typeof window === "undefined" || !window.matchMedia) return;
@@ -300,16 +384,19 @@ export const ScheduleGrid = memo(function ScheduleGrid({
         return map;
     }, [selectedClasses]);
 
-    // Close focus on Escape key
+    // Close focus or cancel drag on Escape key
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === "Escape") {
+                if (pointerDragRef.current) {
+                    cancelActiveDrag();
+                }
                 setFocusedSubjectId(null);
             }
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [setFocusedSubjectId]);
+    }, [setFocusedSubjectId, cancelActiveDrag]);
 
     const getPosition = useCallback((meeting: Meeting) => {
         const dayIndex = DAYS.indexOf(meeting.day);
@@ -636,6 +723,14 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     ) => {
         if (e.button !== 0) return;
 
+        // Clean up any leftover spring-back or remove animation before starting a new drag
+        if (springTimeoutRef.current !== null) {
+            window.clearTimeout(springTimeoutRef.current);
+            springTimeoutRef.current = null;
+            setIsSpringingBack(false);
+            setFloatingCard(null);
+        }
+
         const isFrozen = frozenSubjectIds.includes(cls.subjectId);
         const target = e.currentTarget;
 
@@ -648,6 +743,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
             subjectId: cls.subjectId,
             classId: cls.classId,
             meetingIdx,
+            pointerId: e.pointerId,
             subjectName: cls.subjectName || "",
             className: cls.className || "",
             timeText: m ? `${m.start}-${m.end}` : "",
@@ -671,7 +767,9 @@ export const ScheduleGrid = memo(function ScheduleGrid({
             });
         }
 
-        setFocusedSubjectId(cls.subjectId);
+        if (focusedSubjectId !== cls.subjectId) {
+            setFocusedSubjectId(cls.subjectId);
+        }
     };
 
     const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -687,6 +785,26 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 state.isMoved = true;
                 state.isDragging = true;
                 setIsDragging(true);
+
+                // Cache hit-test rects once at drag start to avoid per-frame layout flushes
+                const leftPanelRect = document.getElementById("tour-course-panel")?.getBoundingClientRect();
+                cachedLeftPanelRightRef.current =
+                    onRemoveSubject && leftPanelRect && leftPanelRect.width > 0
+                        ? leftPanelRect.right
+                        : null;
+
+                const ghostNodes = gridRef.current?.querySelectorAll("[data-ghost-class-id]") || [];
+                cachedGhostRectsRef.current = Array.from(ghostNodes).map((el) => {
+                    const r = el.getBoundingClientRect();
+                    return {
+                        classId: el.getAttribute("data-ghost-class-id") || "",
+                        left: r.left,
+                        right: r.right,
+                        top: r.top,
+                        bottom: r.bottom,
+                    };
+                }).filter((g) => g.classId);
+
                 const rect = state.targetElem.getBoundingClientRect();
                 setFloatingCard({
                     subjectName: state.subjectName,
@@ -721,14 +839,8 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                         floatingCardRef.current.style.transition = "none";
                     }
 
-                    const leftPanelEl = document.getElementById("tour-course-panel");
-                    const leftPanelRect = leftPanelEl?.getBoundingClientRect();
-                    const overRemove = Boolean(
-                        onRemoveSubject &&
-                        leftPanelRect &&
-                        leftPanelRect.width > 0 &&
-                        curState.clientX <= leftPanelRect.right
-                    );
+                    const leftRight = cachedLeftPanelRightRef.current;
+                    const overRemove = Boolean(leftRight !== null && curState.clientX <= leftRight);
                     updateRemoveHover(overRemove);
 
                     if (overRemove) {
@@ -737,9 +849,12 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                             setHoveredGhostClassId(null);
                         }
                     } else {
-                        const elements = document.elementsFromPoint(curState.clientX, curState.clientY);
-                        const ghostEl = elements.find((el) => el.hasAttribute("data-ghost-class-id"));
-                        const targetClassId = ghostEl?.getAttribute("data-ghost-class-id") || null;
+                        const cx = curState.clientX;
+                        const cy = curState.clientY;
+                        const hit = cachedGhostRectsRef.current.find(
+                            (g) => cx >= g.left && cx <= g.right && cy >= g.top && cy <= g.bottom
+                        );
+                        const targetClassId = hit?.classId || null;
                         if (targetClassId !== hoveredGhostRef.current) {
                             hoveredGhostRef.current = targetClassId;
                             setHoveredGhostClassId(targetClassId);
@@ -803,11 +918,13 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 setActiveDraggingCard(null);
                 pointerDragRef.current = null;
 
-                setTimeout(() => {
+                removeCardTimeoutRef.current = window.setTimeout(() => {
+                    removeCardTimeoutRef.current = null;
                     setFloatingCard((prev) => (prev?.removing ? null : prev));
                 }, 240);
 
-                setTimeout(() => {
+                removeOverlayTimeoutRef.current = window.setTimeout(() => {
+                    removeOverlayTimeoutRef.current = null;
                     updateRemoveHover(false);
                 }, 360);
             } else if (targetClassId) {
@@ -825,7 +942,8 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 setActiveDraggingCard(null);
                 pointerDragRef.current = null;
 
-                setTimeout(() => {
+                justDroppedTimeoutRef.current = window.setTimeout(() => {
+                    justDroppedTimeoutRef.current = null;
                     setJustDroppedSubjectId((prev) => (prev === droppedSubId ? null : prev));
                 }, 300);
             } else {
@@ -835,7 +953,8 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                     floatingCardRef.current.style.transition = "transform 200ms ease-out";
                     floatingCardRef.current.style.transform = "translate3d(0, 0, 0) scale(1)";
                 }
-                setTimeout(() => {
+                springTimeoutRef.current = window.setTimeout(() => {
+                    springTimeoutRef.current = null;
                     setFloatingCard(null);
                     setIsSpringingBack(false);
                     setIsDragging(false);
@@ -858,31 +977,8 @@ export const ScheduleGrid = memo(function ScheduleGrid({
         }
     };
 
-    const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
-        const state = pointerDragRef.current;
-        if (!state) return;
-
-        if (rafIdRef.current !== null) {
-            cancelAnimationFrame(rafIdRef.current);
-            rafIdRef.current = null;
-        }
-
-        try {
-            state.targetElem?.releasePointerCapture(e.pointerId);
-        } catch {}
-
-        if (state.targetElem) {
-            state.targetElem.style.transform = "";
-            state.targetElem.style.transition = "";
-        }
-
-        setFloatingCard(null);
-        setIsDragging(false);
-        hoveredGhostRef.current = null;
-        setHoveredGhostClassId(null);
-        updateRemoveHover(false);
-        setActiveDraggingCard(null);
-        pointerDragRef.current = null;
+    const handlePointerCancel = () => {
+        cancelActiveDrag();
     };
 
     return (
@@ -1156,7 +1252,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                   zIndex: isFocused ? 30 : layout.zIndex,
                                                               }),
                                                         opacity: isThisCardDragging ? 0 : 1, // Floating portal renders above everything while dragging
-                                                        willChange: isThisCardDragging ? "transform" : "left, top, height, width",
+                                                        willChange: isThisCardJustDropped ? "left, top, height, width" : undefined,
                                                         transition: prefersReducedMotion
                                                             ? "none"
                                                             : isThisCardDragging || isThisCardJustDropped
