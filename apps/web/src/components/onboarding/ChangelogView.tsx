@@ -64,7 +64,7 @@ export function ChangelogView() {
                             <span
                                 aria-hidden="true"
                                 className={cn(
-                                    "absolute -left-[29px] top-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-[#f9f9f8] dark:ring-[#121211]",
+                                    "absolute -left-[29.5px] top-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-[#f9f9f8] dark:ring-[#121211]",
                                     entry.milestone
                                         ? "bg-amber-500"
                                         : idx === 0
@@ -78,10 +78,10 @@ export function ChangelogView() {
                                     className={cn(
                                         entry.milestone
                                             ? "font-doodle text-[18px] font-bold text-amber-600 dark:text-amber-400"
-                                            : "font-mono text-[12.5px] text-[#5b82a6] dark:text-[#7dd3fc]"
+                                            : "font-doodle text-[17px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]"
                                     )}
                                 >
-                                    {entry.milestone ? "★ milestone" : `v${entry.version}`}
+                                    {entry.badge ? entry.badge[language] : `v${entry.version}`}
                                 </span>
                                 <time
                                     dateTime={entry.date}
