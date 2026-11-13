@@ -2,14 +2,18 @@
 
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
+import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
+import { getTutorialVideo } from "@/lib/onboarding/content";
+import { getTranslation } from "@/lib/i18n";
 
 interface WelcomeScreenProps {
     isOpen: boolean;
     onContinue: () => void;
+    onWatchIntro?: () => void;
 }
 
-export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
+export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScreenProps) {
     const {
         language,
         setLanguage,
@@ -17,8 +21,37 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
     } = useAppStore();
 
     const { theme, setTheme } = useTheme();
+    const previewRef = useRef<HTMLDivElement>(null);
+    const [isPreviewVisible, setIsPreviewVisible] = useState(false);
+    const [disableAutoPreview, setDisableAutoPreview] = useState(false);
+
+    useEffect(() => {
+        if (!isOpen || typeof window === "undefined") return;
+        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const conn = (navigator as unknown as { connection?: { saveData?: boolean } }).connection;
+        setDisableAutoPreview(reduced || Boolean(conn?.saveData));
+        const el = previewRef.current;
+        if (!el || typeof IntersectionObserver === "undefined") {
+            setIsPreviewVisible(true);
+            return;
+        }
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    setIsPreviewVisible(true);
+                    observer.disconnect();
+                }
+            },
+            { threshold: 0.1 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [isOpen]);
 
     if (!isOpen) return null;
+
+    const t = getTranslation(language);
+    const introVideo = getTutorialVideo("start");
 
     const isDarkMode = theme === "dark";
 
@@ -71,7 +104,7 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
             </header>
 
             {/* 2. Center Welcome Block (max-w-[440px]) */}
-            <main className="max-w-[440px] w-full mx-auto my-auto py-12">
+            <main className="max-w-[440px] w-full mx-auto my-auto py-6">
                 {/* Doodle Eyebrow */}
                 <span className="font-doodle text-[20px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] mb-1 block leading-none">
                     {language === "id"
@@ -87,7 +120,7 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
                 </h1>
 
                 {/* Subtext */}
-                <p className="text-[14px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-2 mb-8">
+                <p className="text-[14px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-2 mb-5">
                     {language === "id" ? (
                         <>
                             Tempel tabel jadwal kampusmu, geser kelas di kanvas, dan temukan setiap kombinasi{" "}
@@ -171,7 +204,49 @@ export function WelcomeScreen({ isOpen, onContinue }: WelcomeScreenProps) {
                     </div>
                 </div>
 
-                {/* 4. Subtle Doodle Note Below with Curved SVG Arrow */}
+                {/* 4. Lazy 1-minute intro preview & link */}
+                {onWatchIntro && (
+                    <div
+                        ref={previewRef}
+                        className="mt-4 flex items-center gap-3.5"
+                    >
+                        <button
+                            type="button"
+                            onClick={onWatchIntro}
+                            aria-label={t.watchOneMinIntro}
+                            className="w-28 aspect-video rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] bg-[#f3f3f0] dark:bg-[#1a1a18] shrink-0 hover:opacity-90 transition-opacity focus-visible:outline-none"
+                        >
+                            {disableAutoPreview ? (
+                                <img
+                                    src={introVideo.poster}
+                                    alt={introVideo.title[language]}
+                                    loading="lazy"
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <video
+                                    src={isPreviewVisible ? introVideo.preview : undefined}
+                                    poster={introVideo.poster}
+                                    muted
+                                    loop
+                                    playsInline
+                                    autoPlay={isPreviewVisible}
+                                    preload="none"
+                                    className="w-full h-full object-cover"
+                                />
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={onWatchIntro}
+                            className="min-h-[44px] sm:min-h-0 text-[13px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline underline-offset-4 transition-colors text-left"
+                        >
+                            {t.watchOneMinIntro}
+                        </button>
+                    </div>
+                )}
+
+                {/* 5. Subtle Doodle Note Below with Curved SVG Arrow */}
                 <div className="mt-4 flex items-center gap-2 font-doodle text-[17px] text-[#5b82a6] dark:text-[#7dd3fc] -rotate-1 select-none">
                     <svg width="20" height="14" viewBox="0 0 20 14" fill="none" className="shrink-0">
                         <path
