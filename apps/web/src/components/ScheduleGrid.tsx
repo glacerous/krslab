@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef, useCallback, memo } from "react";
+import { createPortal } from "react-dom";
 import {
     AlertTriangle,
     Lock,
+    Trash2,
     Unlock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -140,6 +142,10 @@ interface PointerDragState {
     subjectId: string;
     classId: string;
     meetingIdx: number;
+    subjectName: string;
+    className: string;
+    timeText: string;
+    room?: string;
     startX: number;
     startY: number;
     currentDx: number;
@@ -149,6 +155,20 @@ interface PointerDragState {
     isMoved: boolean;
     isDragging: boolean;
     targetElem: HTMLElement | null;
+}
+
+interface FloatingDragCard {
+    subjectName: string;
+    className: string;
+    timeText: string;
+    room?: string;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+    initialDx: number;
+    initialDy: number;
+    removing: boolean;
 }
 
 export const ScheduleGrid = memo(function ScheduleGrid({
@@ -184,6 +204,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     const [isDragging, setIsDragging] = useState(false);
     const [hoveredGhostClassId, setHoveredGhostClassId] = useState<string | null>(null);
     const [isOverRemoveZone, setIsOverRemoveZone] = useState(false);
+    const [floatingCard, setFloatingCard] = useState<FloatingDragCard | null>(null);
     const [isSpringingBack, setIsSpringingBack] = useState(false);
     const [justDroppedSubjectId, setJustDroppedSubjectId] = useState<string | null>(null);
     const [droppedOptimisticPicks, setDroppedOptimisticPicks] = useState<Record<string, string>>({});
@@ -192,6 +213,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     const rafIdRef = useRef<number | null>(null);
     const hoveredGhostRef = useRef<string | null>(null);
     const isRemoveZoneRef = useRef(false);
+    const floatingCardRef = useRef<HTMLDivElement | null>(null);
 
     const updateRemoveHover = useCallback((next: boolean) => {
         if (isRemoveZoneRef.current === next) return;
@@ -619,10 +641,15 @@ export const ScheduleGrid = memo(function ScheduleGrid({
             target.setPointerCapture(e.pointerId);
         } catch {}
 
+        const m = cls.meetings?.[meetingIdx];
         pointerDragRef.current = {
             subjectId: cls.subjectId,
             classId: cls.classId,
             meetingIdx,
+            subjectName: cls.subjectName || "",
+            className: cls.className || "",
+            timeText: m ? `${m.start}-${m.end}` : "",
+            room: m?.room,
             startX: e.clientX,
             startY: e.clientY,
             currentDx: 0,
@@ -658,6 +685,20 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 state.isMoved = true;
                 state.isDragging = true;
                 setIsDragging(true);
+                const rect = state.targetElem.getBoundingClientRect();
+                setFloatingCard({
+                    subjectName: state.subjectName,
+                    className: state.className,
+                    timeText: state.timeText,
+                    room: state.room,
+                    left: rect.left,
+                    top: rect.top,
+                    width: rect.width,
+                    height: rect.height,
+                    initialDx: dx,
+                    initialDy: dy,
+                    removing: false,
+                });
             }
         }
 
@@ -673,9 +714,9 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                     const curState = pointerDragRef.current;
                     if (!curState || !curState.isMoved) return;
 
-                    if (curState.targetElem) {
-                        curState.targetElem.style.transform = `translate3d(${curState.currentDx}px, ${curState.currentDy}px, 0) scale(1.02)`;
-                        curState.targetElem.style.transition = "none";
+                    if (floatingCardRef.current) {
+                        floatingCardRef.current.style.transform = `translate3d(${curState.currentDx}px, ${curState.currentDy}px, 0) scale(1.02)`;
+                        floatingCardRef.current.style.transition = "none";
                     }
 
                     const leftPanelEl = document.getElementById("tour-course-panel");
@@ -724,10 +765,16 @@ export const ScheduleGrid = memo(function ScheduleGrid({
             const targetClassId = hoveredGhostRef.current;
             if (isRemoveZoneRef.current && onRemoveSubject) {
                 const droppedSubId = state.subjectId;
+                const dropDx = state.currentDx;
+                const dropDy = state.currentDy;
 
-                if (state.targetElem) {
-                    state.targetElem.style.transform = "";
-                    state.targetElem.style.transition = "";
+                setFloatingCard((prev) => (prev ? { ...prev, removing: true } : null));
+                if (floatingCardRef.current) {
+                    floatingCardRef.current.style.transition =
+                        "transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease-out, filter 200ms ease-out";
+                    floatingCardRef.current.style.transform = `translate3d(${dropDx}px, ${dropDy}px, 0) scale(0.45) rotate(-5deg)`;
+                    floatingCardRef.current.style.opacity = "0";
+                    floatingCardRef.current.style.filter = "blur(3px)";
                 }
 
                 onRemoveSubject(droppedSubId);
@@ -738,14 +785,14 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 updateRemoveHover(false);
                 setActiveDraggingCard(null);
                 pointerDragRef.current = null;
+
+                setTimeout(() => {
+                    setFloatingCard((prev) => (prev?.removing ? null : prev));
+                }, 220);
             } else if (targetClassId) {
                 const droppedSubId = state.subjectId;
 
-                if (state.targetElem) {
-                    state.targetElem.style.transform = "";
-                    state.targetElem.style.transition = "";
-                }
-
+                setFloatingCard(null);
                 setJustDroppedSubjectId(droppedSubId);
                 setDroppedOptimisticPicks((prev) => ({ ...prev, [droppedSubId]: targetClassId }));
                 onSelectClass?.(droppedSubId, targetClassId);
@@ -763,15 +810,12 @@ export const ScheduleGrid = memo(function ScheduleGrid({
             } else {
                 updateRemoveHover(false);
                 setIsSpringingBack(true);
-                if (state.targetElem) {
-                    state.targetElem.style.transition = "transform 200ms ease-out";
-                    state.targetElem.style.transform = "translate3d(0, 0, 0) scale(1)";
+                if (floatingCardRef.current) {
+                    floatingCardRef.current.style.transition = "transform 200ms ease-out";
+                    floatingCardRef.current.style.transform = "translate3d(0, 0, 0) scale(1)";
                 }
                 setTimeout(() => {
-                    if (state.targetElem) {
-                        state.targetElem.style.transform = "";
-                        state.targetElem.style.transition = "";
-                    }
+                    setFloatingCard(null);
                     setIsSpringingBack(false);
                     setIsDragging(false);
                     hoveredGhostRef.current = null;
@@ -811,6 +855,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
             state.targetElem.style.transition = "";
         }
 
+        setFloatingCard(null);
         setIsDragging(false);
         hoveredGhostRef.current = null;
         setHoveredGhostClassId(null);
@@ -1089,7 +1134,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                   width: layout.width,
                                                                   zIndex: isFocused ? 30 : layout.zIndex,
                                                               }),
-                                                        opacity: 1, // ALWAYS 100% OPAQUE
+                                                        opacity: isThisCardDragging ? 0 : 1, // Floating portal renders above everything while dragging
                                                         willChange: isThisCardDragging ? "transform" : "left, top, height, width",
                                                         transition: prefersReducedMotion
                                                             ? "none"
@@ -1332,6 +1377,52 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                             : `nothing scheduled in ${activePlanName || "Plan 1"} yet`}
                     </p>
                 </div>
+            )}
+            {floatingCard && typeof document !== "undefined" && createPortal(
+                <div
+                    ref={floatingCardRef}
+                    style={{
+                        position: "fixed",
+                        left: `${floatingCard.left}px`,
+                        top: `${floatingCard.top}px`,
+                        width: `${floatingCard.width}px`,
+                        height: `${floatingCard.height}px`,
+                        zIndex: 9999,
+                        pointerEvents: "none",
+                        transform: floatingCard.removing
+                            ? undefined
+                            : `translate3d(${floatingCard.initialDx}px, ${floatingCard.initialDy}px, 0) scale(1.02)`,
+                        willChange: "transform, opacity",
+                    }}
+                    className={cn(
+                        "rounded-xl p-2.5 flex flex-col justify-start select-none overflow-hidden shadow-2xl transition-colors duration-150",
+                        isOverRemoveZone || floatingCard.removing
+                            ? "bg-rose-50 dark:bg-rose-950/95 border border-rose-400 dark:border-rose-500 ring-2 ring-rose-500"
+                            : "bg-white dark:bg-[#202027] border border-[#dcdcd6] dark:border-[#343440] ring-2 ring-[#141413] dark:ring-[#f4f4f6]"
+                    )}
+                >
+                    <div className="flex items-center justify-between gap-1.5 min-w-0">
+                        <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2e2e38] border border-[#e2e2de] dark:border-[#454554] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
+                            {floatingCard.className}
+                        </span>
+                        {(isOverRemoveZone || floatingCard.removing) ? (
+                            <Trash2 className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+                        ) : (
+                            <span className="font-mono text-[10.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate tabular-nums">
+                                {floatingCard.timeText}
+                            </span>
+                        )}
+                    </div>
+                    <h4 className="font-semibold text-[12.5px] text-[#141413] dark:text-[#f4f4f6] mt-1 leading-tight line-clamp-2">
+                        {floatingCard.subjectName}
+                    </h4>
+                    {floatingCard.room && (
+                        <span className="text-[11px] text-[#6e6e77] dark:text-[#a1a1aa] truncate mt-0.5">
+                            {floatingCard.room}
+                        </span>
+                    )}
+                </div>,
+                document.body
             )}
         </div>
     );
