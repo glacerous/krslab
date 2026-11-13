@@ -165,15 +165,6 @@ export const CHANGELOG: ChangelogEntry[] = [
             id: "Rilis publik pertama menjelang KRS Januari: parser tabel BIMA sederhana, cek bentrok, dan grid mingguan yang jalan 100% di browser.",
         },
         highlights: [],
-        media: {
-            type: "image",
-            src: "/changelog/v0-0-1-launch.jpg",
-            alt: {
-                en: "Screenshot of the first KRSlab release from January 2026",
-                id: "Tangkapan layar rilis pertama KRSlab dari Januari 2026",
-            },
-            aspect: "16/9",
-        },
     },
 ];
 
