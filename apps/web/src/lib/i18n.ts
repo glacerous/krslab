@@ -11,6 +11,10 @@ export interface Translations {
     spaceToShuffle: string;
     tutorial: string;
     export: string;
+    exportCopyImage: string;
+    exportCalendar: string;
+    exportChecklist: string;
+    exportEmpty: string;
     exportPng: string;
     exportSuccess: string;
     exportFailed: string;
@@ -163,6 +167,10 @@ export const translations: Record<Language, Translations> = {
         spaceToShuffle: "← space to shuffle",
         tutorial: "tutorial",
         export: "Export",
+        exportCopyImage: "Copy image",
+        exportCalendar: "Add to calendar (.ics)",
+        exportChecklist: "Copy KRS checklist",
+        exportEmpty: "Select at least one course first",
         exportPng: "Rendering PNG Schedule...",
         exportSuccess: "Schedule Exported as PNG!",
         exportFailed: "Failed to export image",
@@ -313,6 +321,10 @@ export const translations: Record<Language, Translations> = {
         spaceToShuffle: "← spasi untuk acak",
         tutorial: "panduan",
         export: "Ekspor",
+        exportCopyImage: "Salin gambar",
+        exportCalendar: "Tambah ke kalender (.ics)",
+        exportChecklist: "Salin daftar KRS",
+        exportEmpty: "Pilih minimal satu matkul dulu",
         exportPng: "Menyiapkan PNG Jadwal...",
         exportSuccess: "Jadwal Berhasil Diekspor sebagai PNG!",
         exportFailed: "Gagal mengekspor gambar",

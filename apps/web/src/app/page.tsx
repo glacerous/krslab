@@ -32,6 +32,8 @@ import {
     Compass,
     Video,
     History,
+    Calendar,
+    FileText,
     RotateCw,
     Pencil,
     Copy,
@@ -42,6 +44,7 @@ import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
+import { buildKrsChecklistText, buildScheduleIcs, getScheduledItems } from "@/lib/export-schedule";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -108,6 +111,7 @@ function WorkspaceContent() {
     const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
     const [isPrefsOpen, setIsPrefsOpen] = useState(false);
     const [isGuideMenuOpen, setIsGuideMenuOpen] = useState(false);
+    const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
     const [isWelcomeManuallyOpen, setIsWelcomeManuallyOpen] = useState(false);
     const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
     const [editingPlanIdInMenu, setEditingPlanIdInMenu] = useState<string | null>(null);
@@ -121,6 +125,8 @@ function WorkspaceContent() {
     const planTriggerRef = useRef<HTMLButtonElement>(null);
     const prefsBtnRef = useRef<HTMLButtonElement>(null);
     const guideBtnRef = useRef<HTMLButtonElement>(null);
+    const exportBtnRef = useRef<HTMLButtonElement>(null);
+    const [exportMenuCoords, setExportMenuCoords] = useState<{ top: number; right: number } | null>(null);
     const [sourceMenuCoords, setSourceMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const [planMenuCoords, setPlanMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const [prefsCoords, setPrefsCoords] = useState<{ top: number; left: number } | null>(null);
@@ -211,6 +217,16 @@ function WorkspaceContent() {
         }
     };
 
+    const updateExportMenuCoords = useCallback(() => {
+        if (exportBtnRef.current) {
+            const rect = exportBtnRef.current.getBoundingClientRect();
+            setExportMenuCoords({
+                top: rect.bottom + 8,
+                right: Math.max(12, window.innerWidth - rect.right),
+            });
+        }
+    }, []);
+
     const handleToggleGuideMenu = () => {
         if (!isGuideMenuOpen) {
             updateGuideMenuCoords();
@@ -218,8 +234,22 @@ function WorkspaceContent() {
             setIsSourceMenuOpen(false);
             setIsPlanMenuOpen(false);
             setIsPrefsOpen(false);
+            setIsExportMenuOpen(false);
         } else {
             setIsGuideMenuOpen(false);
+        }
+    };
+
+    const handleToggleExportMenu = () => {
+        if (!isExportMenuOpen) {
+            updateExportMenuCoords();
+            setIsExportMenuOpen(true);
+            setIsSourceMenuOpen(false);
+            setIsPlanMenuOpen(false);
+            setIsPrefsOpen(false);
+            setIsGuideMenuOpen(false);
+        } else {
+            setIsExportMenuOpen(false);
         }
     };
 
@@ -283,6 +313,7 @@ function WorkspaceContent() {
         isPlanMenuOpen ||
         isPrefsOpen ||
         isGuideMenuOpen ||
+        isExportMenuOpen ||
         isMobileCoursesOpen;
 
     const onboarding = useOnboarding({ isBlocked: isOnboardingBlocked });
@@ -981,6 +1012,80 @@ function WorkspaceContent() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [previewMapping, handleAcceptPreview, handleGenerateOrShuffle, handleCancelPreview]);
 
+    // Handler: Copy Schedule Image to Clipboard
+    const handleCopyImage = async () => {
+        const node = document.getElementById("krs-grid-capture");
+        if (!node) return;
+        setIsExportMenuOpen(false);
+
+        if (typeof ClipboardItem === "undefined" || !navigator.clipboard?.write) {
+            toast.error(language === "id" ? "Browser tidak mendukung salin gambar" : "Clipboard image copy not supported in this browser");
+            return;
+        }
+
+        toast.loading(language === "id" ? "Menyalin gambar..." : "Copying image...", { id: "export-copy-img" });
+        try {
+            const htmlToImage = await import("html-to-image");
+            const blob = await htmlToImage.toBlob(node, {
+                pixelRatio: 2,
+                backgroundColor: "#f9f9f8",
+                filter: (n: Node) => !(n as HTMLElement).classList?.contains("zoom-controls"),
+            });
+            if (!blob) throw new Error("Empty image blob");
+            await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+            toast.success(language === "id" ? "Gambar jadwal disalin!" : "Schedule image copied!", { id: "export-copy-img" });
+            onboarding.triggerAdvancedTip();
+        } catch (err) {
+            console.error("Copy image failed", err);
+            toast.error(language === "id" ? "Gagal menyalin gambar" : "Failed to copy image", { id: "export-copy-img" });
+        }
+    };
+
+    // Handler: Export Calendar (.ics)
+    const handleExportIcs = () => {
+        setIsExportMenuOpen(false);
+        const items = getScheduledItems(activeDatasource, activePlan, previewMapping);
+        if (items.length === 0) {
+            toast.info(t.exportEmpty);
+            return;
+        }
+        const ics = buildScheduleIcs({
+            planName: activePlan?.name || "Schedule",
+            items,
+        });
+        const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `KRSlab-${activePlan?.name || "Schedule"}.ics`;
+        link.click();
+        URL.revokeObjectURL(url);
+        toast.success(language === "id" ? "File kalender (.ics) diunduh!" : "Calendar (.ics) downloaded!");
+        onboarding.triggerAdvancedTip();
+    };
+
+    // Handler: Copy KRS Checklist Text
+    const handleCopyChecklist = async () => {
+        setIsExportMenuOpen(false);
+        const items = getScheduledItems(activeDatasource, activePlan, previewMapping);
+        if (items.length === 0) {
+            toast.info(t.exportEmpty);
+            return;
+        }
+        const text = buildKrsChecklistText({
+            planName: activePlan?.name || "Schedule",
+            items,
+            lang: language,
+        });
+        try {
+            await navigator.clipboard.writeText(text);
+            toast.success(language === "id" ? "Daftar KRS disalin!" : "KRS checklist copied!");
+            onboarding.triggerAdvancedTip();
+        } catch {
+            toast.error(language === "id" ? "Gagal menyalin teks" : "Failed to copy text");
+        }
+    };
+
     // Handler: Export PNG
     const handleExportImage = async () => {
         const node = document.getElementById("krs-grid-capture");
@@ -1324,14 +1429,22 @@ function WorkspaceContent() {
                         )}
                     </div>
 
-                    {/* Export Button */}
+                    {/* Export Menu Button */}
                     <button
-                        onClick={handleExportImage}
-                        className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all"
-                        title="Export Timetable as PNG"
+                        ref={exportBtnRef}
+                        type="button"
+                        onClick={handleToggleExportMenu}
+                        aria-haspopup="menu"
+                        aria-expanded={isExportMenuOpen}
+                        className={cn(
+                            "btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all",
+                            isExportMenuOpen && "bg-neutral-200/80 dark:bg-[#2e2e2b]"
+                        )}
+                        title={t.export}
                     >
                         <Download className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
                         <span className="hidden sm:inline">{t.export}</span>
+                        <ChevronDown className={cn("w-3 h-3 text-[#8a8a94] transition-transform", isExportMenuOpen && "rotate-180")} />
                     </button>
 
                     {/* Preferences Button */}
@@ -2236,6 +2349,69 @@ function WorkspaceContent() {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Header Export Menu Popover */}
+            {mounted && isExportMenuOpen && exportMenuCoords && createPortal(
+                <div
+                    className="fixed inset-0 z-[100]"
+                    onClick={() => setIsExportMenuOpen(false)}
+                >
+                    <div
+                        role="menu"
+                        style={{
+                            top: `${exportMenuCoords.top}px`,
+                            right: `${exportMenuCoords.right}px`,
+                        }}
+                        className="fixed w-[240px] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150 z-[110]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="px-2.5 pt-1 pb-1.5 font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
+                            {language === "id" ? "ekspor jadwal" : "export schedule"}
+                        </div>
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                setIsExportMenuOpen(false);
+                                handleExportImage();
+                            }}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center gap-2.5"
+                        >
+                            <Download className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{t.exportPng}</span>
+                        </button>
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={handleCopyImage}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center gap-2.5"
+                        >
+                            <Copy className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{t.exportCopyImage}</span>
+                        </button>
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] my-1.5" />
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={handleExportIcs}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center gap-2.5"
+                        >
+                            <Calendar className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{t.exportCalendar}</span>
+                        </button>
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={handleCopyChecklist}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center gap-2.5"
+                        >
+                            <FileText className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{t.exportChecklist}</span>
+                        </button>
                     </div>
                 </div>,
                 document.body
