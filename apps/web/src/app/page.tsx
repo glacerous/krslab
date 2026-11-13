@@ -29,6 +29,8 @@ import {
     Info,
     Sun,
     Moon,
+    Compass,
+    Video,
     RotateCw,
     Pencil,
     Copy,
@@ -295,6 +297,53 @@ function WorkspaceContent() {
             markOnboardingVersionSeen(LATEST_CHANGELOG_VERSION);
         }
     }, [onboardingSurface, onboardingSeenVersion, markOnboardingVersionSeen]);
+
+    // Existing users who already completed welcome and have saved data should not see the first-time intro popup
+    const checkedExistingUserRef = useRef(false);
+    useEffect(() => {
+        if (!_hasHydrated || !onboarding.hydrated || checkedExistingUserRef.current) return;
+        checkedExistingUserRef.current = true;
+        if (hasCompletedWelcome && datasources.length > 0 && !onboarding.introSeen) {
+            onboarding.markIntroSeen();
+        }
+    }, [_hasHydrated, hasCompletedWelcome, datasources.length, onboarding]);
+
+    const handleThemeSwitch = useCallback(
+        (nextTheme: "light" | "dark", e: React.MouseEvent<HTMLButtonElement>) => {
+            if (theme === nextTheme) return;
+            const prefersReducedMotion =
+                typeof window !== "undefined" &&
+                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            const doc = document as Document & {
+                startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+            };
+            if (prefersReducedMotion || typeof doc.startViewTransition !== "function") {
+                setTheme(nextTheme);
+                return;
+            }
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX || rect.left + rect.width / 2;
+            const y = e.clientY || rect.top + rect.height / 2;
+            const radius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+            const root = document.documentElement;
+            root.style.setProperty("--theme-x", `${x}px`);
+            root.style.setProperty("--theme-y", `${y}px`);
+            root.style.setProperty("--theme-r", `${radius}px`);
+            root.setAttribute("data-theme-transition", nextTheme);
+
+            const transition = doc.startViewTransition(() => {
+                root.classList.toggle("dark", nextTheme === "dark");
+                setTheme(nextTheme);
+            });
+            transition.finished.finally(() => {
+                root.removeAttribute("data-theme-transition");
+            });
+        },
+        [theme, setTheme]
+    );
 
     // Single-Candidate Preview State (do not overwrite plan until explicitly accepted)
     const [previewMapping, setPreviewMapping] = useState<Record<string, string> | null>(null);
@@ -2040,7 +2089,7 @@ function WorkspaceContent() {
                             <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#141416] rounded-lg">
                                 <button
                                     type="button"
-                                    onClick={() => setTheme("light")}
+                                    onClick={(e) => handleThemeSwitch("light", e)}
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
                                         theme !== "dark"
@@ -2053,7 +2102,7 @@ function WorkspaceContent() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setTheme("dark")}
+                                    onClick={(e) => handleThemeSwitch("dark", e)}
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
                                         theme === "dark"
@@ -2180,12 +2229,10 @@ function WorkspaceContent() {
                                 setIsGuideMenuOpen(false);
                                 openOverlay("tour");
                             }}
-                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-baseline justify-between gap-2"
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center justify-between gap-2"
                         >
-                            <span className="flex items-baseline gap-2.5">
-                                <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] w-4 shrink-0">
-                                    01
-                                </span>
+                            <span className="flex items-center gap-2.5">
+                                <Compass className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
                                 <span>{t.introInteractiveTour}</span>
                             </span>
                             <span className="font-mono text-[10.5px] text-[#8a8a94] dark:text-[#71717a]">
@@ -2199,12 +2246,10 @@ function WorkspaceContent() {
                                 setIsGuideMenuOpen(false);
                                 onboarding.openVideo("start");
                             }}
-                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-baseline justify-between gap-2"
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center justify-between gap-2"
                         >
-                            <span className="flex items-baseline gap-2.5">
-                                <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] w-4 shrink-0">
-                                    02
-                                </span>
+                            <span className="flex items-center gap-2.5">
+                                <Video className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
                                 <span>{t.videoGetStarted}</span>
                             </span>
                             <span className="font-mono text-[10.5px] text-[#8a8a94] dark:text-[#71717a]">
@@ -2218,12 +2263,10 @@ function WorkspaceContent() {
                                 setIsGuideMenuOpen(false);
                                 onboarding.openVideo("advanced");
                             }}
-                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-baseline justify-between gap-2"
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center justify-between gap-2"
                         >
-                            <span className="flex items-baseline gap-2.5">
-                                <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] w-4 shrink-0">
-                                    03
-                                </span>
+                            <span className="flex items-center gap-2.5">
+                                <Video className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
                                 <span>{t.videoAdvanced}</span>
                             </span>
                             <span className="font-mono text-[10.5px] text-[#8a8a94] dark:text-[#71717a]">
