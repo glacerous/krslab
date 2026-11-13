@@ -1487,7 +1487,7 @@ function WorkspaceContent() {
                     {isDragRemoveHover && (
                         <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/90 dark:bg-rose-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2.5 pointer-events-none animate-in fade-in duration-150">
                             <div
-                                className="relative w-14 h-14 rounded-2xl bg-rose-100/90 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-xs"
+                                className="relative text-rose-600 dark:text-rose-400 flex items-center justify-center"
                                 style={
                                     isTrashCatching
                                         ? { animation: "krs-trash-gulp 280ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both" }
@@ -1495,8 +1495,8 @@ function WorkspaceContent() {
                                 }
                             >
                                 <svg
-                                    width="32"
-                                    height="32"
+                                    width="46"
+                                    height="46"
                                     viewBox="0 0 36 36"
                                     fill="none"
                                     stroke="currentColor"
