@@ -276,8 +276,8 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                                 </div>
                                 <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-snug">
                                     {language === "id"
-                                        ? "Tempel BIMA, geser bentrok, ekspor PNG."
-                                        : "Paste BIMA, drag clashes, export PNG."}
+                                        ? "Tempel BIMA / SIAKAD, geser bentrok, ekspor PNG."
+                                        : "Paste BIMA / SIAKAD, drag clashes, export PNG."}
                                 </p>
                             </div>
                         </button>

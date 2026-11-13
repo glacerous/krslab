@@ -28,14 +28,14 @@ const spaceMono = Space_Mono({
 
 export const metadata: Metadata = {
     title: {
-        default: "KRSlab - UPNYK Academic Schedule Optimizer & KRS Planner",
+        default: "KRSlab - University KRS & Academic Schedule Planner",
         template: "%s | KRSlab"
     },
-    description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes. Supports BIMA UPNYK table imports.",
+    description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes. Supports BIMA UPNYK, SIAKAD, SiakadCloud, SIMASTER, SIAK-NG, SIX, SIAM, and Excel imports.",
     keywords: [
         "KRS", "KRS UPNYK", "BIMA UPNYK", "KRSlab", "Kartu Rencana Studi", "academic schedule",
         "schedule optimizer", "class conflict resolver", "jadwal kuliah", "UPN Veteran Yogyakarta",
-        "BIMA schedule planner", "university planner", "mahasiswa", "automatic schedule generator"
+        "SIAKAD", "SiakadCloud", "SIMASTER", "SIAK-NG", "SIX ITB", "SIAM UB", "university planner", "mahasiswa", "automatic schedule generator"
     ],
     authors: [{ name: "Azzaky Raihan", url: "https://github.com/glacerous" }],
     creator: "Azzaky Raihan",
@@ -50,7 +50,7 @@ export const metadata: Metadata = {
         type: "website",
         locale: "en_US",
         url: "https://krslab.vercel.app",
-        title: "KRSlab - UPNYK Academic Schedule Optimizer & KRS Planner",
+        title: "KRSlab - University KRS & Academic Schedule Planner",
         description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes.",
         siteName: "KRSlab",
         images: [
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     },
     twitter: {
         card: "summary_large_image",
-        title: "KRSlab - UPNYK Academic Schedule Optimizer & KRS Planner",
+        title: "KRSlab - University KRS & Academic Schedule Planner",
         description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes.",
         images: ["/og-image.png"],
         creator: "@glacerous",

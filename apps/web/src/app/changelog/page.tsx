@@ -3,7 +3,7 @@ import { ChangelogView } from "@/components/onboarding/ChangelogView";
 
 export const metadata: Metadata = {
     title: "Changelog",
-    description: "Release notes and updates for KRSlab: UPNYK Academic Schedule Optimizer & KRS Planner.",
+    description: "Release notes and updates for KRSlab: University Academic Schedule Optimizer & KRS Planner.",
     openGraph: {
         title: "KRSlab Changelog",
         description: "Release notes and updates for KRSlab.",

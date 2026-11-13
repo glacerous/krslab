@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: "KRSlab - UPNYK Academic Schedule Optimizer",
+        name: "KRSlab - University KRS & Schedule Planner",
         short_name: "KRSlab",
         description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts and design your weekly layout.",
         start_url: "/",

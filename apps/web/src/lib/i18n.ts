@@ -282,7 +282,7 @@ export const translations: Record<Language, Translations> = {
         cloudSyncPost: ", your plans save automatically in this browser.",
         // Onboarding videos, menus & changelog
         introCardTitle: "New to KRSlab? Start in 1 minute",
-        introCardBody: "See how to paste your schedule from BIMA, pick classes, and export a clash-free timetable.",
+        introCardBody: "See how to paste your schedule from BIMA / SIAKAD, pick classes, and export a clash-free timetable.",
         introWatchVideo: "Watch video",
         introInteractiveTour: "Interactive tour",
         dismiss: "Dismiss",
@@ -436,7 +436,7 @@ export const translations: Record<Language, Translations> = {
         cloudSyncPost: ", rencana jadwalmu tersimpan otomatis di browser ini.",
         // Onboarding videos, menus & changelog
         introCardTitle: "Baru di KRSlab? Mulai dalam 1 menit",
-        introCardBody: "Lihat cara menempel jadwal dari BIMA, memilih kelas, dan mengekspor KRS tanpa bentrok.",
+        introCardBody: "Lihat cara menempel jadwal dari BIMA / SIAKAD, memilih kelas, dan mengekspor KRS tanpa bentrok.",
         introWatchVideo: "Tonton video",
         introInteractiveTour: "Tur interaktif",
         dismiss: "Nanti saja",

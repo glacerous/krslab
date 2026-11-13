@@ -39,11 +39,11 @@ export const VIDEOS: TutorialVideo[] = [
             id: "Mulai dalam 1 menit",
         },
         blurb: {
-            en: "Copy your BIMA schedule, pick courses, fix clashes, and export a PNG.",
-            id: "Salin jadwal dari BIMA, pilih matkul, atasi bentrok, lalu ekspor PNG.",
+            en: "Copy your BIMA / SIAKAD schedule, pick courses, fix clashes, and export a PNG.",
+            id: "Salin jadwal dari BIMA / SIAKAD, pilih matkul, atasi bentrok, lalu ekspor PNG.",
         },
         chapters: [
-            { at: 4, title: { en: "Log in to BIMA", id: "Login ke BIMA" } },
+            { at: 4, title: { en: "Log in to BIMA / SIAKAD", id: "Login ke BIMA / SIAKAD" } },
             { at: 8, title: { en: "Open Lecturer Schedule", id: "Buka Jadwal Dosen" } },
             { at: 11, title: { en: "Pick your semester", id: "Pilih semester" } },
             { at: 16, title: { en: "Copy the table", id: "Salin tabelnya" } },

@@ -151,7 +151,11 @@ export function VideoModal({
                     <div className="px-5 pt-4 pb-3 flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <span className="font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] block leading-none mb-1">
-                                {video.id === "start" ? "01 · getting started" : "02 · advanced workflow"}
+                                {video.id === "start"
+                                    ? language === "id"
+                                        ? "01 · demo BIMA, berlaku untuk semua SIAKAD"
+                                        : "01 · demo uses BIMA, works for any SIAKAD"
+                                    : "02 · advanced workflow"}
                             </span>
                             <h2
                                 id="video-modal-title"

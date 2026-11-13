@@ -425,7 +425,7 @@ export const useAppStore = create<AppStore>()(
             },
 
             importDatasourceAndCreatePlan: (name, subjects) => {
-                const defaultName = name.trim() || `BIMA Schedule - ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short" })}`;
+                const defaultName = name.trim() || `KRS Schedule - ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short" })}`;
 
                 // Deduplicate sample data if already loaded
                 if (defaultName.toLowerCase().includes("sample")) {
