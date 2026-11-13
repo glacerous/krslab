@@ -767,28 +767,43 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 const droppedSubId = state.subjectId;
                 const dropDx = state.currentDx;
                 const dropDy = state.currentDy;
+                const leftPanelRect = document.getElementById("tour-course-panel")?.getBoundingClientRect();
+                const cardRect = floatingCardRef.current?.getBoundingClientRect();
 
-                setFloatingCard((prev) => (prev ? { ...prev, removing: true } : null));
-                if (floatingCardRef.current) {
-                    floatingCardRef.current.style.transition =
-                        "transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 200ms ease-out, filter 200ms ease-out";
-                    floatingCardRef.current.style.transform = `translate3d(${dropDx}px, ${dropDy}px, 0) scale(0.45) rotate(-5deg)`;
-                    floatingCardRef.current.style.opacity = "0";
-                    floatingCardRef.current.style.filter = "blur(3px)";
-                }
+                // Fly card into the center of the left-panel trash target
+                const binDx = leftPanelRect && cardRect
+                    ? dropDx + (leftPanelRect.left + leftPanelRect.width / 2 - (cardRect.left + cardRect.width / 2))
+                    : dropDx - 40;
+                const binDy = leftPanelRect && cardRect
+                    ? dropDy + (leftPanelRect.top + leftPanelRect.height / 2 - (cardRect.top + cardRect.height / 2))
+                    : dropDy;
+
+                setFloatingCard((prev) =>
+                    prev ? { ...prev, initialDx: dropDx, initialDy: dropDy, removing: true } : null
+                );
+
+                requestAnimationFrame(() => {
+                    if (floatingCardRef.current) {
+                        floatingCardRef.current.style.transition =
+                            "transform 240ms cubic-bezier(0.32, 0, 0.2, 1), opacity 180ms ease-in 60ms";
+                        floatingCardRef.current.style.transform =
+                            `translate3d(${binDx}px, ${binDy}px, 0) scale(0.16)`;
+                        floatingCardRef.current.style.opacity = "0";
+                    }
+                });
 
                 onRemoveSubject(droppedSubId);
                 setFocusedSubjectId(null);
                 setIsDragging(false);
                 hoveredGhostRef.current = null;
                 setHoveredGhostClassId(null);
-                updateRemoveHover(false);
                 setActiveDraggingCard(null);
                 pointerDragRef.current = null;
 
                 setTimeout(() => {
+                    updateRemoveHover(false);
                     setFloatingCard((prev) => (prev?.removing ? null : prev));
-                }, 220);
+                }, 240);
             } else if (targetClassId) {
                 const droppedSubId = state.subjectId;
 
@@ -1389,9 +1404,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                         height: `${floatingCard.height}px`,
                         zIndex: 9999,
                         pointerEvents: "none",
-                        transform: floatingCard.removing
-                            ? undefined
-                            : `translate3d(${floatingCard.initialDx}px, ${floatingCard.initialDy}px, 0) scale(1.02)`,
+                        transform: `translate3d(${floatingCard.initialDx}px, ${floatingCard.initialDy}px, 0) scale(1.02)`,
                         willChange: "transform, opacity",
                     }}
                     className={cn(
