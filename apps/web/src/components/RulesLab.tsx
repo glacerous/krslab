@@ -123,7 +123,7 @@ export function RulesLab({ isOpen, onClose, rules, onUpdateRules, onGenerate }: 
                             {rules.length === 0 ? (
                                 <div className="py-8 px-4 flex flex-col items-center justify-center border border-dashed border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl text-center bg-[#fafaf9]/70 dark:bg-[#18181b]/70 space-y-2">
                                     <p className="font-doodle text-[17px] font-bold text-[#6e6e77] dark:text-[#a1a1aa] leading-snug max-w-[240px]">
-                                        no rules yet — add one below to filter schedules
+                                        no rules yet, add one below to filter schedules
                                     </p>
                                     <svg className="w-5 h-6 text-[#5b82a6] dark:text-[#7dd3fc] stroke-current fill-none stroke-[2] translate-y-1" viewBox="0 0 20 24">
                                         <path d="M10 2 L10 20" strokeLinecap="round" />

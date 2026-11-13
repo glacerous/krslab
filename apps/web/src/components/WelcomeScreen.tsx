@@ -285,8 +285,8 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                     </svg>
                     <span>
                         {language === "id"
-                            ? "tanpa perlu akun — langsung masuk!"
-                            : "no account needed — jump right in!"}
+                            ? "tanpa perlu akun, langsung masuk!"
+                            : "no account needed, jump right in!"}
                     </span>
                 </div>
             </main>

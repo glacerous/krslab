@@ -849,7 +849,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                     data-ghost-class-id={sec.classId}
                                                                     role="button"
                                                                     tabIndex={0}
-                                                                    aria-label={`Switch ${activeGhostSubject.name} to section ${sec.className}, ${m.day} ${m.start}–${m.end}${conflictInfo.hasConflict ? `, clashes with ${conflictInfo.clashingName || "other class"}` : ""}`}
+                                                                    aria-label={`Switch ${activeGhostSubject.name} to section ${sec.className}, ${m.day} ${m.start}-${m.end}${conflictInfo.hasConflict ? `, clashes with ${conflictInfo.clashingName || "other class"}` : ""}`}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
                                                                         onSelectClass?.(activeGhostSubject.subjectId, sec.classId);
@@ -887,7 +887,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                         <div className="flex flex-col h-full justify-between">
                                                                             <div className="flex items-center justify-between gap-1 text-[11px] leading-tight">
                                                                                 <span className="font-semibold text-[#141413] dark:text-[#f4f4f6] truncate">Kelas {sec.className}</span>
-                                                                                <span className="font-mono text-[9.5px] text-[#6e6e77] dark:text-[#cbd5e1] tabular-nums shrink-0">{formatDay(m.day, language, true)} {m.start}–{m.end}</span>
+                                                                                <span className="font-mono text-[9.5px] text-[#6e6e77] dark:text-[#cbd5e1] tabular-nums shrink-0">{formatDay(m.day, language, true)} {m.start}-{m.end}</span>
                                                                             </div>
                                                                             <div className="truncate">
                                                                                 {conflictInfo.hasConflict ? (
@@ -908,7 +908,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                                     Kelas {sec.className}
                                                                                 </div>
                                                                                 <div className="text-[11px] text-[#6e6e77] dark:text-[#cbd5e1] mt-0.5 font-medium">
-                                                                                    <span className="font-mono">{formatDay(m.day, language, true)}, {m.start}–{m.end}</span>
+                                                                                    <span className="font-mono">{formatDay(m.day, language, true)}, {m.start}-{m.end}</span>
                                                                                     {m.room && <span className="text-[#4a4a52] dark:text-[#cbd5e1]"> · {m.room}</span>}
                                                                                 </div>
                                                                             </div>
@@ -955,7 +955,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                 isDragging;
 
                                             const conflictingNames = isConflicting ? conflictNamesByClassId[cls.classId] || "" : "";
-                                            const cardAriaLabel = `${cls.subjectName}, ${cls.className}, ${m.day} ${m.start}–${m.end}${
+                                            const cardAriaLabel = `${cls.subjectName}, ${cls.className}, ${m.day} ${m.start}-${m.end}${
                                                 isConflicting
                                                     ? conflictingNames
                                                         ? `, conflicts with ${conflictingNames}`
@@ -1099,7 +1099,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                 "text-[#6e6e77] dark:text-[#a1a1aa] truncate mt-0.5 flex items-center gap-1 font-mono leading-tight",
                                                                 layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10px]"
                                                             )}>
-                                                                <span>{m.start}–{m.end}</span>
+                                                                <span>{m.start}-{m.end}</span>
                                                                 {m.room && <span className="font-sans font-medium text-[#4a4a52] dark:text-[#d4d4d8]">· {m.room}</span>}
                                                             </div>
 
@@ -1123,7 +1123,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                         "font-mono text-[#6e6e77] dark:text-[#a1a1aa] whitespace-nowrap tabular-nums",
                                                                         layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10.5px]"
                                                                     )}>
-                                                                        {m.start}–{m.end}
+                                                                        {m.start}-{m.end}
                                                                     </span>
                                                                 </div>
                                                                 {onToggleFreeze && (
@@ -1189,7 +1189,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                                         "font-mono text-[#6e6e77] dark:text-[#a1a1aa] whitespace-nowrap tabular-nums",
                                                                         layout.isOverlapping ? "text-[9.5px] tracking-tighter" : "text-[10.5px]"
                                                                     )}>
-                                                                        {m.start}–{m.end}
+                                                                        {m.start}-{m.end}
                                                                     </span>
                                                                 </div>
 

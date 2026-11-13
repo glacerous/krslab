@@ -214,7 +214,7 @@ export const CoursePanel = memo(function CoursePanel({
                                                     )}
                                                     <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] truncate leading-tight">
                                                         {meeting
-                                                            ? `${formatDay(meeting.day, language)}, ${meeting.start}–${meeting.end}`
+                                                            ? `${formatDay(meeting.day, language)}, ${meeting.start}-${meeting.end}`
                                                             : (language === "id" ? "Jadwal belum disetel" : "No schedule set")}
                                                     </p>
                                                 </div>
@@ -296,7 +296,7 @@ export const CoursePanel = memo(function CoursePanel({
                                                             </span>
                                                             {m && (
                                                                 <span className={isSelected ? "text-neutral-300 dark:text-neutral-700" : "text-[#a1a1aa] dark:text-[#71717a]"}>
-                                                                    {formatDay(m.day, language)} {m.start}–{m.end}
+                                                                    {formatDay(m.day, language)} {m.start}-{m.end}
                                                                 </span>
                                                             )}
                                                         </div>
@@ -462,7 +462,7 @@ function EmptySourceChecklist({
         <div className="py-2 space-y-3">
             {/* Header whisper in Gaegu */}
             <span className="font-doodle text-base text-[#5b82a6] dark:text-[#7dd3fc] block px-0.5">
-                {language === "id" ? "sumber kosong — cara mulai:" : "blank source — how to start:"}
+                {language === "id" ? "sumber kosong: cara mulai:" : "blank source: how to start:"}
             </span>
 
             <div className="border-t border-b border-zinc-200/70 dark:border-zinc-800/70">

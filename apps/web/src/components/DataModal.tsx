@@ -323,8 +323,8 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 isEditMode
                                     ? (isId ? "Nama sumber jadwal" : "Source name")
                                     : (isId
-                                        ? "contoh: Semester 4 Informatika (opsional — otomatis jika dikosongkan)"
-                                        : "e.g. Semester 4 Informatika (optional — auto-named if left blank)")
+                                        ? "contoh: Semester 4 Informatika (opsional, otomatis jika dikosongkan)"
+                                        : "e.g. Semester 4 Informatika (optional, auto-named if left blank)")
                             }
                             className="w-full px-3 py-2 rounded-xl bg-[#fafaf9] dark:bg-[#141416] border border-[#e2e2de] dark:border-[#2e2e34] focus:border-[#141413] dark:focus:border-[#f4f4f6] focus:bg-white dark:focus:bg-[#18181b] outline-none text-[13px] text-[#141413] dark:text-[#f4f4f6] placeholder:text-[#a1a1aa] dark:placeholder:text-[#71717a] transition-colors"
                         />
@@ -417,9 +417,9 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#5b82a6] dark:bg-[#7dd3fc] shrink-0" />
                                 <span>
                                     {isId ? (
-                                        <>Saat ini berisi <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} matkul</strong> ({editSourceTotalClasses} kelas) — tempel teks jadwal baru hanya jika ingin menggantinya.</>
+                                        <>Saat ini berisi <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} matkul</strong> ({editSourceTotalClasses} kelas), tempel teks jadwal baru hanya jika ingin menggantinya.</>
                                     ) : (
-                                        <>Currently holds <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} courses</strong> ({editSourceTotalClasses} classes) — paste new schedule text below only if you want to replace the courses.</>
+                                        <>Currently holds <strong className="text-[#141413] dark:text-[#f4f4f6]">{editSource.subjects.length} courses</strong> ({editSourceTotalClasses} classes), paste new schedule text below only if you want to replace the courses.</>
                                     )}
                                 </span>
                             </div>

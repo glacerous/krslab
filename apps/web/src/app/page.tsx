@@ -31,6 +31,7 @@ import {
     Moon,
     Compass,
     Video,
+    History,
     RotateCw,
     Pencil,
     Copy,
@@ -1299,12 +1300,9 @@ function WorkspaceContent() {
                         )}
                         title={conflictCount > 0 ? `${conflictCount} conflicting courses` : "Total selected SKS"}
                     >
-                        <span className={cn(
-                            "w-1.5 h-1.5 rounded-full shrink-0",
-                            conflictCount > 0 || (maxSks !== 99 && totalSks > maxSks && !allowOverload)
-                                ? "bg-rose-500 animate-pulse"
-                                : "bg-emerald-500"
-                        )} />
+                        {(conflictCount > 0 || (maxSks !== 99 && totalSks > maxSks && !allowOverload)) && (
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-rose-500 animate-pulse" />
+                        )}
                         <div className="flex items-baseline gap-1">
                             <span className="font-mono text-[12.5px] tabular-nums text-[#141413] dark:text-[#f4f4f0]">
                                 {totalSks} / {maxSks === 99 ? "∞" : maxSks}
@@ -2205,9 +2203,7 @@ function WorkspaceContent() {
                                     className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between gap-2"
                                 >
                                     <span className="flex items-center gap-2">
-                                        <span className="font-doodle text-[14px] font-bold text-amber-600 dark:text-amber-400 w-3.5 text-center shrink-0">
-                                            ★
-                                        </span>
+                                        <History className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
                                         <span>{t.whatsNew}</span>
                                     </span>
                                     <span className="flex items-center gap-1.5">
@@ -2314,10 +2310,8 @@ function WorkspaceContent() {
                             }}
                             className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center justify-between gap-2"
                         >
-                            <span className="flex items-baseline gap-2.5">
-                                <span className="font-doodle text-[15px] font-bold text-amber-600 dark:text-amber-400 w-4 shrink-0">
-                                    ★
-                                </span>
+                            <span className="flex items-center gap-2.5">
+                                <History className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
                                 <span>{t.whatsNew}</span>
                             </span>
                             <span className="flex items-center gap-1.5">
