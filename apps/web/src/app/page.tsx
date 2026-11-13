@@ -83,6 +83,7 @@ function WorkspaceContent() {
         generateCandidateSchedule,
         setRulesForPlan,
         toggleFreezeSubject,
+        removeSubjectFromPlan,
         setSelectedClassForSubject,
         importDatasourceAndCreatePlan,
         isDataModalOpen,
@@ -113,6 +114,7 @@ function WorkspaceContent() {
     const [isPrefsOpen, setIsPrefsOpen] = useState(false);
     const [isGuideMenuOpen, setIsGuideMenuOpen] = useState(false);
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+    const [isDragRemoveHover, setIsDragRemoveHover] = useState(false);
     const [isWelcomeManuallyOpen, setIsWelcomeManuallyOpen] = useState(false);
     const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
     const [editingPlanIdInMenu, setEditingPlanIdInMenu] = useState<string | null>(null);
@@ -1479,8 +1481,18 @@ function WorkspaceContent() {
                 {/* Left Panel: Desktop 320px Clean Split (Untouched on lg screens) */}
                 <div
                     id="tour-course-panel"
-                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418] overflow-hidden"
+                    className="hidden lg:flex w-[320px] shrink-0 h-full flex-col relative z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418] overflow-hidden"
                 >
+                    {isDragRemoveHover && (
+                        <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/90 dark:bg-rose-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 pointer-events-none animate-in fade-in duration-150">
+                            <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                                <Trash2 className="w-5 h-5" />
+                            </div>
+                            <span className="text-[13px] font-semibold text-rose-700 dark:text-rose-300">
+                                {language === "id" ? "Lepas untuk hapus matkul" : "Drop to remove course"}
+                            </span>
+                        </div>
+                    )}
                     <div key={sheetTransitionKey} className="w-full h-full flex flex-col animate-sheet-swap">
                         <CoursePanel
                             plan={activePlan}
@@ -1520,6 +1532,8 @@ function WorkspaceContent() {
                             onOpenCustomCourse={handleOpenCustomCourse}
                             onOpenImportData={handleOpenImportData}
                             onBrowseCatalog={handleBrowseCatalog}
+                            onRemoveSubject={(subjectId) => activePlan && removeSubjectFromPlan(activePlan.id, subjectId)}
+                            onDragRemoveHoverChange={setIsDragRemoveHover}
                         />
                     </div>
                 </div>

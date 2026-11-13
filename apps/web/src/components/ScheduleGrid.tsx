@@ -132,6 +132,8 @@ interface ScheduleGridProps {
     onOpenCustomCourse?: () => void;
     onOpenImportData?: () => void;
     onBrowseCatalog?: () => void;
+    onRemoveSubject?: (subjectId: string) => void;
+    onDragRemoveHoverChange?: (hovering: boolean) => void;
 }
 
 interface PointerDragState {
@@ -166,7 +168,9 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     activePlanName,
     onOpenCustomCourse,
     onOpenImportData,
-    onBrowseCatalog
+    onBrowseCatalog,
+    onRemoveSubject,
+    onDragRemoveHoverChange
 }: ScheduleGridProps) {
     const language = useAppStore((state: any) => state.language);
     const [rowHeight, setRowHeight] = useState(compact ? 56 : 74);
@@ -179,6 +183,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     }, [focusedSubjectId, onFocusSubject]);
     const [isDragging, setIsDragging] = useState(false);
     const [hoveredGhostClassId, setHoveredGhostClassId] = useState<string | null>(null);
+    const [isOverRemoveZone, setIsOverRemoveZone] = useState(false);
     const [isSpringingBack, setIsSpringingBack] = useState(false);
     const [justDroppedSubjectId, setJustDroppedSubjectId] = useState<string | null>(null);
     const [droppedOptimisticPicks, setDroppedOptimisticPicks] = useState<Record<string, string>>({});
@@ -186,6 +191,14 @@ export const ScheduleGrid = memo(function ScheduleGrid({
 
     const rafIdRef = useRef<number | null>(null);
     const hoveredGhostRef = useRef<string | null>(null);
+    const isRemoveZoneRef = useRef(false);
+
+    const updateRemoveHover = useCallback((next: boolean) => {
+        if (isRemoveZoneRef.current === next) return;
+        isRemoveZoneRef.current = next;
+        setIsOverRemoveZone(next);
+        onDragRemoveHoverChange?.(next);
+    }, [onDragRemoveHoverChange]);
 
     useEffect(() => {
         return () => {
@@ -665,12 +678,29 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                         curState.targetElem.style.transition = "none";
                     }
 
-                    const elements = document.elementsFromPoint(curState.clientX, curState.clientY);
-                    const ghostEl = elements.find((el) => el.hasAttribute("data-ghost-class-id"));
-                    const targetClassId = ghostEl?.getAttribute("data-ghost-class-id") || null;
-                    if (targetClassId !== hoveredGhostRef.current) {
-                        hoveredGhostRef.current = targetClassId;
-                        setHoveredGhostClassId(targetClassId);
+                    const leftPanelEl = document.getElementById("tour-course-panel");
+                    const leftPanelRect = leftPanelEl?.getBoundingClientRect();
+                    const overRemove = Boolean(
+                        onRemoveSubject &&
+                        leftPanelRect &&
+                        leftPanelRect.width > 0 &&
+                        curState.clientX <= leftPanelRect.right
+                    );
+                    updateRemoveHover(overRemove);
+
+                    if (overRemove) {
+                        if (hoveredGhostRef.current !== null) {
+                            hoveredGhostRef.current = null;
+                            setHoveredGhostClassId(null);
+                        }
+                    } else {
+                        const elements = document.elementsFromPoint(curState.clientX, curState.clientY);
+                        const ghostEl = elements.find((el) => el.hasAttribute("data-ghost-class-id"));
+                        const targetClassId = ghostEl?.getAttribute("data-ghost-class-id") || null;
+                        if (targetClassId !== hoveredGhostRef.current) {
+                            hoveredGhostRef.current = targetClassId;
+                            setHoveredGhostClassId(targetClassId);
+                        }
                     }
                 });
             }
@@ -692,7 +722,23 @@ export const ScheduleGrid = memo(function ScheduleGrid({
 
         if (state.isMoved) {
             const targetClassId = hoveredGhostRef.current;
-            if (targetClassId) {
+            if (isRemoveZoneRef.current && onRemoveSubject) {
+                const droppedSubId = state.subjectId;
+
+                if (state.targetElem) {
+                    state.targetElem.style.transform = "";
+                    state.targetElem.style.transition = "";
+                }
+
+                onRemoveSubject(droppedSubId);
+                setFocusedSubjectId(null);
+                setIsDragging(false);
+                hoveredGhostRef.current = null;
+                setHoveredGhostClassId(null);
+                updateRemoveHover(false);
+                setActiveDraggingCard(null);
+                pointerDragRef.current = null;
+            } else if (targetClassId) {
                 const droppedSubId = state.subjectId;
 
                 if (state.targetElem) {
@@ -707,6 +753,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 setIsDragging(false);
                 hoveredGhostRef.current = null;
                 setHoveredGhostClassId(null);
+                updateRemoveHover(false);
                 setActiveDraggingCard(null);
                 pointerDragRef.current = null;
 
@@ -714,6 +761,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                     setJustDroppedSubjectId((prev) => (prev === droppedSubId ? null : prev));
                 }, 300);
             } else {
+                updateRemoveHover(false);
                 setIsSpringingBack(true);
                 if (state.targetElem) {
                     state.targetElem.style.transition = "transform 200ms ease-out";
@@ -766,6 +814,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
         setIsDragging(false);
         hoveredGhostRef.current = null;
         setHoveredGhostClassId(null);
+        updateRemoveHover(false);
         setActiveDraggingCard(null);
         pointerDragRef.current = null;
     };
@@ -1010,7 +1059,9 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                         layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
                                                         isFocused && "border-[#141413] dark:border-[#f4f4f6] ring-1 ring-[#141413] dark:ring-[#f4f4f6] shadow-md -translate-y-[1px] z-30",
                                                         isThisCardDragging
-                                                            ? "!z-50 shadow-2xl ring-2 ring-[#141413] dark:ring-[#f4f4f6] cursor-grabbing"
+                                                            ? isOverRemoveZone
+                                                                ? "!z-50 shadow-2xl ring-2 ring-rose-500 border-rose-400 opacity-75 cursor-grabbing"
+                                                                : "!z-50 shadow-2xl ring-2 ring-[#141413] dark:ring-[#f4f4f6] cursor-grabbing"
                                                             : "cursor-grab active:cursor-grabbing hover:shadow-md",
                                                         isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70 dark:bg-rose-950/40",
                                                         // Cascading overlap expansion on hover
