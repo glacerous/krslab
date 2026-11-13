@@ -1,4 +1,16 @@
 import type React from "react";
+import { flushSync } from "react-dom";
+
+type ViewTransitionDoc = Document & {
+    startViewTransition?: (cb: () => void) => { finished: Promise<void> };
+};
+
+function canAnimateViewTransition(): ViewTransitionDoc | null {
+    if (typeof window === "undefined") return null;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return null;
+    const doc = document as ViewTransitionDoc;
+    return typeof doc.startViewTransition === "function" ? doc : null;
+}
 
 /** Switches light/dark theme with a radial View Transition from the clicked control when supported. */
 export function switchThemeWithTransition(
@@ -9,14 +21,8 @@ export function switchThemeWithTransition(
 ): void {
     if (currentTheme === nextTheme) return;
 
-    const prefersReducedMotion =
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const doc = document as Document & {
-        startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-    };
-
-    if (prefersReducedMotion || typeof doc.startViewTransition !== "function") {
+    const doc = canAnimateViewTransition();
+    if (!doc?.startViewTransition) {
         setTheme(nextTheme);
         return;
     }
@@ -36,10 +42,39 @@ export function switchThemeWithTransition(
     root.setAttribute("data-theme-transition", nextTheme);
 
     const transition = doc.startViewTransition(() => {
-        root.classList.toggle("dark", nextTheme === "dark");
-        setTheme(nextTheme);
+        flushSync(() => {
+            root.classList.toggle("dark", nextTheme === "dark");
+            setTheme(nextTheme);
+        });
     });
     transition.finished.finally(() => {
         root.removeAttribute("data-theme-transition");
+    });
+}
+
+/** Switches EN/ID language with a directional editorial crossfade View Transition when supported. */
+export function switchLanguageWithTransition(
+    nextLang: "en" | "id",
+    currentLang: "en" | "id",
+    setLanguage: (lang: "en" | "id") => void
+): void {
+    if (currentLang === nextLang) return;
+
+    const doc = canAnimateViewTransition();
+    if (!doc?.startViewTransition) {
+        setLanguage(nextLang);
+        return;
+    }
+
+    const root = document.documentElement;
+    root.setAttribute("data-lang-transition", nextLang);
+
+    const transition = doc.startViewTransition(() => {
+        flushSync(() => {
+            setLanguage(nextLang);
+        });
+    });
+    transition.finished.finally(() => {
+        root.removeAttribute("data-lang-transition");
     });
 }

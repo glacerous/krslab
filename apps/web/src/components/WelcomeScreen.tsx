@@ -3,7 +3,7 @@
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
 import { Sun, Moon } from "lucide-react";
-import { switchThemeWithTransition } from "@/lib/theme-transition";
+import { switchThemeWithTransition, switchLanguageWithTransition } from "@/lib/theme-transition";
 import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getTutorialVideo } from "@/lib/onboarding/content";
@@ -75,7 +75,7 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                     <button
                         type="button"
                         aria-label="Toggle language between English and Indonesian"
-                        onClick={() => setLanguage(language === "en" ? "id" : "en")}
+                        onClick={() => switchLanguageWithTransition(language === "en" ? "id" : "en", language, setLanguage)}
                         className="hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
                         title="Toggle language (EN / ID)"
                     >

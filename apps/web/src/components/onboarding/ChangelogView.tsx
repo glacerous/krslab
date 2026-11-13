@@ -7,6 +7,7 @@ import { getTranslation } from "@/lib/i18n";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ChangelogMedia } from "@/components/changelog/ChangelogMedia";
 import { cn } from "@/lib/utils";
+import { switchLanguageWithTransition } from "@/lib/theme-transition";
 
 export function ChangelogView() {
     const language = useAppStore((s: AppStore) => s.language);
@@ -24,7 +25,7 @@ export function ChangelogView() {
                     <div className="flex items-center gap-4 text-[13px]">
                         <button
                             type="button"
-                            onClick={() => setLanguage(language === "en" ? "id" : "en")}
+                            onClick={() => switchLanguageWithTransition(language === "en" ? "id" : "en", language, setLanguage)}
                             className="text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
                             aria-label="Toggle language between English and Indonesian"
                         >

@@ -44,7 +44,7 @@ import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
-import { switchThemeWithTransition } from "@/lib/theme-transition";
+import { switchThemeWithTransition, switchLanguageWithTransition } from "@/lib/theme-transition";
 import { buildKrsChecklistText, buildScheduleIcs, getScheduledItems } from "@/lib/export-schedule";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
@@ -2146,7 +2146,7 @@ function WorkspaceContent() {
                             <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#141416] rounded-lg">
                                 <button
                                     type="button"
-                                    onClick={() => setLanguage("en")}
+                                    onClick={() => switchLanguageWithTransition("en", language, setLanguage)}
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all text-center",
                                         language === "en"
@@ -2158,7 +2158,7 @@ function WorkspaceContent() {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={() => setLanguage("id")}
+                                    onClick={() => switchLanguageWithTransition("id", language, setLanguage)}
                                     className={cn(
                                         "py-1 text-[12px] font-medium rounded-md transition-all text-center",
                                         language === "id"
