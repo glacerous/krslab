@@ -2,6 +2,8 @@
 
 import { useAppStore } from "@/lib/store";
 import { useTheme } from "next-themes";
+import { Sun, Moon } from "lucide-react";
+import { switchThemeWithTransition } from "@/lib/theme-transition";
 import { useEffect, useRef, useState } from "react";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getTutorialVideo } from "@/lib/onboarding/content";
@@ -94,11 +96,21 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                     <button
                         type="button"
                         aria-label="Toggle appearance between Warm Paper and Dark Ink"
-                        onClick={() => setTheme(isDarkMode ? "light" : "dark")}
+                        onClick={(e) => switchThemeWithTransition(isDarkMode ? "light" : "dark", theme, setTheme, e)}
                         className="hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors cursor-pointer"
                         title="Toggle appearance"
                     >
-                        {isDarkMode ? "Dark Ink ☾" : "Warm Paper ☼"}
+                        {isDarkMode ? (
+                            <span className="inline-flex items-center gap-1.5">
+                                <Moon className="w-3.5 h-3.5" />
+                                <span>{t.themeDarkInk}</span>
+                            </span>
+                        ) : (
+                            <span className="inline-flex items-center gap-1.5">
+                                <Sun className="w-3.5 h-3.5" />
+                                <span>{t.themeWarmPaper}</span>
+                            </span>
+                        )}
                     </button>
                 </div>
             </header>

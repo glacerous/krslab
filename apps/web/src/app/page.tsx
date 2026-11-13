@@ -44,6 +44,7 @@ import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
+import { switchThemeWithTransition } from "@/lib/theme-transition";
 import { buildKrsChecklistText, buildScheduleIcs, getScheduledItems } from "@/lib/export-schedule";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
@@ -343,37 +344,7 @@ function WorkspaceContent() {
 
     const handleThemeSwitch = useCallback(
         (nextTheme: "light" | "dark", e: React.MouseEvent<HTMLButtonElement>) => {
-            if (theme === nextTheme) return;
-            const prefersReducedMotion =
-                typeof window !== "undefined" &&
-                window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            const doc = document as Document & {
-                startViewTransition?: (cb: () => void) => { finished: Promise<void> };
-            };
-            if (prefersReducedMotion || typeof doc.startViewTransition !== "function") {
-                setTheme(nextTheme);
-                return;
-            }
-            const rect = e.currentTarget.getBoundingClientRect();
-            const x = e.clientX || rect.left + rect.width / 2;
-            const y = e.clientY || rect.top + rect.height / 2;
-            const radius = Math.hypot(
-                Math.max(x, window.innerWidth - x),
-                Math.max(y, window.innerHeight - y)
-            );
-            const root = document.documentElement;
-            root.style.setProperty("--theme-x", `${x}px`);
-            root.style.setProperty("--theme-y", `${y}px`);
-            root.style.setProperty("--theme-r", `${radius}px`);
-            root.setAttribute("data-theme-transition", nextTheme);
-
-            const transition = doc.startViewTransition(() => {
-                root.classList.toggle("dark", nextTheme === "dark");
-                setTheme(nextTheme);
-            });
-            transition.finished.finally(() => {
-                root.removeAttribute("data-theme-transition");
-            });
+            switchThemeWithTransition(nextTheme, theme, setTheme, e);
         },
         [theme, setTheme]
     );
