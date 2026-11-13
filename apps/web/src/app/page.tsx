@@ -44,6 +44,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ReleaseAnnouncementCard } from "@/components/onboarding/ReleaseAnnouncementCard";
 import { AdvancedTipCard } from "@/components/onboarding/AdvancedTipCard";
 import { LATEST_CHANGELOG_VERSION } from "@/lib/changelog";
@@ -510,11 +511,18 @@ function WorkspaceContent() {
         setIsSourceMenuOpen(false);
     };
 
-    const handleDeleteDatasource = (ds: any) => {
-        if (confirm(`Delete schedule "${ds.name}" and its associated plans?`)) {
-            deleteDatasource(ds.id);
-            toast.success("Source deleted");
-        }
+    const [pendingDeleteDs, setPendingDeleteDs] = useState<{ id: string; name: string } | null>(null);
+
+    const handleDeleteDatasource = (ds: { id: string; name: string }) => {
+        setIsSourceMenuOpen(false);
+        setPendingDeleteDs({ id: ds.id, name: ds.name });
+    };
+
+    const confirmDeleteDatasource = () => {
+        if (!pendingDeleteDs) return;
+        deleteDatasource(pendingDeleteDs.id);
+        toast.success(language === "id" ? "Sumber jadwal dihapus" : "Source deleted");
+        setPendingDeleteDs(null);
     };
 
     const handleLoadSample = () => {
@@ -2374,6 +2382,24 @@ function WorkspaceContent() {
                         language={language}
                         onClose={onboarding.closeWhatsNew}
                         onMarkSeen={onboarding.markVersionSeen}
+                    />
+                    <ConfirmDialog
+                        isOpen={pendingDeleteDs !== null}
+                        eyebrow={language === "id" ? "hapus sumber" : "delete source"}
+                        title={
+                            language === "id"
+                                ? `Hapus jadwal "${pendingDeleteDs?.name ?? ""}"?`
+                                : `Delete schedule "${pendingDeleteDs?.name ?? ""}"?`
+                        }
+                        description={
+                            language === "id"
+                                ? "Sumber jadwal ini beserta seluruh plan terkait akan dihapus permanen."
+                                : "This will permanently remove the schedule source and its associated plans."
+                        }
+                        confirmLabel={language === "id" ? "Hapus" : "Delete"}
+                        cancelLabel={language === "id" ? "Batal" : "Cancel"}
+                        onConfirm={confirmDeleteDatasource}
+                        onCancel={() => setPendingDeleteDs(null)}
                     />
                 </>
             )}

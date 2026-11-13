@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useAppStore, Subject } from "@/lib/store";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { parseBimaMasterWithDebug } from "@krs/engine";
 import { SAMPLE_BIMA_TEXT } from "@/lib/sample-data";
 import { toast } from "sonner";
@@ -164,11 +165,18 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         onClose();
     };
 
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
     const handleDeleteSource = () => {
         if (!editSource) return;
-        if (confirm(`Delete schedule "${editSource.name}" and its associated plans?`)) {
+        setIsDeleteConfirmOpen(true);
+    };
+
+    const confirmDeleteSource = () => {
+        if (!editSource) return;
+        {
             deleteDatasource(editSource.id);
-            toast.success("Source deleted");
+            toast.success(isId ? "Sumber jadwal dihapus" : "Source deleted");
+            setIsDeleteConfirmOpen(false);
             onClose();
         }
     };
@@ -261,6 +269,24 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
 
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <ConfirmDialog
+                isOpen={isDeleteConfirmOpen}
+                eyebrow={isId ? "hapus sumber" : "delete source"}
+                title={
+                    isId
+                        ? `Hapus jadwal "${editSource?.name ?? ""}"?`
+                        : `Delete schedule "${editSource?.name ?? ""}"?`
+                }
+                description={
+                    isId
+                        ? "Sumber jadwal ini beserta seluruh plan terkait akan dihapus permanen."
+                        : "This will permanently remove the schedule source and its associated plans."
+                }
+                confirmLabel={isId ? "Hapus" : "Delete"}
+                cancelLabel={isId ? "Batal" : "Cancel"}
+                onConfirm={confirmDeleteSource}
+                onCancel={() => setIsDeleteConfirmOpen(false)}
+            />
             {/* Backdrop */}
             <div className="absolute inset-0 bg-neutral-900/30 backdrop-blur-sm" onClick={onClose} />
 
