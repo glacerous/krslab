@@ -115,6 +115,7 @@ function WorkspaceContent() {
     const [isGuideMenuOpen, setIsGuideMenuOpen] = useState(false);
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
     const [isDragRemoveHover, setIsDragRemoveHover] = useState(false);
+    const [isTrashCatching, setIsTrashCatching] = useState(false);
     const [isWelcomeManuallyOpen, setIsWelcomeManuallyOpen] = useState(false);
     const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
     const [editingPlanIdInMenu, setEditingPlanIdInMenu] = useState<string | null>(null);
@@ -1484,12 +1485,61 @@ function WorkspaceContent() {
                     className="hidden lg:flex w-[320px] shrink-0 h-full flex-col relative z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418] overflow-hidden"
                 >
                     {isDragRemoveHover && (
-                        <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/90 dark:bg-rose-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 pointer-events-none animate-in fade-in duration-150">
-                            <div className="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-                                <Trash2 className="w-5 h-5" />
+                        <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/90 dark:bg-rose-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2.5 pointer-events-none animate-in fade-in duration-150">
+                            <div
+                                className="relative w-14 h-14 rounded-2xl bg-rose-100/90 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shadow-xs"
+                                style={
+                                    isTrashCatching
+                                        ? { animation: "krs-trash-gulp 280ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both" }
+                                        : undefined
+                                }
+                            >
+                                <svg
+                                    width="32"
+                                    height="32"
+                                    viewBox="0 0 36 36"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    className="overflow-visible"
+                                >
+                                    {/* Rim sparks on catch */}
+                                    {isTrashCatching && (
+                                        <g style={{ transformOrigin: "18px 11px", animation: "krs-trash-spark 260ms ease-out 110ms both" }}>
+                                            <line x1="6" y1="6" x2="3" y2="3" />
+                                            <line x1="18" y1="3" x2="18" y2="0" />
+                                            <line x1="30" y1="6" x2="33" y2="3" />
+                                        </g>
+                                    )}
+                                    {/* Hinged Lid (springs open on hover, snaps shut on catch) */}
+                                    <g
+                                        style={{
+                                            transformOrigin: "8px 11px",
+                                            ...(isTrashCatching
+                                                ? {
+                                                      transform: "rotate(0deg) translateY(0px)",
+                                                      transition: "transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1) 110ms",
+                                                  }
+                                                : {
+                                                      animation: "krs-trash-lid-open 240ms cubic-bezier(0.34, 1.56, 0.64, 1) both",
+                                                  }),
+                                        }}
+                                    >
+                                        <path d="M14 11V8.5C14 7.7 14.7 7 15.5 7h5c.8 0 1.5.7 1.5 1.5V11" />
+                                        <line x1="7" y1="11" x2="29" y2="11" />
+                                    </g>
+                                    {/* Can Body */}
+                                    <path d="M9.5 13l1.4 15.2c.1 1 .9 1.8 2 1.8h10.2c1.1 0 1.9-.8 2-1.8L26.5 13" />
+                                    <line x1="15" y1="17.5" x2="15.3" y2="25" />
+                                    <line x1="21" y1="17.5" x2="20.7" y2="25" />
+                                </svg>
                             </div>
-                            <span className="text-[13px] font-semibold text-rose-700 dark:text-rose-300">
-                                {language === "id" ? "Lepas untuk hapus matkul" : "Drop to remove course"}
+                            <span className="font-doodle text-[19px] font-bold text-rose-700 dark:text-rose-300 leading-none">
+                                {isTrashCatching
+                                    ? (language === "id" ? "byeee ~" : "poof!")
+                                    : (language === "id" ? "buang ke sini aja" : "drop it right in")}
                             </span>
                         </div>
                     )}
@@ -1533,7 +1583,11 @@ function WorkspaceContent() {
                             onOpenImportData={handleOpenImportData}
                             onBrowseCatalog={handleBrowseCatalog}
                             onRemoveSubject={(subjectId) => activePlan && removeSubjectFromPlan(activePlan.id, subjectId)}
-                            onDragRemoveHoverChange={setIsDragRemoveHover}
+                            onDragRemoveHoverChange={(hovering) => {
+                                setIsDragRemoveHover(hovering);
+                                if (!hovering) setIsTrashCatching(false);
+                            }}
+                            onDragRemoveDrop={() => setIsTrashCatching(true)}
                         />
                     </div>
                 </div>

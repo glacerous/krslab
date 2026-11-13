@@ -136,6 +136,7 @@ interface ScheduleGridProps {
     onBrowseCatalog?: () => void;
     onRemoveSubject?: (subjectId: string) => void;
     onDragRemoveHoverChange?: (hovering: boolean) => void;
+    onDragRemoveDrop?: () => void;
 }
 
 interface PointerDragState {
@@ -190,7 +191,8 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     onOpenImportData,
     onBrowseCatalog,
     onRemoveSubject,
-    onDragRemoveHoverChange
+    onDragRemoveHoverChange,
+    onDragRemoveDrop
 }: ScheduleGridProps) {
     const language = useAppStore((state: any) => state.language);
     const [rowHeight, setRowHeight] = useState(compact ? 56 : 74);
@@ -793,6 +795,7 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 });
 
                 onRemoveSubject(droppedSubId);
+                onDragRemoveDrop?.();
                 setFocusedSubjectId(null);
                 setIsDragging(false);
                 hoveredGhostRef.current = null;
@@ -801,9 +804,12 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                 pointerDragRef.current = null;
 
                 setTimeout(() => {
-                    updateRemoveHover(false);
                     setFloatingCard((prev) => (prev?.removing ? null : prev));
                 }, 240);
+
+                setTimeout(() => {
+                    updateRemoveHover(false);
+                }, 360);
             } else if (targetClassId) {
                 const droppedSubId = state.subjectId;
 
