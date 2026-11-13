@@ -133,7 +133,7 @@ export const CoursePanel = memo(function CoursePanel({
 
             {/* 3. Course List Rows (Clean Typography-First with Doodle Index Numbers) */}
             {activeTab === "selected" ? (
-                <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto -mr-2 pr-2 pt-1 pb-4 space-y-1 custom-scrollbar">
                     {selectedSubjects.length === 0 ? (
                         datasource.subjects.length === 0 ? (
                             <EmptySourceChecklist
@@ -178,7 +178,7 @@ export const CoursePanel = memo(function CoursePanel({
                                         onMouseEnter={() => onHoverSubject?.(sub.subjectId)}
                                         onMouseLeave={() => onHoverSubject?.(null)}
                                         className={cn(
-                                            "flex items-center gap-3 p-2 -mx-2 rounded-xl cursor-pointer transition-all hover:bg-neutral-100/70 dark:hover:bg-white/[0.04]",
+                                            "flex items-center gap-3 p-2 rounded-xl cursor-pointer transition-all hover:bg-neutral-100/70 dark:hover:bg-white/[0.04]",
                                             isExpanded && "bg-neutral-100/60 dark:bg-white/[0.06]"
                                         )}
                                         onClick={() => setExpandedSubjectId(isExpanded ? null : sub.subjectId)}
@@ -360,7 +360,7 @@ export const CoursePanel = memo(function CoursePanel({
                             {/* Quick Custom Course Trigger Row */}
                             <div
                                 onClick={() => setIsCustomCourseModalOpen(true)}
-                                className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline py-1 mb-1 px-0.5 flex items-center justify-between cursor-pointer select-none shrink-0"
+                                className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline pt-1 pb-2 mb-1 px-0.5 border-b border-[#e6e6e3]/70 dark:border-[#26262e]/70 flex items-center justify-between cursor-pointer select-none shrink-0"
                             >
                                 <span>
                                     {language === "id"
@@ -373,7 +373,7 @@ export const CoursePanel = memo(function CoursePanel({
                             </div>
 
 
-                            <div className="flex-1 overflow-y-auto -mr-2 pr-2 space-y-1 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto -mr-2 pr-2 pt-1 pb-4 space-y-1 custom-scrollbar">
                                 {filteredCatalog.length === 0 ? (
                                     <div className="py-10 text-center space-y-2">
                                         <p className="text-[13px] text-[#6e6e77] dark:text-[#a1a1aa]">
@@ -402,7 +402,7 @@ export const CoursePanel = memo(function CoursePanel({
                                                     onMouseLeave={() => onHoverSubject?.(null)}
                                                     onClick={() => toggleSubjectInPlan(plan.id, sub.subjectId)}
                                                     className={cn(
-                                                        "p-2 -mx-1.5 rounded-xl cursor-pointer transition-colors flex items-center justify-between gap-2.5",
+                                                        "p-2 rounded-xl cursor-pointer transition-colors flex items-center justify-between gap-2.5",
                                                         isSelected
                                                             ? "bg-neutral-100/90 dark:bg-white/[0.08] border border-neutral-200/80 dark:border-white/[0.14] text-[#141413] dark:text-white"
                                                             : "bg-transparent hover:bg-neutral-100/70 dark:hover:bg-white/[0.04] text-[#141413] dark:text-[#f4f4f6]"
