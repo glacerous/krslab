@@ -2551,7 +2551,6 @@ function WorkspaceContent() {
                         language={language}
                         onClose={onboarding.closeVideo}
                         onSelectVideo={onboarding.openVideo}
-                        onOpenTour={() => openOverlay("tour")}
                     />
                     <WhatsNew
                         isOpen={onboarding.isWhatsNewOpen}
