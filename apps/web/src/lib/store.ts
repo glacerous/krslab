@@ -155,7 +155,7 @@ export const useAppStore = create<AppStore>()(
             _hasHydrated: false,
 
             // Preferences defaults
-            language: "en",
+            language: "id",
             maxSks: 24,
             hasCompletedWelcome: false,
 
