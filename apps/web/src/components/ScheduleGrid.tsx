@@ -300,6 +300,9 @@ export const ScheduleGrid = memo(function ScheduleGrid({
         const handleContextMenu = () => {
             if (pointerDragRef.current) cancelActiveDrag();
         };
+        const handleGlobalPointerUp = () => {
+            if (pointerDragRef.current) cancelActiveDrag();
+        };
         const handleGlobalPointerCancel = () => {
             if (pointerDragRef.current) cancelActiveDrag();
         };
@@ -307,11 +310,13 @@ export const ScheduleGrid = memo(function ScheduleGrid({
         window.addEventListener("blur", handleWindowBlur);
         document.addEventListener("visibilitychange", handleVisibilityChange);
         window.addEventListener("contextmenu", handleContextMenu);
+        window.addEventListener("pointerup", handleGlobalPointerUp);
         window.addEventListener("pointercancel", handleGlobalPointerCancel);
         return () => {
             window.removeEventListener("blur", handleWindowBlur);
             document.removeEventListener("visibilitychange", handleVisibilityChange);
             window.removeEventListener("contextmenu", handleContextMenu);
+            window.removeEventListener("pointerup", handleGlobalPointerUp);
             window.removeEventListener("pointercancel", handleGlobalPointerCancel);
         };
     }, [cancelActiveDrag]);
@@ -775,6 +780,12 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
         const state = pointerDragRef.current;
         if (!state || state.targetElem !== e.currentTarget) return;
+
+        // If primary mouse button was released outside window and cursor re-entered, cancel immediately
+        if (e.pointerType === "mouse" && (e.buttons & 1) === 0) {
+            cancelActiveDrag();
+            return;
+        }
 
         const dx = e.clientX - state.startX;
         const dy = e.clientY - state.startY;

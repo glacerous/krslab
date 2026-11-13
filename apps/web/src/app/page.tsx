@@ -1497,7 +1497,7 @@ function WorkspaceContent() {
                     className="hidden lg:flex w-[320px] shrink-0 h-full flex-col relative z-10 border-r border-[#e6e6e3] dark:border-[#26262e] bg-white/95 dark:bg-[#141418] overflow-hidden"
                 >
                     {isDragRemoveHover && (
-                        <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/92 dark:bg-rose-950/90 flex flex-col items-center justify-center gap-2.5 pointer-events-none animate-in fade-in duration-150">
+                        <div className="absolute inset-2 z-30 rounded-xl border-2 border-dashed border-rose-400 dark:border-rose-500/80 bg-rose-50/95 dark:bg-rose-950/95 flex flex-col items-center justify-center gap-2.5 pointer-events-none animate-in fade-in duration-150">
                             <div
                                 className="relative text-rose-600 dark:text-rose-400 flex items-center justify-center"
                                 style={
