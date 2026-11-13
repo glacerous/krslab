@@ -146,8 +146,8 @@ export function VideoModal({
                 className="relative z-10 w-full max-w-5xl max-h-[92vh] bg-[#f9f9f8] dark:bg-[#141418] border border-[#e6e6e3] dark:border-[#26262e] rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_300px] animate-in zoom-in-95 duration-150"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Left: Flush Video Stage (no nested box or header/footer bars) */}
-                <div className="flex flex-col justify-between bg-[#f9f9f8] dark:bg-[#141418] min-w-0">
+                {/* Left: Flush Video Stage */}
+                <div className="flex flex-col justify-start bg-[#f9f9f8] dark:bg-[#141418] min-w-0">
                     <div className="px-5 pt-4 pb-3 flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <span className="font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] block leading-none mb-1">
@@ -242,7 +242,7 @@ export function VideoModal({
                                     type="button"
                                     onClick={() => handleSeekChapter(ch.at)}
                                     className={cn(
-                                        "w-full min-h-[44px] sm:min-h-0 px-4 py-2.5 text-left flex items-baseline gap-2.5 transition-colors text-[12.5px]",
+                                        "w-full min-h-[44px] sm:min-h-0 px-4 py-2 text-left flex items-baseline gap-2.5 transition-colors text-[12.5px]",
                                         isActive
                                             ? "bg-[#f9f9f8] dark:bg-[#1e1e24] text-[#141413] dark:text-[#f4f4f6] font-semibold"
                                             : "text-[#6e6e77] dark:text-[#a1a1aa] hover:bg-[#f9f9f8]/70 dark:hover:bg-white/[0.04] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
