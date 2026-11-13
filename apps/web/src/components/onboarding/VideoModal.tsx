@@ -143,7 +143,7 @@ export function VideoModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="video-modal-title"
-                className="relative z-10 w-full max-w-5xl max-h-[92vh] bg-[#f9f9f8] dark:bg-[#141418] border border-[#e6e6e3] dark:border-[#26262e] rounded-2xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_300px] animate-in zoom-in-95 duration-150"
+                className="relative z-10 w-full max-w-5xl max-h-[92vh] bg-[#f9f9f8] dark:bg-[#141418] border border-[#e6e6e3] dark:border-[#26262e] rounded-2xl shadow-2xl overflow-y-auto lg:overflow-hidden grid grid-cols-1 lg:grid-cols-[1fr_300px] animate-in zoom-in-95 duration-150"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Left: Flush Video Stage */}
@@ -185,8 +185,9 @@ export function VideoModal({
                     </div>
                 </div>
 
-                {/* Right: Chapters Rail */}
-                <div className="flex flex-col min-h-0 bg-white dark:bg-[#18181c] border-t lg:border-t-0 lg:border-l border-[#e6e6e3] dark:border-[#26262e]">
+                {/* Right: Chapters Rail (locked to left column height on desktop so video has zero bottom gap) */}
+                <div className="lg:relative min-h-0 bg-white dark:bg-[#18181c] border-t lg:border-t-0 lg:border-l border-[#e6e6e3] dark:border-[#26262e]">
+                    <div className="flex flex-col min-h-0 lg:absolute lg:inset-0">
                     <div className="px-4 pt-3.5 pb-3 flex items-center justify-between gap-2 shrink-0">
                         <div className="flex items-center gap-1 p-0.5 rounded-lg bg-[#f3f3f0] dark:bg-[#202024] border border-[#e6e6e3] dark:border-[#2e2e34]">
                             {VIDEOS.map((v, i) => (
@@ -242,7 +243,7 @@ export function VideoModal({
                                     type="button"
                                     onClick={() => handleSeekChapter(ch.at)}
                                     className={cn(
-                                        "w-full min-h-[44px] sm:min-h-0 px-4 py-2 text-left flex items-baseline gap-2.5 transition-colors text-[12.5px]",
+                                        "w-full min-h-[44px] sm:min-h-0 px-4 py-1.5 text-left flex items-baseline gap-2.5 transition-colors text-[12.5px]",
                                         isActive
                                             ? "bg-[#f9f9f8] dark:bg-[#1e1e24] text-[#141413] dark:text-[#f4f4f6] font-semibold"
                                             : "text-[#6e6e77] dark:text-[#a1a1aa] hover:bg-[#f9f9f8]/70 dark:hover:bg-white/[0.04] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
@@ -286,6 +287,7 @@ export function VideoModal({
                             </button>
                         </div>
                     )}
+                    </div>
                 </div>
             </div>
         </div>,
