@@ -33,10 +33,7 @@ import {
     Pencil,
     Copy,
     SlidersHorizontal,
-    User,
-    Play,
-    Compass,
-    Sparkles
+    User
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
@@ -2169,9 +2166,12 @@ function WorkspaceContent() {
                         role="menu"
                         aria-label={t.helpSection}
                         style={{ top: guideMenuCoords.top, left: guideMenuCoords.left }}
-                        className="fixed w-[240px] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150 z-[110]"
+                        className="fixed w-[264px] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150 z-[110]"
                         onClick={(e) => e.stopPropagation()}
                     >
+                        <div className="px-2.5 pt-1 pb-1.5 font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
+                            {language === "id" ? "panduan & catatan" : "guides & notes"}
+                        </div>
                         <button
                             type="button"
                             role="menuitem"
@@ -2179,10 +2179,17 @@ function WorkspaceContent() {
                                 setIsGuideMenuOpen(false);
                                 openOverlay("tour");
                             }}
-                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-2.5"
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-baseline justify-between gap-2"
                         >
-                            <Compass className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
-                            <span>{t.introInteractiveTour}</span>
+                            <span className="flex items-baseline gap-2.5">
+                                <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] w-4 shrink-0">
+                                    01
+                                </span>
+                                <span>{t.introInteractiveTour}</span>
+                            </span>
+                            <span className="font-mono text-[10.5px] text-[#8a8a94] dark:text-[#71717a]">
+                                6 steps
+                            </span>
                         </button>
                         <button
                             type="button"
@@ -2191,10 +2198,17 @@ function WorkspaceContent() {
                                 setIsGuideMenuOpen(false);
                                 onboarding.openVideo("start");
                             }}
-                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-2.5"
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-baseline justify-between gap-2"
                         >
-                            <Play className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
-                            <span>{t.videoGetStarted}</span>
+                            <span className="flex items-baseline gap-2.5">
+                                <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] w-4 shrink-0">
+                                    02
+                                </span>
+                                <span>{t.videoGetStarted}</span>
+                            </span>
+                            <span className="font-mono text-[10.5px] text-[#8a8a94] dark:text-[#71717a]">
+                                1:09
+                            </span>
                         </button>
                         <button
                             type="button"
@@ -2203,12 +2217,19 @@ function WorkspaceContent() {
                                 setIsGuideMenuOpen(false);
                                 onboarding.openVideo("advanced");
                             }}
-                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-2.5"
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-baseline justify-between gap-2"
                         >
-                            <Play className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
-                            <span>{t.videoAdvanced}</span>
+                            <span className="flex items-baseline gap-2.5">
+                                <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] w-4 shrink-0">
+                                    03
+                                </span>
+                                <span>{t.videoAdvanced}</span>
+                            </span>
+                            <span className="font-mono text-[10.5px] text-[#8a8a94] dark:text-[#71717a]">
+                                1:32
+                            </span>
                         </button>
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] my-1" />
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] my-1.5" />
                         <button
                             type="button"
                             role="menuitem"
@@ -2216,15 +2237,22 @@ function WorkspaceContent() {
                                 setIsGuideMenuOpen(false);
                                 onboarding.openWhatsNew();
                             }}
-                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between gap-2.5"
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-[#f3f3f0] dark:hover:bg-white/[0.06] transition-colors flex items-center justify-between gap-2"
                         >
-                            <span className="flex items-center gap-2.5">
-                                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                            <span className="flex items-baseline gap-2.5">
+                                <span className="font-doodle text-[15px] font-bold text-amber-600 dark:text-amber-400 w-4 shrink-0">
+                                    ★
+                                </span>
                                 <span>{t.whatsNew}</span>
                             </span>
-                            {hasUnseenChangelog && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                            )}
+                            <span className="flex items-center gap-1.5">
+                                {hasUnseenChangelog && (
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                )}
+                                <span className="text-[11px] text-[#8a8a94] dark:text-[#71717a]" aria-hidden="true">
+                                    →
+                                </span>
+                            </span>
                         </button>
                     </div>
                 </div>,
