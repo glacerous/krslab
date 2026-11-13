@@ -128,10 +128,14 @@ async function captureDragToFix(browser) {
         recordVideo: { dir: OUT_DIR, size: { width: 1280, height: 800 } },
     });
     const page = await context.newPage();
+    await page.addInitScript(() => {
+        localStorage.setItem("krs_intro_seen", "1");
+        localStorage.setItem("krs_tip_advanced_seen", "1");
+        localStorage.setItem("krs_seen_version", "0.2.0");
+    });
     await injectCursor(page);
     await page.goto(BASE_URL, { waitUntil: "networkidle" });
     await moveCursorHook(page);
-    await page.evaluate(() => localStorage.setItem("krs_intro_seen", "1"));
     await page.locator("#welcome-continue-btn").click();
 
     // Seed sample data strictly via UI
