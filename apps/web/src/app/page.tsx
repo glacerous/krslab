@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useCallback, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useAppStore, Subject, Plan } from "@/lib/store";
 import { ScheduleGrid } from "@/components/ScheduleGrid";
 import { RulesLab } from "@/components/RulesLab";
@@ -32,12 +33,28 @@ import {
     Pencil,
     Copy,
     SlidersHorizontal,
-    User
+    User,
+    Play,
+    Compass,
+    Sparkles
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
+import { useOnboarding } from "@/lib/onboarding/useOnboarding";
+import { IntroCard } from "@/components/onboarding/IntroCard";
+import { AdvancedTipCard } from "@/components/onboarding/AdvancedTipCard";
+import { LATEST_CHANGELOG_VERSION } from "@/lib/changelog";
+
+const VideoModal = dynamic(
+    () => import("@/components/onboarding/VideoModal").then((m) => m.VideoModal),
+    { ssr: false }
+);
+const WhatsNew = dynamic(
+    () => import("@/components/onboarding/WhatsNew").then((m) => m.WhatsNew),
+    { ssr: false }
+);
 
 function WorkspaceContent() {
     const {
@@ -88,6 +105,7 @@ function WorkspaceContent() {
     const [isSourceMenuOpen, setIsSourceMenuOpen] = useState(false);
     const [isPlanMenuOpen, setIsPlanMenuOpen] = useState(false);
     const [isPrefsOpen, setIsPrefsOpen] = useState(false);
+    const [isGuideMenuOpen, setIsGuideMenuOpen] = useState(false);
     const [isWelcomeManuallyOpen, setIsWelcomeManuallyOpen] = useState(false);
     const [confirmDeletePlanId, setConfirmDeletePlanId] = useState<string | null>(null);
     const [editingPlanIdInMenu, setEditingPlanIdInMenu] = useState<string | null>(null);
@@ -100,9 +118,11 @@ function WorkspaceContent() {
     const sourceTriggerRef = useRef<HTMLButtonElement>(null);
     const planTriggerRef = useRef<HTMLButtonElement>(null);
     const prefsBtnRef = useRef<HTMLButtonElement>(null);
+    const guideBtnRef = useRef<HTMLButtonElement>(null);
     const [sourceMenuCoords, setSourceMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const [planMenuCoords, setPlanMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const [prefsCoords, setPrefsCoords] = useState<{ top: number; left: number } | null>(null);
+    const [guideMenuCoords, setGuideMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const shouldLaunchTourAfterImportRef = useRef(false);
 
     const updateSourceMenuCoords = useCallback(() => {
@@ -141,6 +161,18 @@ function WorkspaceContent() {
         }
     }, []);
 
+    const updateGuideMenuCoords = useCallback(() => {
+        if (guideBtnRef.current) {
+            const rect = guideBtnRef.current.getBoundingClientRect();
+            const menuWidth = 240;
+            const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+            setGuideMenuCoords({
+                top: rect.bottom + 6,
+                left,
+            });
+        }
+    }, []);
+
     const handleToggleSourceMenu = () => {
         if (!isSourceMenuOpen) {
             updateSourceMenuCoords();
@@ -171,8 +203,21 @@ function WorkspaceContent() {
             setIsPrefsOpen(true);
             setIsSourceMenuOpen(false);
             setIsPlanMenuOpen(false);
+            setIsGuideMenuOpen(false);
         } else {
             setIsPrefsOpen(false);
+        }
+    };
+
+    const handleToggleGuideMenu = () => {
+        if (!isGuideMenuOpen) {
+            updateGuideMenuCoords();
+            setIsGuideMenuOpen(true);
+            setIsSourceMenuOpen(false);
+            setIsPlanMenuOpen(false);
+            setIsPrefsOpen(false);
+        } else {
+            setIsGuideMenuOpen(false);
         }
     };
 
@@ -210,11 +255,48 @@ function WorkspaceContent() {
         };
     }, [isPrefsOpen, updatePrefsCoords]);
 
+    useEffect(() => {
+        if (!isGuideMenuOpen) return;
+        window.addEventListener("resize", updateGuideMenuCoords);
+        window.addEventListener("scroll", updateGuideMenuCoords, true);
+        return () => {
+            window.removeEventListener("resize", updateGuideMenuCoords);
+            window.removeEventListener("scroll", updateGuideMenuCoords, true);
+        };
+    }, [isGuideMenuOpen, updateGuideMenuCoords]);
+
     const [activeTab, setActiveTab] = useState<"selected" | "catalog">("selected");
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
     const [editingPlanName, setEditingPlanName] = useState("");
     const [allowOverload, setAllowOverload] = useState(false);
     const [isMobileCoursesOpen, setIsMobileCoursesOpen] = useState(false);
+
+    const isOnboardingBlocked =
+        !mounted ||
+        !hasCompletedWelcome ||
+        isWelcomeManuallyOpen ||
+        activeOverlay !== "none" ||
+        isCustomCourseModalOpen ||
+        isSourceMenuOpen ||
+        isPlanMenuOpen ||
+        isPrefsOpen ||
+        isGuideMenuOpen ||
+        isMobileCoursesOpen;
+
+    const onboarding = useOnboarding({ isBlocked: isOnboardingBlocked });
+    const {
+        activeSurface: onboardingSurface,
+        seenVersion: onboardingSeenVersion,
+        markVersionSeen: markOnboardingVersionSeen,
+    } = onboarding;
+    const hasUnseenChangelog =
+        onboarding.hydrated && onboardingSeenVersion !== LATEST_CHANGELOG_VERSION;
+
+    useEffect(() => {
+        if (onboardingSurface === "intro" && onboardingSeenVersion === null) {
+            markOnboardingVersionSeen(LATEST_CHANGELOG_VERSION);
+        }
+    }, [onboardingSurface, onboardingSeenVersion, markOnboardingVersionSeen]);
 
     // Single-Candidate Preview State (do not overwrite plan until explicitly accepted)
     const [previewMapping, setPreviewMapping] = useState<Record<string, string> | null>(null);
@@ -296,6 +378,9 @@ function WorkspaceContent() {
                 if (isPrefsOpen) {
                     setIsPrefsOpen(false);
                 }
+                if (isGuideMenuOpen) {
+                    setIsGuideMenuOpen(false);
+                }
                 if (isRenamingTopBar) {
                     setIsRenamingTopBar(false);
                 }
@@ -311,7 +396,7 @@ function WorkspaceContent() {
         };
         window.addEventListener("keydown", handleKeyDown);
         return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [activeOverlay, closeOverlay, handleCloseTour, isMobileCoursesOpen, isSourceMenuOpen, isPlanMenuOpen, isPrefsOpen, isRenamingTopBar]);
+    }, [activeOverlay, closeOverlay, handleCloseTour, isMobileCoursesOpen, isSourceMenuOpen, isPlanMenuOpen, isPrefsOpen, isGuideMenuOpen, isRenamingTopBar]);
 
     const handleSaveTopBarRename = () => {
         if (!activePlan) return;
@@ -863,6 +948,7 @@ function WorkspaceContent() {
             link.href = dataUrl;
             link.click();
             toast.success("Schedule Exported as PNG!", { id: "export-png" });
+            onboarding.triggerAdvancedTip();
         } catch (err) {
             console.error("Export failed", err);
             toast.error("Failed to export image", { id: "export-png" });
@@ -1065,7 +1151,10 @@ function WorkspaceContent() {
                     {/* Rules Button */}
                     <button
                         id="tour-rules-btn"
-                        onClick={() => openOverlay("rules")}
+                        onClick={() => {
+                            openOverlay("rules");
+                            onboarding.triggerAdvancedTip();
+                        }}
                         className="btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all"
                         title="Configure Solver Rules"
                     >
@@ -1121,14 +1210,28 @@ function WorkspaceContent() {
 
                 {/* 3. Right Group: Compact Tutorial Pill, SKS Status, Export & Preferences */}
                 <div className="flex items-center gap-2.5 shrink-0">
-                    {/* Tutorial Doodle Button */}
+                    {/* Tutorial / Help Menu Button */}
                     <button
+                        ref={guideBtnRef}
+                        id="tour-guide-link"
                         type="button"
-                        onClick={() => openOverlay("tour")}
-                        className="font-doodle text-[17.5px] font-bold text-[#5b82a6] dark:text-[#7da2c4] hover:text-[#141413] dark:hover:text-[#f4f4f0] px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 dark:hover:bg-[#20201e] transition-colors flex items-center gap-1 shrink-0 select-none"
-                        title="Restart interactive tutorial"
+                        onClick={handleToggleGuideMenu}
+                        aria-haspopup="menu"
+                        aria-expanded={isGuideMenuOpen}
+                        className={cn(
+                            "relative font-doodle text-[17.5px] font-bold text-[#5b82a6] dark:text-[#7da2c4] hover:text-[#141413] dark:hover:text-[#f4f4f0] px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 dark:hover:bg-[#20201e] transition-colors flex items-center gap-1 shrink-0 select-none",
+                            isGuideMenuOpen && "bg-neutral-100/90 dark:bg-[#20201e]"
+                        )}
+                        title={t.helpSection}
                     >
                         <span>↻ {t.tutorial}</span>
+                        <ChevronDown className="w-3 h-3 opacity-70" />
+                        {hasUnseenChangelog && (
+                            <span
+                                aria-hidden="true"
+                                className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"
+                            />
+                        )}
                     </button>
 
                     <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-xs select-none">·</span>
@@ -1252,6 +1355,7 @@ function WorkspaceContent() {
                             onHoverSubject={setHoveredSubjectId}
                             onHoverClass={setHoveredClassId}
                             onOpenImportModal={handleOpenImportData}
+                            onOpenStartVideo={() => onboarding.openVideo("start")}
                         />
                     </div>
                 </div>
@@ -1384,6 +1488,10 @@ function WorkspaceContent() {
                                     onOpenImportModal={() => {
                                         setDataModalEditSourceId(activeDatasource.id);
                                         openOverlay("bima-import");
+                                    }}
+                                    onOpenStartVideo={() => {
+                                        setIsMobileCoursesOpen(false);
+                                        onboarding.openVideo("start");
                                     }}
                                 />
                             </div>
@@ -1985,32 +2093,183 @@ function WorkspaceContent() {
                             </div>
                         </div>
 
-                        {/* Footer Navigation Links */}
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2 space-y-0.5">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsPrefsOpen(false);
-                                    setIsWelcomeManuallyOpen(true);
-                                }}
-                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
-                            >
-                                {t.openWelcome}
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setIsPrefsOpen(false);
-                                    openOverlay("tour");
-                                }}
-                                className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
-                            >
-                                {t.startTutorial}
-                            </button>
+                        {/* Help Group */}
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2.5 space-y-1">
+                            <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider px-2">
+                                {t.helpSection}
+                            </div>
+                            <div className="space-y-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPrefsOpen(false);
+                                        openOverlay("tour");
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                >
+                                    {t.startTutorial}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPrefsOpen(false);
+                                        onboarding.openVideo("start");
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                >
+                                    {t.videoGetStarted}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPrefsOpen(false);
+                                        onboarding.openVideo("advanced");
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                >
+                                    {t.videoAdvanced}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPrefsOpen(false);
+                                        onboarding.openWhatsNew();
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between"
+                                >
+                                    <span>{t.whatsNew}</span>
+                                    {hasUnseenChangelog && (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                    )}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPrefsOpen(false);
+                                        setIsWelcomeManuallyOpen(true);
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[12px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                                >
+                                    {t.openWelcome}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>,
                 document.body
+            )}
+
+            {/* Header Guide / Help Menu Popover */}
+            {mounted && isGuideMenuOpen && guideMenuCoords && createPortal(
+                <div
+                    className="fixed inset-0 z-[100]"
+                    onClick={() => setIsGuideMenuOpen(false)}
+                >
+                    <div
+                        role="menu"
+                        aria-label={t.helpSection}
+                        style={{ top: guideMenuCoords.top, left: guideMenuCoords.left }}
+                        className="fixed w-[240px] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-150 z-[110]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                setIsGuideMenuOpen(false);
+                                openOverlay("tour");
+                            }}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-2.5"
+                        >
+                            <Compass className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{t.introInteractiveTour}</span>
+                        </button>
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                setIsGuideMenuOpen(false);
+                                onboarding.openVideo("start");
+                            }}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-2.5"
+                        >
+                            <Play className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{t.videoGetStarted}</span>
+                        </button>
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                setIsGuideMenuOpen(false);
+                                onboarding.openVideo("advanced");
+                            }}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-2.5"
+                        >
+                            <Play className="w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{t.videoAdvanced}</span>
+                        </button>
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] my-1" />
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                                setIsGuideMenuOpen(false);
+                                onboarding.openWhatsNew();
+                            }}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-between gap-2.5"
+                        >
+                            <span className="flex items-center gap-2.5">
+                                <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                <span>{t.whatsNew}</span>
+                            </span>
+                            {hasUnseenChangelog && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                            )}
+                        </button>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Onboarding Intro Card, Advanced Tip, Video Modal & What's New */}
+            {mounted && (
+                <>
+                    <IntroCard
+                        isOpen={onboarding.activeSurface === "intro"}
+                        language={language}
+                        onWatchVideo={() => {
+                            onboarding.markIntroSeen();
+                            onboarding.openVideo("start");
+                        }}
+                        onStartTour={() => {
+                            onboarding.markIntroSeen();
+                            openOverlay("tour");
+                        }}
+                        onDismiss={onboarding.markIntroSeen}
+                    />
+                    <AdvancedTipCard
+                        isOpen={onboarding.activeSurface === "tip"}
+                        language={language}
+                        onWatchAdvanced={() => {
+                            onboarding.markTipSeen();
+                            onboarding.openVideo("advanced");
+                        }}
+                        onDismiss={onboarding.markTipSeen}
+                    />
+                    <VideoModal
+                        videoId={onboarding.activeVideoId}
+                        language={language}
+                        onClose={onboarding.closeVideo}
+                        onSelectVideo={onboarding.openVideo}
+                        onOpenTour={() => openOverlay("tour")}
+                    />
+                    <WhatsNew
+                        isOpen={onboarding.isWhatsNewOpen}
+                        language={language}
+                        onClose={onboarding.closeWhatsNew}
+                        onMarkSeen={onboarding.markVersionSeen}
+                    />
+                </>
             )}
 
             {/* Welcome Greeting Screen */}
@@ -2020,6 +2279,7 @@ function WorkspaceContent() {
                     setHasCompletedWelcome(true);
                     setIsWelcomeManuallyOpen(false);
                 }}
+                onWatchIntro={() => onboarding.openVideo("start")}
             />
         </div>
     );
