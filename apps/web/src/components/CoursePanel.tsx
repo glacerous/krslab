@@ -29,6 +29,7 @@ interface CoursePanelProps {
     onHoverSubject?: (subjectId: string | null) => void;
     onHoverClass?: (classId: string | null) => void;
     onOpenImportModal?: () => void;
+    onOpenStartVideo?: () => void;
 }
 
 export const CoursePanel = memo(function CoursePanel({
@@ -40,7 +41,8 @@ export const CoursePanel = memo(function CoursePanel({
     effectiveMapping,
     onHoverSubject,
     onHoverClass,
-    onOpenImportModal
+    onOpenImportModal,
+    onOpenStartVideo
 }: CoursePanelProps) {
     const toggleSubjectInPlan = useAppStore((state) => state.toggleSubjectInPlan);
     const removeSubjectFromPlan = useAppStore((state) => state.removeSubjectFromPlan);
@@ -138,6 +140,7 @@ export const CoursePanel = memo(function CoursePanel({
                                 language={language}
                                 onOpenCustomCourse={() => setIsCustomCourseModalOpen(true)}
                                 onOpenImportModal={onOpenImportModal}
+                                onOpenStartVideo={onOpenStartVideo}
                             />
                         ) : (
                             <div className="py-8 px-1">
@@ -330,6 +333,7 @@ export const CoursePanel = memo(function CoursePanel({
                             language={language}
                             onOpenCustomCourse={() => setIsCustomCourseModalOpen(true)}
                             onOpenImportModal={onOpenImportModal}
+                            onOpenStartVideo={onOpenStartVideo}
                         />
                     ) : (
                         <>
@@ -445,12 +449,15 @@ export const CoursePanel = memo(function CoursePanel({
 function EmptySourceChecklist({
     language,
     onOpenCustomCourse,
-    onOpenImportModal
+    onOpenImportModal,
+    onOpenStartVideo
 }: {
     language: string;
     onOpenCustomCourse: () => void;
     onOpenImportModal?: () => void;
+    onOpenStartVideo?: () => void;
 }) {
+    const t = getTranslation(language === "id" ? "id" : "en");
     return (
         <div className="py-2 space-y-3">
             {/* Header whisper in Gaegu */}
@@ -509,6 +516,16 @@ function EmptySourceChecklist({
                     </span>
                 </div>
             </div>
+
+            {onOpenStartVideo && (
+                <button
+                    type="button"
+                    onClick={onOpenStartVideo}
+                    className="min-h-[44px] sm:min-h-0 px-1 py-1 text-[12px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline underline-offset-4 transition-colors text-left"
+                >
+                    {t.seeHowToStart}
+                </button>
+            )}
         </div>
     );
 }
