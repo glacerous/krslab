@@ -206,42 +206,48 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
 
                 {/* 4. Lazy 1-minute intro preview & link */}
                 {onWatchIntro && (
-                    <div
-                        ref={previewRef}
-                        className="mt-4 flex items-center gap-3.5"
-                    >
+                    <div ref={previewRef} className="mt-5">
                         <button
                             type="button"
                             onClick={onWatchIntro}
-                            aria-label={t.watchOneMinIntro}
-                            className="w-28 aspect-video rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] bg-[#f3f3f0] dark:bg-[#1a1a18] shrink-0 hover:opacity-90 transition-opacity focus-visible:outline-none"
+                            className="group w-full flex items-center gap-4 p-2.5 rounded-xl border border-[#e6e6e3] dark:border-[#27272c] bg-white/80 dark:bg-[#1a1a1d]/80 hover:border-[#5b82a6]/60 dark:hover:border-[#7dd3fc]/50 hover:bg-white dark:hover:bg-[#1e1e22] transition-all text-left"
                         >
-                            {disableAutoPreview ? (
-                                <img
-                                    src={introVideo.poster}
-                                    alt={introVideo.title[language]}
-                                    loading="lazy"
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <video
-                                    src={isPreviewVisible ? introVideo.preview : undefined}
-                                    poster={introVideo.poster}
-                                    muted
-                                    loop
-                                    playsInline
-                                    autoPlay={isPreviewVisible}
-                                    preload="none"
-                                    className="w-full h-full object-cover"
-                                />
-                            )}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onWatchIntro}
-                            className="min-h-[44px] sm:min-h-0 text-[13px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline underline-offset-4 transition-colors text-left"
-                        >
-                            {t.watchOneMinIntro}
+                            <div className="relative w-40 sm:w-[196px] aspect-video rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] bg-[#f3f3f0] dark:bg-[#141416] shrink-0">
+                                {disableAutoPreview ? (
+                                    <img
+                                        src={introVideo.poster}
+                                        alt={introVideo.title[language]}
+                                        loading="lazy"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <video
+                                        src={isPreviewVisible ? introVideo.preview : undefined}
+                                        poster={introVideo.poster}
+                                        muted
+                                        loop
+                                        playsInline
+                                        autoPlay={isPreviewVisible}
+                                        preload="none"
+                                        className="w-full h-full object-cover"
+                                    />
+                                )}
+                                <span
+                                    aria-hidden="true"
+                                    className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-[#141413]/85 text-white font-mono text-[10px] leading-none tracking-tight"
+                                >
+                                    1:09
+                                </span>
+                            </div>
+
+                            <div className="min-w-0 flex-1 space-y-1">
+                                <div className="text-[13.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] group-hover:text-[#5b82a6] dark:group-hover:text-[#7dd3fc] transition-colors">
+                                    {t.watchOneMinIntro}
+                                </div>
+                                <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-snug line-clamp-2">
+                                    {introVideo.blurb[language]}
+                                </p>
+                            </div>
                         </button>
                     </div>
                 )}
