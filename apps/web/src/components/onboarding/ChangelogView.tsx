@@ -2,27 +2,15 @@
 
 import Link from "next/link";
 import { useAppStore, AppStore } from "@/lib/store";
-import { CHANGELOG, ChangelogTag } from "@/lib/changelog";
+import { CHANGELOG } from "@/lib/changelog";
 import { getTranslation } from "@/lib/i18n";
 import { BrandLogo } from "@/components/BrandLogo";
 import { cn } from "@/lib/utils";
-
-const TAG_STYLES: Record<ChangelogTag, string> = {
-    new: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/25",
-    improved: "bg-sky-500/10 text-[#5b82a6] dark:text-[#7dd3fc] border-sky-500/25",
-    fix: "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/25",
-};
 
 export function ChangelogView() {
     const language = useAppStore((s: AppStore) => s.language);
     const setLanguage = useAppStore((s: AppStore) => s.setLanguage);
     const t = getTranslation(language);
-
-    const getTagLabel = (tag: ChangelogTag) => {
-        if (tag === "new") return t.tagNew;
-        if (tag === "improved") return t.tagImproved;
-        return t.tagFix;
-    };
 
     return (
         <div className="h-full overflow-y-auto bg-[#f9f9f8] dark:bg-[#121211] bg-dot-matrix">
@@ -60,7 +48,7 @@ export function ChangelogView() {
 
                 <div className="space-y-1.5">
                     <span className="font-doodle text-[19px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] block leading-none">
-                        release notes
+                        lab notes
                     </span>
                     <h1 className="text-[26px] font-semibold tracking-tight text-[#141413] dark:text-[#f4f4f6]">
                         {t.changelogTitle}
@@ -70,40 +58,64 @@ export function ChangelogView() {
                     </p>
                 </div>
 
-                <div className="space-y-6">
-                    {CHANGELOG.map((entry) => (
-                        <article
-                            key={entry.version}
-                            className="bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl p-6 space-y-4 shadow-sm"
-                        >
-                            <div className="flex items-baseline justify-between border-b border-[#e6e6e3] dark:border-[#2e2e34] pb-2.5">
-                                <h2 className="font-mono text-[15px] font-bold text-[#141413] dark:text-[#f4f4f6]">
-                                    v{entry.version}
-                                </h2>
+                <div className="relative pl-6 border-l border-[#e6e6e3] dark:border-[#2e2e34] space-y-10">
+                    {CHANGELOG.map((entry, idx) => (
+                        <article key={entry.version} className="relative space-y-2.5">
+                            <span
+                                aria-hidden="true"
+                                className={cn(
+                                    "absolute -left-[29px] top-1.5 w-2.5 h-2.5 rounded-full ring-4 ring-[#f9f9f8] dark:ring-[#121211]",
+                                    entry.milestone
+                                        ? "bg-amber-500"
+                                        : idx === 0
+                                          ? "bg-[#5b82a6] dark:bg-[#7dd3fc]"
+                                          : "bg-[#d4d4d0] dark:bg-[#3e3e46]"
+                                )}
+                            />
+
+                            <div className="flex items-baseline justify-between gap-4">
+                                <span
+                                    className={cn(
+                                        entry.milestone
+                                            ? "font-doodle text-[18px] font-bold text-amber-600 dark:text-amber-400"
+                                            : "font-mono text-[12.5px] text-[#5b82a6] dark:text-[#7dd3fc]"
+                                    )}
+                                >
+                                    {entry.milestone ? "★ milestone" : `v${entry.version}`}
+                                </span>
                                 <time
                                     dateTime={entry.date}
-                                    className="font-mono text-[12px] text-[#6e6e77] dark:text-[#a1a1aa]"
+                                    className="font-mono text-[12px] text-[#8a8a94] dark:text-[#71717a]"
                                 >
                                     {entry.date}
                                 </time>
                             </div>
-                            <ul className="space-y-3">
-                                {entry.highlights.map((item, idx) => (
-                                    <li key={idx} className="flex items-start gap-2.5 text-[13.5px] leading-relaxed">
-                                        <span
-                                            className={cn(
-                                                "text-[11px] font-semibold px-2 py-0.5 rounded border shrink-0 mt-0.5",
-                                                TAG_STYLES[item.tag]
-                                            )}
+
+                            <h2 className="text-[18px] font-semibold tracking-tight text-[#141413] dark:text-[#f4f4f6]">
+                                {entry.title[language]}
+                            </h2>
+
+                            {entry.note && (
+                                <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
+                                    {entry.note[language]}
+                                </p>
+                            )}
+
+                            {entry.highlights.length > 0 && (
+                                <ul className="pt-1 space-y-1.5">
+                                    {entry.highlights.map((item, i) => (
+                                        <li
+                                            key={i}
+                                            className="flex items-baseline gap-2.5 text-[13.5px] text-[#141413] dark:text-[#f4f4f6] leading-relaxed"
                                         >
-                                            {getTagLabel(item.tag)}
-                                        </span>
-                                        <span className="text-[#141413] dark:text-[#f4f4f6]">
-                                            {item.text[language]}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
+                                            <span className="font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] shrink-0">
+                                                ·
+                                            </span>
+                                            <span>{item.text[language]}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
                         </article>
                     ))}
                 </div>
