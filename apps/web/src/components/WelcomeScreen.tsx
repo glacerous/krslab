@@ -210,9 +210,9 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                         <button
                             type="button"
                             onClick={onWatchIntro}
-                            className="group w-full flex items-center gap-4 p-2.5 rounded-xl border border-[#e6e6e3] dark:border-[#27272c] bg-white/80 dark:bg-[#1a1a1d]/80 hover:border-[#5b82a6]/60 dark:hover:border-[#7dd3fc]/50 hover:bg-white dark:hover:bg-[#1e1e22] transition-all text-left"
+                            className="group btn-tactile-light w-full flex items-center gap-4 p-2.5 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 text-left cursor-pointer"
                         >
-                            <div className="relative w-40 sm:w-[196px] aspect-video rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] bg-[#f3f3f0] dark:bg-[#141416] shrink-0">
+                            <div className="relative w-40 sm:w-[196px] aspect-video rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] bg-[#f9f9f8] dark:bg-[#141416] shrink-0">
                                 {disableAutoPreview ? (
                                     <img
                                         src={introVideo.poster}
@@ -232,6 +232,16 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                                         className="w-full h-full object-cover"
                                     />
                                 )}
+                                <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 flex items-center justify-center bg-black/5 group-hover:bg-black/15 transition-colors"
+                                >
+                                    <span className="w-9 h-9 rounded-full bg-[#141413]/90 dark:bg-[#f4f4f0]/95 text-white dark:text-[#141413] shadow-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <svg className="w-3.5 h-3.5 translate-x-0.5 fill-current" viewBox="0 0 16 16">
+                                            <path d="M4 2.8v10.4L13 8 4 2.8z" />
+                                        </svg>
+                                    </span>
+                                </div>
                                 <span
                                     aria-hidden="true"
                                     className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-[#141413]/85 text-white font-mono text-[10px] leading-none tracking-tight"
@@ -240,12 +250,22 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                                 </span>
                             </div>
 
-                            <div className="min-w-0 flex-1 space-y-1">
-                                <div className="text-[13.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] group-hover:text-[#5b82a6] dark:group-hover:text-[#7dd3fc] transition-colors">
-                                    {t.watchOneMinIntro}
+                            <div className="min-w-0 flex-1 space-y-1 pr-1">
+                                <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] block leading-none">
+                                    {language === "id" ? "video panduan · 1 menit" : "quick video · 1 min"}
+                                </span>
+                                <div className="text-[14px] font-semibold text-[#141413] dark:text-[#f4f4f6] flex items-center justify-between gap-2">
+                                    <span className="group-hover:underline underline-offset-4">
+                                        {language === "id" ? "Lihat cara kerjanya" : "See how it works"}
+                                    </span>
+                                    <span className="text-[#6e6e77] group-hover:text-[#141413] dark:group-hover:text-white group-hover:translate-x-0.5 transition-all shrink-0">
+                                        →
+                                    </span>
                                 </div>
-                                <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-snug line-clamp-2">
-                                    {introVideo.blurb[language]}
+                                <p className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-snug">
+                                    {language === "id"
+                                        ? "Tempel BIMA, geser bentrok, ekspor PNG."
+                                        : "Paste BIMA, drag clashes, export PNG."}
                                 </p>
                             </div>
                         </button>

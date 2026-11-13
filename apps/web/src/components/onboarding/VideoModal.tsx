@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { X, Play, ArrowRight, Compass } from "lucide-react";
-import { getTutorialVideo, TutorialVideoId } from "@/lib/onboarding/content";
+import { X, ArrowRight, Compass } from "lucide-react";
+import { getTutorialVideo, TutorialVideoId, VIDEOS } from "@/lib/onboarding/content";
 import { getTranslation, Language } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -117,7 +117,6 @@ export function VideoModal({
 
     if (!isOpen || !video || typeof document === "undefined") return null;
 
-    // Active chapter = last chapter whose timestamp <= currentTime + 0.5s
     let activeChapterIdx = -1;
     for (let i = 0; i < video.chapters.length; i++) {
         if (currentTime + 0.5 >= video.chapters[i].at) {
@@ -136,7 +135,7 @@ export function VideoModal({
     return createPortal(
         <div className="fixed inset-0 z-[210] flex items-center justify-center p-3 sm:p-5">
             <div
-                className="absolute inset-0 bg-neutral-900/40 backdrop-blur-sm"
+                className="absolute inset-0 bg-neutral-900/45 backdrop-blur-sm"
                 onClick={handleClose}
                 aria-hidden="true"
             />
@@ -146,37 +145,64 @@ export function VideoModal({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="video-modal-title"
-                className="relative z-10 w-full max-w-5xl max-h-[92vh] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
+                className="relative z-10 w-full max-w-5xl max-h-[92vh] bg-[#f9f9f8] dark:bg-[#141418] border border-[#e6e6e3] dark:border-[#26262e] rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-150"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="px-5 py-3.5 sm:px-6 border-b border-[#e6e6e3] dark:border-[#2e2e34] flex items-center justify-between gap-4 bg-[#fbfbfa] dark:bg-[#18181b] shrink-0">
+                <div className="px-5 py-4 sm:px-6 border-b border-[#e6e6e3] dark:border-[#26262e] flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#18181c] shrink-0">
                     <div className="min-w-0">
+                        <span className="font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] block leading-none mb-1">
+                            {video.id === "start" ? "01 · getting started" : "02 · advanced workflow"}
+                        </span>
                         <h2
                             id="video-modal-title"
                             className="text-[16px] sm:text-[17px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight truncate"
                         >
                             {video.title[language]}
                         </h2>
-                        <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate mt-0.5">
-                            {video.blurb[language]}
-                        </p>
                     </div>
-                    <button
-                        ref={closeBtnRef}
-                        type="button"
-                        onClick={handleClose}
-                        aria-label={t.closeVideo}
-                        title={t.closeVideo}
-                        className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 p-2 rounded-lg text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-center shrink-0"
-                    >
-                        <X className="w-4 h-4" />
-                    </button>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                        <div className="hidden sm:flex items-center gap-1 p-0.5 rounded-lg bg-[#f3f3f0] dark:bg-[#202024] border border-[#e6e6e3] dark:border-[#2e2e34]">
+                            {VIDEOS.map((v, i) => (
+                                <button
+                                    key={v.id}
+                                    type="button"
+                                    onClick={() => onSelectVideo(v.id)}
+                                    className={cn(
+                                        "px-2.5 py-1 rounded-md text-[12px] font-medium transition-colors",
+                                        v.id === video.id
+                                            ? "bg-white dark:bg-[#2a2a30] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                    )}
+                                >
+                                    {i === 0
+                                        ? language === "id"
+                                            ? "01 Mulai"
+                                            : "01 Start"
+                                        : language === "id"
+                                          ? "02 Lanjutan"
+                                          : "02 Advanced"}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            ref={closeBtnRef}
+                            type="button"
+                            onClick={handleClose}
+                            aria-label={t.closeVideo}
+                            title={t.closeVideo}
+                            className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 p-2 rounded-lg text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center justify-center"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
                 </div>
 
-                {/* Body: Video + Chapters */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-[1fr_270px] gap-4 custom-scrollbar">
-                    <div className="w-full aspect-video bg-black rounded-xl overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34]">
+                {/* Body: Video + Editorial Chapter Index */}
+                <div className="flex-1 overflow-y-auto p-4 sm:p-5 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-5 custom-scrollbar">
+                    <div className="w-full aspect-video rounded-xl overflow-hidden border border-[#e6e6e3] dark:border-[#26262e] bg-[#f9f9f8] dark:bg-[#141416] shadow-sm">
                         <video
                             ref={videoRef}
                             controls
@@ -184,15 +210,20 @@ export function VideoModal({
                             preload="metadata"
                             poster={video.poster}
                             onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full block object-cover"
                         />
                     </div>
 
                     <div className="flex flex-col min-h-0">
-                        <div className="text-[11px] font-semibold uppercase tracking-wider text-[#6e6e77] dark:text-[#a1a1aa] mb-2 px-1">
-                            {t.videoChapters}
+                        <div className="flex items-baseline justify-between px-1 mb-2">
+                            <span className="font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
+                                {t.videoChapters.toLowerCase()}
+                            </span>
+                            <span className="font-mono text-[11px] text-[#8a8a94] dark:text-[#71717a]">
+                                {formatSeconds(video.durationSec)}
+                            </span>
                         </div>
-                        <div className="space-y-1 overflow-y-auto max-h-[240px] lg:max-h-[360px] pr-1 custom-scrollbar">
+                        <div className="divide-y divide-[#e6e6e3] dark:divide-[#26262e] border-y border-[#e6e6e3] dark:border-[#26262e] overflow-y-auto max-h-[240px] lg:max-h-[380px] custom-scrollbar">
                             {video.chapters.map((ch, idx) => {
                                 const isActive = idx === activeChapterIdx;
                                 return (
@@ -201,24 +232,33 @@ export function VideoModal({
                                         type="button"
                                         onClick={() => handleSeekChapter(ch.at)}
                                         className={cn(
-                                            "w-full min-h-[44px] sm:min-h-0 px-2.5 py-2 rounded-lg text-left flex items-center gap-2.5 transition-colors text-[12.5px]",
+                                            "w-full min-h-[44px] sm:min-h-0 px-2 py-2.5 text-left flex items-baseline gap-2.5 transition-colors text-[12.5px]",
                                             isActive
-                                                ? "bg-[#f3f3f0] dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] font-semibold"
-                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:bg-neutral-100/80 dark:hover:bg-white/[0.05] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                                ? "bg-white dark:bg-[#1e1e24] text-[#141413] dark:text-[#f4f4f6] font-semibold"
+                                                : "text-[#6e6e77] dark:text-[#a1a1aa] hover:bg-white/60 dark:hover:bg-white/[0.04] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
                                         )}
                                     >
                                         <span
                                             className={cn(
-                                                "font-mono text-[11px] px-1.5 py-0.5 rounded shrink-0 tabular-nums",
+                                                "font-doodle text-[15px] font-bold w-5 shrink-0",
                                                 isActive
-                                                    ? "bg-[#141413] text-white dark:bg-[#f4f4f0] dark:text-[#141413]"
-                                                    : "bg-neutral-100 dark:bg-[#242422] text-[#6e6e77] dark:text-[#a1a1aa]"
+                                                    ? "text-amber-500"
+                                                    : "text-[#5b82a6]/70 dark:text-[#7dd3fc]/70"
+                                            )}
+                                        >
+                                            {(idx + 1).toString().padStart(2, "0")}
+                                        </span>
+                                        <span className="truncate flex-1">{ch.title[language]}</span>
+                                        <span
+                                            className={cn(
+                                                "font-mono text-[11px] shrink-0 tabular-nums",
+                                                isActive
+                                                    ? "text-[#141413] dark:text-[#f4f4f6]"
+                                                    : "text-[#8a8a94] dark:text-[#71717a]"
                                             )}
                                         >
                                             {formatSeconds(ch.at)}
                                         </span>
-                                        <span className="truncate flex-1">{ch.title[language]}</span>
-                                        {isActive && <Play className="w-3 h-3 shrink-0 fill-current" />}
                                     </button>
                                 );
                             })}
@@ -227,7 +267,7 @@ export function VideoModal({
                 </div>
 
                 {/* Footer */}
-                <div className="px-5 py-3 sm:px-6 border-t border-[#e6e6e3] dark:border-[#2e2e34] bg-[#fbfbfa] dark:bg-[#18181b] flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div className="px-5 py-3 sm:px-6 border-t border-[#e6e6e3] dark:border-[#26262e] bg-white dark:bg-[#18181c] flex flex-wrap items-center justify-between gap-2 shrink-0">
                     <button
                         type="button"
                         onClick={() => {
