@@ -120,6 +120,34 @@ export interface Translations {
     cloudSyncPre: string;
     cloudSyncHighlight: string;
     cloudSyncPost: string;
+    // Onboarding videos, menus & changelog
+    introCardTitle: string;
+    introCardBody: string;
+    introWatchVideo: string;
+    introInteractiveTour: string;
+    dismiss: string;
+    videoChapters: string;
+    openInteractiveTour: string;
+    nextAdvancedTutorial: string;
+    closeVideo: string;
+    helpSection: string;
+    videoGetStarted: string;
+    videoAdvanced: string;
+    whatsNew: string;
+    seeHowToStart: string;
+    advancedTipTitle: string;
+    advancedTipBody: string;
+    watchAdvancedTutorial: string;
+    watchOneMinIntro: string;
+    whatsNewTitle: string;
+    whatsNewSubtitle: string;
+    fullHistory: string;
+    backToWorkspace: string;
+    changelogTitle: string;
+    changelogSubtitle: string;
+    tagNew: string;
+    tagImproved: string;
+    tagFix: string;
 }
 
 export const translations: Record<Language, Translations> = {
@@ -242,7 +270,35 @@ export const translations: Record<Language, Translations> = {
         step3SampleDesc: "Jump straight into a pre-loaded Informatics schedule.",
         cloudSyncPre: "Cloud sync across devices is ",
         cloudSyncHighlight: "coming soon",
-        cloudSyncPost: " — your plans save automatically in this browser."
+        cloudSyncPost: " — your plans save automatically in this browser.",
+        // Onboarding videos, menus & changelog
+        introCardTitle: "New to KRSlab? Start in 1 minute",
+        introCardBody: "See how to paste your schedule from BIMA, pick classes, and export a clash-free timetable.",
+        introWatchVideo: "Watch video",
+        introInteractiveTour: "Interactive tour",
+        dismiss: "Dismiss",
+        videoChapters: "Chapters",
+        openInteractiveTour: "Open interactive tour",
+        nextAdvancedTutorial: "Next: advanced tutorial",
+        closeVideo: "Close video",
+        helpSection: "Help",
+        videoGetStarted: "Video: Get started (1 min)",
+        videoAdvanced: "Video: Advanced",
+        whatsNew: "What's new",
+        seeHowToStart: "▶ see how to start (1 min)",
+        advancedTipTitle: "Want it automatic?",
+        advancedTipBody: "Rules, plans and your own courses.",
+        watchAdvancedTutorial: "Watch advanced tutorial",
+        watchOneMinIntro: "▶ Watch the 1-minute intro",
+        whatsNewTitle: "What's new",
+        whatsNewSubtitle: "Latest updates and improvements",
+        fullHistory: "Full history",
+        backToWorkspace: "← Back to workspace",
+        changelogTitle: "Changelog",
+        changelogSubtitle: "What changed in KRSlab",
+        tagNew: "New",
+        tagImproved: "Improved",
+        tagFix: "Fix",
     },
     id: {
         // Top bar & Header
@@ -363,7 +419,35 @@ export const translations: Record<Language, Translations> = {
         step3SampleDesc: "Langsung masuk ke jadwal Informatika yang sudah terisi.",
         cloudSyncPre: "Sinkronisasi cloud antar perangkat akan ",
         cloudSyncHighlight: "segera hadir",
-        cloudSyncPost: " — rencana jadwalmu tersimpan otomatis di browser ini."
+        cloudSyncPost: " — rencana jadwalmu tersimpan otomatis di browser ini.",
+        // Onboarding videos, menus & changelog
+        introCardTitle: "Baru di KRSlab? Mulai dalam 1 menit",
+        introCardBody: "Lihat cara menempel jadwal dari BIMA, memilih kelas, dan mengekspor KRS tanpa bentrok.",
+        introWatchVideo: "Tonton video",
+        introInteractiveTour: "Tur interaktif",
+        dismiss: "Nanti saja",
+        videoChapters: "Bagian",
+        openInteractiveTour: "Buka tur interaktif",
+        nextAdvancedTutorial: "Lanjut: tutorial lanjutan",
+        closeVideo: "Tutup video",
+        helpSection: "Bantuan",
+        videoGetStarted: "Video: Mulai cepat (1 mnt)",
+        videoAdvanced: "Video: Lanjutan",
+        whatsNew: "Yang baru",
+        seeHowToStart: "▶ lihat cara mulai (1 mnt)",
+        advancedTipTitle: "Mau yang otomatis?",
+        advancedTipBody: "Aturan, plan, dan matkul sendiri.",
+        watchAdvancedTutorial: "Tonton tutorial lanjutan",
+        watchOneMinIntro: "▶ Lihat intro 1 menit",
+        whatsNewTitle: "Yang baru",
+        whatsNewSubtitle: "Pembaruan dan perbaikan terbaru",
+        fullHistory: "Riwayat lengkap",
+        backToWorkspace: "← Kembali ke ruang kerja",
+        changelogTitle: "Catatan Rilis",
+        changelogSubtitle: "Apa saja yang berubah di KRSlab",
+        tagNew: "Baru",
+        tagImproved: "Peningkatan",
+        tagFix: "Perbaikan",
     }
 };
 
