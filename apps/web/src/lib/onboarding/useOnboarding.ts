@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ONBOARDING_STORAGE_KEYS, TutorialVideoId } from "./content";
+import { LATEST_CHANGELOG_ENTRY, LATEST_CHANGELOG_VERSION } from "@/lib/changelog";
 
-export type OnboardingSurface = "none" | "intro" | "tip" | "video" | "whats-new";
+export type OnboardingSurface = "none" | "intro" | "release" | "tip" | "video" | "whats-new";
 
 function safeGetItem(key: string): string | null {
     if (typeof window === "undefined") return null;
@@ -39,6 +40,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     const [activeVideoId, setActiveVideoId] = useState<TutorialVideoId | null>(null);
     const [isWhatsNewOpen, setIsWhatsNewOpen] = useState(false);
     const [isIntroReady, setIsIntroReady] = useState(false);
+    const [isReleaseReady, setIsReleaseReady] = useState(false);
     const [isTipQueued, setIsTipQueued] = useState(false);
 
     useEffect(() => {
@@ -60,6 +62,24 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         return () => window.clearTimeout(timer);
     }, [hydrated, introSeen, isBlocked]);
 
+    // Show release announcement card for returning visitors when latest entry has announce: true
+    useEffect(() => {
+        if (
+            !hydrated ||
+            !introSeen ||
+            !LATEST_CHANGELOG_ENTRY?.announce ||
+            seenVersion === LATEST_CHANGELOG_VERSION ||
+            isBlocked
+        ) {
+            setIsReleaseReady(false);
+            return;
+        }
+        const timer = window.setTimeout(() => {
+            setIsReleaseReady(true);
+        }, 2500);
+        return () => window.clearTimeout(timer);
+    }, [hydrated, introSeen, seenVersion, isBlocked]);
+
     const markIntroSeen = useCallback(() => {
         setIntroSeen(true);
         setIsIntroReady(false);
@@ -74,6 +94,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
 
     const markVersionSeen = useCallback((version: string) => {
         setSeenVersion(version);
+        setIsReleaseReady(false);
         safeSetItem(ONBOARDING_STORAGE_KEYS.seenVersion, version);
     }, []);
 
@@ -100,7 +121,7 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
         setIsTipQueued(true);
     }, [hydrated, tipSeen]);
 
-    // Priority order: interactive tour / external modals > video modal > what's new > intro card > tip card
+    // Priority order: interactive tour / external modals > video modal > what's new > intro card > release card > tip card
     let activeSurface: OnboardingSurface = "none";
     if (activeVideoId !== null) {
         activeSurface = "video";
@@ -109,6 +130,13 @@ export function useOnboarding(options: UseOnboardingOptions = {}) {
     } else if (!isBlocked) {
         if (isIntroReady && !introSeen) {
             activeSurface = "intro";
+        } else if (
+            isReleaseReady &&
+            introSeen &&
+            LATEST_CHANGELOG_ENTRY?.announce &&
+            seenVersion !== LATEST_CHANGELOG_VERSION
+        ) {
+            activeSurface = "release";
         } else if (isTipQueued && !tipSeen) {
             activeSurface = "tip";
         }

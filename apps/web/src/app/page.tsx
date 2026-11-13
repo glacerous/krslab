@@ -41,6 +41,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
+import { ReleaseAnnouncementCard } from "@/components/onboarding/ReleaseAnnouncementCard";
 import { AdvancedTipCard } from "@/components/onboarding/AdvancedTipCard";
 import { LATEST_CHANGELOG_VERSION } from "@/lib/changelog";
 
@@ -2274,6 +2275,15 @@ function WorkspaceContent() {
                             openOverlay("tour");
                         }}
                         onDismiss={onboarding.markIntroSeen}
+                    />
+                    <ReleaseAnnouncementCard
+                        isOpen={onboarding.activeSurface === "release"}
+                        language={language}
+                        onOpenWhatsNew={() => {
+                            onboarding.markVersionSeen(LATEST_CHANGELOG_VERSION);
+                            onboarding.openWhatsNew();
+                        }}
+                        onDismiss={() => onboarding.markVersionSeen(LATEST_CHANGELOG_VERSION)}
                     />
                     <AdvancedTipCard
                         isOpen={onboarding.activeSurface === "tip"}

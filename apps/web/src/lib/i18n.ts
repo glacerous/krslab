@@ -141,6 +141,7 @@ export interface Translations {
     watchOneMinIntro: string;
     whatsNewTitle: string;
     whatsNewSubtitle: string;
+    seeWhatsNew: string;
     fullHistory: string;
     backToWorkspace: string;
     changelogTitle: string;
@@ -292,6 +293,7 @@ export const translations: Record<Language, Translations> = {
         watchOneMinIntro: "▶ Watch the 1-minute intro",
         whatsNewTitle: "What's new",
         whatsNewSubtitle: "Latest updates and improvements",
+        seeWhatsNew: "See what's new",
         fullHistory: "Full history",
         backToWorkspace: "← Back to workspace",
         changelogTitle: "Changelog",
@@ -441,6 +443,7 @@ export const translations: Record<Language, Translations> = {
         watchOneMinIntro: "▶ Lihat intro 1 menit",
         whatsNewTitle: "Yang baru",
         whatsNewSubtitle: "Pembaruan dan perbaikan terbaru",
+        seeWhatsNew: "Lihat yang baru",
         fullHistory: "Riwayat lengkap",
         backToWorkspace: "← Kembali ke ruang kerja",
         changelogTitle: "Catatan Rilis",
