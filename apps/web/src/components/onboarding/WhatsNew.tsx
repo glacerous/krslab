@@ -6,6 +6,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { CHANGELOG, LATEST_CHANGELOG_VERSION } from "@/lib/changelog";
 import { getTranslation, Language } from "@/lib/i18n";
+import { ChangelogMedia } from "@/components/changelog/ChangelogMedia";
 import { cn } from "@/lib/utils";
 
 interface WhatsNewProps {
@@ -123,9 +124,19 @@ export function WhatsNew({ isOpen, language, onClose, onMarkSeen }: WhatsNewProp
                                     {entry.title[language]}
                                 </h3>
 
-                                <p className="text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed mt-1.5">
-                                    {entry.summary[language]}
-                                </p>
+                                <div className={cn("mt-1.5", entry.media && "flex items-start gap-3")}>
+                                    <p className="flex-1 text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
+                                        {entry.summary[language]}
+                                    </p>
+                                    {entry.media && (
+                                        <ChangelogMedia
+                                            media={entry.media}
+                                            lang={language}
+                                            mode="thumb"
+                                            title={entry.title[language]}
+                                        />
+                                    )}
+                                </div>
 
                                 {entry.highlights.length > 0 && (
                                     <ul className="mt-2.5 space-y-1">

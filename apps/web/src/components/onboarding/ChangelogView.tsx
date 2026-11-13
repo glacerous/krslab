@@ -5,6 +5,7 @@ import { useAppStore, AppStore } from "@/lib/store";
 import { CHANGELOG } from "@/lib/changelog";
 import { getTranslation } from "@/lib/i18n";
 import { BrandLogo } from "@/components/BrandLogo";
+import { ChangelogMedia } from "@/components/changelog/ChangelogMedia";
 import { cn } from "@/lib/utils";
 
 export function ChangelogView() {
@@ -94,6 +95,17 @@ export function ChangelogView() {
                             <h2 className="text-[18px] font-semibold tracking-tight text-[#141413] dark:text-[#f4f4f6]">
                                 {entry.title[language]}
                             </h2>
+
+                            {entry.media && (
+                                <div className="pt-0.5">
+                                    <ChangelogMedia
+                                        media={entry.media}
+                                        lang={language}
+                                        mode={entry.kind === "milestone" ? "card" : "frame"}
+                                        title={entry.title[language]}
+                                    />
+                                </div>
+                            )}
 
                             <p className="text-[13.5px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
                                 {entry.summary[language]}
