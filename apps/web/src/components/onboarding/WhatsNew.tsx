@@ -161,19 +161,9 @@ export function WhatsNew({ isOpen, language, onClose, onMarkSeen }: WhatsNewProp
 
                 {/* Footer */}
                 <div className="px-6 py-3.5 border-t border-[#e6e6e3] dark:border-[#26262e] bg-white/85 dark:bg-[#18181c]/90 backdrop-blur-xs flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-2 text-[#6e6e77] dark:text-[#a1a1aa]">
-                        <span className="font-doodle text-[15px]">built for students</span>
-                        <span aria-hidden="true">·</span>
-                        <a
-                            href="https://github.com/glacerous/krslab"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[12px] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline underline-offset-4 transition-colors inline-flex items-center gap-1"
-                        >
-                            <span>GitHub</span>
-                            <span className="text-amber-500 leading-none" aria-hidden="true">★</span>
-                        </a>
-                    </div>
+                    <span className="font-doodle text-[15px] text-[#6e6e77] dark:text-[#a1a1aa]">
+                        built for students
+                    </span>
                     <Link
                         href="/changelog"
                         onClick={onClose}

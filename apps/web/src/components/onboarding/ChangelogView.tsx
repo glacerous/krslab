@@ -132,11 +132,7 @@ export function ChangelogView() {
                 </div>
 
                 <footer className="mt-10 pt-6 border-t border-[#e6e6e3] dark:border-[#26262e] flex flex-wrap items-center justify-between gap-3 text-[12.5px] text-[#6e6e77] dark:text-[#a1a1aa]">
-                    <span>
-                        {language === "id"
-                            ? "KRSlab open source (MIT). Punya GitHub? Kasih ★ jika terbantu."
-                            : "KRSlab is open source (MIT). On GitHub? Leave a ★ if it helped."}
-                    </span>
+                    <span>Open source (MIT)</span>
                     <div className="flex items-center gap-4">
                         <a
                             href="https://github.com/glacerous/krslab"

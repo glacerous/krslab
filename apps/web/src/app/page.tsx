@@ -2844,32 +2844,6 @@ function WorkspaceContent() {
                                 </span>
                             </span>
                         </button>
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] my-1.5" />
-                        <div className="px-2.5 py-1 flex items-center justify-between text-[11px] text-[#6e6e77] dark:text-[#a1a1aa]">
-                            <a
-                                href="https://github.com/glacerous/krslab"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => setIsGuideMenuOpen(false)}
-                                className="inline-flex items-center gap-1.5 hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
-                                title={language === "id" ? "Open source di GitHub (kasih ★)" : "Open source on GitHub (leave a ★)"}
-                            >
-                                <GitHubMark />
-                                <span>Open source</span>
-                                <span className="text-amber-500 leading-none" aria-hidden="true">★</span>
-                            </a>
-                            <a
-                                href="https://x.com/thefuturehold"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => setIsGuideMenuOpen(false)}
-                                className="inline-flex items-center gap-1 hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
-                                title={language === "id" ? "Laporkan masalah di X" : "Report an issue on X"}
-                            >
-                                <XMark className="w-2.5 h-2.5 shrink-0" />
-                                <span>@thefuturehold</span>
-                            </a>
-                        </div>
                     </div>
                 </div>,
                 document.body
