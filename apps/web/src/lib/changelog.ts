@@ -31,11 +31,49 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
     {
+        version: "0.3.0",
+        date: "2026-11-14",
+        kind: "release",
+        announce: true,
+        badge: { en: "v0.3.0, latest", id: "v0.3.0, terbaru" },
+        title: {
+            en: "Short schedule links & unified Share menu",
+            id: "Link jadwal singkat & menu Bagikan baru",
+        },
+        summary: {
+            en: "Share any KRS plan with a short /v/... link, export to PNG, clipboard, calendar (.ics), or text from one Share menu, and move your workspace across devices.",
+            id: "Bagikan rencana KRS lewat link singkat /v/..., ekspor ke PNG, clipboard, kalender (.ics), atau teks dari satu menu Bagikan, dan pindahkan workspace antar perangkat.",
+        },
+        highlights: [
+            {
+                tag: "new",
+                text: {
+                    en: "Short /v/... schedule links with a read-only viewer and safe Copy to Workspace",
+                    id: "Link singkat /v/... dengan tampilan hanya lihat dan Salin ke Ruang Kerja yang aman",
+                },
+            },
+            {
+                tag: "new",
+                text: {
+                    en: "Unified Share menu: Copy Schedule Link, Download PNG, Copy Image, Calendar (.ics), and Copy KRS List",
+                    id: "Menu Bagikan terpadu: Salin Link Jadwal, Unduh PNG, Salin Gambar, Kalender (.ics), dan Salin Daftar KRS",
+                },
+            },
+            {
+                tag: "new",
+                text: {
+                    en: "Workspace transfer link & .json backup/restore inside Preferences",
+                    id: "Link transfer workspace & backup/pulihkan .json di menu Preferensi",
+                },
+            },
+        ],
+    },
+    {
         version: "0.2.0",
         date: "2026-11-13",
         kind: "release",
         announce: true,
-        badge: { en: "v0.2.0, latest", id: "v0.2.0, terbaru" },
+        badge: { en: "v0.2.0", id: "v0.2.0" },
         title: {
             en: "Video guides & release notes",
             id: "Video panduan & catatan rilis",
