@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo, memo } from "react";
-import { Plan, Datasource } from "@/lib/store";
+import { useState, useMemo, useRef, useEffect, useCallback, memo } from "react";
+import { createPortal } from "react-dom";
+import { Plan, Datasource, Subject } from "@/lib/store";
 import { useAppStore } from "@/lib/store";
 import {
     Search,
@@ -26,11 +27,29 @@ interface CoursePanelProps {
     effectiveMapping: Record<string, string>;
     selectedSubjectIdForDetail?: string | null;
     onSelectSubjectDetail?: (subjectId: string | null) => void;
+    onSelectClass?: (subjectId: string, classId: string) => void;
     onHoverSubject?: (subjectId: string | null) => void;
     onHoverClass?: (classId: string | null) => void;
     onOpenImportModal?: () => void;
     onOpenStartVideo?: () => void;
 }
+
+type SidebarDragVisual = {
+    subject: Subject;
+    startX: number;
+    startY: number;
+    originLeft: number;
+    originTop: number;
+    originWidth: number;
+    originHeight: number;
+    inGrid: boolean;
+    hoveredGhostClassId: string | null;
+    hoveredGhostWidth: number | null;
+    hoveredGhostHeight: number | null;
+    hoveredGhostLabel: string | null;
+    hoveredGhostTime: string | null;
+    settling: boolean;
+};
 
 export const CoursePanel = memo(function CoursePanel({
     plan,
@@ -39,6 +58,7 @@ export const CoursePanel = memo(function CoursePanel({
     onTabChange,
     conflicts,
     effectiveMapping,
+    onSelectClass,
     onHoverSubject,
     onHoverClass,
     onOpenImportModal,
@@ -86,10 +106,265 @@ export const CoursePanel = memo(function CoursePanel({
         if (isPreview) {
             setPreviewOverride(plan.id, subjectId, classId);
             toast.success("Section preview updated");
+        } else if (onSelectClass) {
+            onSelectClass(subjectId, classId);
         } else {
             setSelectedClassForSubject(plan.id, subjectId, classId);
         }
     };
+
+    const [sidebarDrag, setSidebarDrag] = useState<SidebarDragVisual | null>(null);
+    const floatingDragCardRef = useRef<HTMLDivElement | null>(null);
+    const sidebarDragStateRef = useRef<{
+        subject: Subject;
+        pointerId: number;
+        startX: number;
+        startY: number;
+        originRect: DOMRect;
+        active: boolean;
+        lastX: number;
+        lastY: number;
+        inGrid: boolean;
+        hoveredGhostClassId: string | null;
+    } | null>(null);
+    const didSidebarDragRef = useRef(false);
+    const dragRafRef = useRef<number | null>(null);
+    const dragSettleTimeoutRef = useRef<number | null>(null);
+
+    const cleanupSidebarDrag = useCallback(() => {
+        if (dragRafRef.current !== null) {
+            cancelAnimationFrame(dragRafRef.current);
+            dragRafRef.current = null;
+        }
+        if (dragSettleTimeoutRef.current !== null) {
+            window.clearTimeout(dragSettleTimeoutRef.current);
+            dragSettleTimeoutRef.current = null;
+        }
+        if (sidebarDragStateRef.current?.active) {
+            onHoverClass?.(null);
+            onHoverSubject?.(null);
+        }
+        sidebarDragStateRef.current = null;
+        setSidebarDrag(null);
+    }, [onHoverClass, onHoverSubject]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape" && sidebarDragStateRef.current) {
+                cleanupSidebarDrag();
+            }
+        };
+        const handleWindowBlur = () => {
+            if (sidebarDragStateRef.current) cleanupSidebarDrag();
+        };
+        const handleVisibilityChange = () => {
+            if (document.hidden && sidebarDragStateRef.current) cleanupSidebarDrag();
+        };
+
+        window.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("blur", handleWindowBlur);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("blur", handleWindowBlur);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+            cleanupSidebarDrag();
+        };
+    }, [cleanupSidebarDrag]);
+
+    const handleCatalogPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>, sub: Subject) => {
+        if (e.button !== 0 || e.pointerType === "touch") return;
+        const originRect = e.currentTarget.getBoundingClientRect();
+
+        if (dragSettleTimeoutRef.current !== null) {
+            window.clearTimeout(dragSettleTimeoutRef.current);
+            dragSettleTimeoutRef.current = null;
+        }
+
+        sidebarDragStateRef.current = {
+            subject: sub,
+            pointerId: e.pointerId,
+            startX: e.clientX,
+            startY: e.clientY,
+            originRect,
+            active: false,
+            lastX: e.clientX,
+            lastY: e.clientY,
+            inGrid: false,
+            hoveredGhostClassId: null
+        };
+        didSidebarDragRef.current = false;
+
+        const updateVisualFrame = () => {
+            dragRafRef.current = null;
+            const st = sidebarDragStateRef.current;
+            if (!st || !st.active) return;
+
+            const dx = st.lastX - st.startX;
+            const dy = st.lastY - st.startY;
+            if (floatingDragCardRef.current) {
+                floatingDragCardRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${st.inGrid ? 1 : 1.03})`;
+            }
+
+            const gridElem = document.getElementById("krs-grid-capture");
+            const gridRect = gridElem?.getBoundingClientRect();
+            const nextInGrid = Boolean(
+                gridRect &&
+                st.lastX >= gridRect.left &&
+                st.lastX <= gridRect.right &&
+                st.lastY >= gridRect.top &&
+                st.lastY <= gridRect.bottom
+            );
+
+            let nextGhostId: string | null = null;
+            let nextGhostW: number | null = null;
+            let nextGhostH: number | null = null;
+            let nextGhostLabel: string | null = null;
+            let nextGhostTime: string | null = null;
+
+            if (nextInGrid) {
+                const ghostNodes = document.querySelectorAll<HTMLElement>("[data-ghost-class-id]");
+                for (let i = 0; i < ghostNodes.length; i++) {
+                    const node = ghostNodes[i]!;
+                    const r = node.getBoundingClientRect();
+                    if (st.lastX >= r.left && st.lastX <= r.right && st.lastY >= r.top && st.lastY <= r.bottom) {
+                        const cId = node.dataset.ghostClassId ?? null;
+                        if (cId) {
+                            nextGhostId = cId;
+                            nextGhostW = r.width;
+                            nextGhostH = r.height;
+                            const cls = st.subject.classes.find((c) => c.classId === cId);
+                            nextGhostLabel = cls?.className ?? null;
+                            const firstMeeting = cls?.meetings?.[0];
+                            nextGhostTime = firstMeeting ? `${firstMeeting.start}-${firstMeeting.end}` : null;
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (nextInGrid !== st.inGrid || nextGhostId !== st.hoveredGhostClassId) {
+                st.inGrid = nextInGrid;
+                st.hoveredGhostClassId = nextGhostId;
+                onHoverClass?.(nextGhostId);
+                setSidebarDrag((prev) =>
+                    prev
+                        ? {
+                              ...prev,
+                              inGrid: nextInGrid,
+                              hoveredGhostClassId: nextGhostId,
+                              hoveredGhostWidth: nextGhostW,
+                              hoveredGhostHeight: nextGhostH,
+                              hoveredGhostLabel: nextGhostLabel,
+                              hoveredGhostTime: nextGhostTime
+                          }
+                        : null
+                );
+            }
+        };
+
+        const handlePointerMove = (moveEvent: PointerEvent) => {
+            const st = sidebarDragStateRef.current;
+            if (!st || moveEvent.pointerId !== st.pointerId) return;
+
+            st.lastX = moveEvent.clientX;
+            st.lastY = moveEvent.clientY;
+
+            if (!st.active) {
+                const dist = Math.hypot(moveEvent.clientX - st.startX, moveEvent.clientY - st.startY);
+                if (dist < 6) return;
+                st.active = true;
+                didSidebarDragRef.current = true;
+                onHoverSubject?.(st.subject.subjectId);
+                setSidebarDrag({
+                    subject: st.subject,
+                    startX: st.startX,
+                    startY: st.startY,
+                    originLeft: st.originRect.left,
+                    originTop: st.originRect.top,
+                    originWidth: st.originRect.width,
+                    originHeight: st.originRect.height,
+                    inGrid: false,
+                    hoveredGhostClassId: null,
+                    hoveredGhostWidth: null,
+                    hoveredGhostHeight: null,
+                    hoveredGhostLabel: null,
+                    hoveredGhostTime: null,
+                    settling: false
+                });
+            }
+
+            if (dragRafRef.current === null) {
+                dragRafRef.current = requestAnimationFrame(updateVisualFrame);
+            }
+        };
+
+        const finishGesture = (endEvent: PointerEvent, cancelled: boolean) => {
+            const st = sidebarDragStateRef.current;
+            if (!st || endEvent.pointerId !== st.pointerId) return;
+
+            window.removeEventListener("pointermove", handlePointerMove);
+            window.removeEventListener("pointerup", handlePointerUp);
+            window.removeEventListener("pointercancel", handlePointerCancel);
+
+            if (dragRafRef.current !== null) {
+                cancelAnimationFrame(dragRafRef.current);
+                dragRafRef.current = null;
+            }
+
+            if (!st.active) {
+                sidebarDragStateRef.current = null;
+                return;
+            }
+
+            const droppedInGrid = !cancelled && st.inGrid;
+            const droppedGhostClassId = !cancelled ? st.hoveredGhostClassId : null;
+            const droppedSubjectId = st.subject.subjectId;
+            const alreadySelected = (plan.selectedSubjectIds ?? []).includes(droppedSubjectId);
+
+            if (droppedGhostClassId) {
+                if (onSelectClass) {
+                    onSelectClass(droppedSubjectId, droppedGhostClassId);
+                } else {
+                    setSelectedClassForSubject(plan.id, droppedSubjectId, droppedGhostClassId);
+                }
+            } else if (droppedInGrid && !alreadySelected) {
+                toggleSubjectInPlan(plan.id, droppedSubjectId);
+            }
+
+            onHoverClass?.(null);
+            onHoverSubject?.(null);
+
+            const el = floatingDragCardRef.current;
+            if (el) {
+                setSidebarDrag((prev) => (prev ? { ...prev, settling: true } : null));
+                if (droppedInGrid) {
+                    el.style.transition = "transform 180ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease";
+                    el.style.transform = `translate3d(${st.lastX - st.startX}px, ${st.lastY - st.startY}px, 0) scale(0.92)`;
+                    el.style.opacity = "0";
+                } else {
+                    el.style.transition = "transform 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease";
+                    el.style.transform = "translate3d(0px, 0px, 0) scale(1)";
+                    el.style.opacity = "0";
+                }
+                sidebarDragStateRef.current = null;
+                dragSettleTimeoutRef.current = window.setTimeout(() => {
+                    dragSettleTimeoutRef.current = null;
+                    setSidebarDrag(null);
+                }, 200);
+            } else {
+                sidebarDragStateRef.current = null;
+                setSidebarDrag(null);
+            }
+        };
+
+        const handlePointerUp = (upEvent: PointerEvent) => finishGesture(upEvent, false);
+        const handlePointerCancel = (cancelEvent: PointerEvent) => finishGesture(cancelEvent, true);
+
+        window.addEventListener("pointermove", handlePointerMove);
+        window.addEventListener("pointerup", handlePointerUp);
+        window.addEventListener("pointercancel", handlePointerCancel);
+    }, [plan.id, plan.selectedSubjectIds, onSelectClass, setSelectedClassForSubject, toggleSubjectInPlan, onHoverClass, onHoverSubject]);
 
     return (
         <div className="w-full h-full flex flex-col bg-white/95 dark:bg-[#141418] px-6 py-6 select-none overflow-hidden">
@@ -393,16 +668,29 @@ export const CoursePanel = memo(function CoursePanel({
                                     <>
                                         {filteredCatalog.map((sub, idx) => {
                                             const isSelected = (plan.selectedSubjectIds ?? []).includes(sub.subjectId);
+                                            const isThisRowDragging = sidebarDrag?.subject.subjectId === sub.subjectId && !sidebarDrag.settling;
 
                                             return (
                                                 <div
                                                     key={sub.subjectId}
                                                     id={idx === 0 ? "tour-catalog-first-row" : idx === 1 ? "tour-catalog-second-row" : undefined}
-                                                    onMouseEnter={() => onHoverSubject?.(sub.subjectId)}
-                                                    onMouseLeave={() => onHoverSubject?.(null)}
-                                                    onClick={() => toggleSubjectInPlan(plan.id, sub.subjectId)}
+                                                    onPointerDown={(e) => handleCatalogPointerDown(e, sub)}
+                                                    onMouseEnter={() => {
+                                                        if (!sidebarDragStateRef.current?.active) onHoverSubject?.(sub.subjectId);
+                                                    }}
+                                                    onMouseLeave={() => {
+                                                        if (!sidebarDragStateRef.current?.active) onHoverSubject?.(null);
+                                                    }}
+                                                    onClick={() => {
+                                                        if (didSidebarDragRef.current) {
+                                                            didSidebarDragRef.current = false;
+                                                            return;
+                                                        }
+                                                        toggleSubjectInPlan(plan.id, sub.subjectId);
+                                                    }}
                                                     className={cn(
-                                                        "p-2 rounded-xl cursor-pointer transition-colors flex items-center justify-between gap-2.5",
+                                                        "p-2 rounded-xl cursor-grab active:cursor-grabbing transition-all flex items-center justify-between gap-2.5",
+                                                        isThisRowDragging && "opacity-40 scale-[0.98]",
                                                         isSelected
                                                             ? "bg-neutral-100/90 dark:bg-white/[0.08] border border-neutral-200/80 dark:border-white/[0.14] text-[#141413] dark:text-white"
                                                             : "bg-transparent hover:bg-neutral-100/70 dark:hover:bg-white/[0.04] text-[#141413] dark:text-[#f4f4f6]"
@@ -441,6 +729,102 @@ export const CoursePanel = memo(function CoursePanel({
                         </>
                     )}
                 </div>
+            )}
+            {sidebarDrag && typeof document !== "undefined" && createPortal(
+                (() => {
+                    const targetWidth = sidebarDrag.inGrid
+                        ? (sidebarDrag.hoveredGhostWidth
+                            ? Math.min(Math.max(sidebarDrag.hoveredGhostWidth, 132), 220)
+                            : 168)
+                        : sidebarDrag.originWidth;
+                    const targetHeight = sidebarDrag.inGrid
+                        ? (sidebarDrag.hoveredGhostHeight
+                            ? Math.min(Math.max(sidebarDrag.hoveredGhostHeight, 64), 144)
+                            : 84)
+                        : sidebarDrag.originHeight;
+
+                    // Keep the morphed card centered under the cursor as it shrinks from wide row to timetable card
+                    const grabOffsetX = sidebarDrag.startX - sidebarDrag.originLeft;
+                    const grabOffsetY = sidebarDrag.startY - sidebarDrag.originTop;
+                    const morphShiftX = sidebarDrag.inGrid ? grabOffsetX - targetWidth / 2 : 0;
+                    const morphShiftY = sidebarDrag.inGrid ? grabOffsetY - targetHeight / 2 : 0;
+
+                    return (
+                        <div
+                            ref={floatingDragCardRef}
+                            style={{
+                                position: "fixed",
+                                left: `${sidebarDrag.originLeft}px`,
+                                top: `${sidebarDrag.originTop}px`,
+                                zIndex: 9999,
+                                pointerEvents: "none",
+                                transform: "translate3d(0px, 0px, 0) scale(1.03)",
+                                willChange: "transform, opacity"
+                            }}
+                        >
+                            <div
+                                style={{
+                                    width: `${targetWidth}px`,
+                                    height: `${targetHeight}px`,
+                                    marginLeft: `${morphShiftX}px`,
+                                    marginTop: `${morphShiftY}px`,
+                                    transition: "width 240ms cubic-bezier(0.22, 1, 0.36, 1), height 240ms cubic-bezier(0.22, 1, 0.36, 1), margin-left 240ms cubic-bezier(0.22, 1, 0.36, 1), margin-top 240ms cubic-bezier(0.22, 1, 0.36, 1), border-radius 240ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease"
+                                }}
+                                className={cn(
+                                    "relative rounded-xl overflow-hidden select-none shadow-2xl border bg-white dark:bg-[#202027] transition-colors duration-200",
+                                    sidebarDrag.hoveredGhostClassId
+                                        ? "border-sky-500 dark:border-sky-400 ring-2 ring-sky-500/80 dark:ring-sky-400/80"
+                                        : "border-[#dcdcd6] dark:border-[#343440] ring-2 ring-[#141413] dark:ring-[#f4f4f6]"
+                                )}
+                            >
+                                {/* Sidebar Pill Layout */}
+                                <div
+                                    className={cn(
+                                        "absolute inset-0 px-2.5 py-2 flex items-center justify-between gap-2.5 transition-opacity duration-150",
+                                        sidebarDrag.inGrid ? "opacity-0" : "opacity-100"
+                                    )}
+                                >
+                                    <div className="min-w-0 flex-1">
+                                        <div className="flex items-baseline justify-between gap-1">
+                                            <h4 className="text-[13px] font-medium text-[#141413] dark:text-white truncate">
+                                                {sidebarDrag.subject.name}
+                                            </h4>
+                                            <span className="font-doodle text-[15px] font-bold text-[#6e6e77] dark:text-[#9ca3af] shrink-0 leading-none">
+                                                {sidebarDrag.subject.sks} sks
+                                            </span>
+                                        </div>
+                                        <p className="text-[11.5px] text-[#6e6e77] dark:text-[#9ca3af] truncate">
+                                            <span className="font-mono">{sidebarDrag.subject.code}</span> · {sidebarDrag.subject.classes.length} classes
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Timetable Card Layout */}
+                                <div
+                                    className={cn(
+                                        "absolute inset-0 p-2.5 flex flex-col justify-start transition-opacity duration-200",
+                                        sidebarDrag.inGrid ? "opacity-100" : "opacity-0"
+                                    )}
+                                >
+                                    <div className="flex items-center justify-between gap-1.5 min-w-0">
+                                        <span className="px-1.5 py-0.5 rounded bg-[#f3f3f0] dark:bg-[#2e2e38] border border-[#e2e2de] dark:border-[#454554] text-[10.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] shrink-0 leading-none">
+                                            {sidebarDrag.hoveredGhostLabel
+                                                ? `Kelas ${sidebarDrag.hoveredGhostLabel}`
+                                                : `${sidebarDrag.subject.sks} SKS`}
+                                        </span>
+                                        <span className="font-mono text-[10px] text-[#6e6e77] dark:text-[#a1a1aa] truncate tabular-nums">
+                                            {sidebarDrag.hoveredGhostTime || (language === "id" ? "lepas di sini" : "drop on grid")}
+                                        </span>
+                                    </div>
+                                    <h4 className="font-semibold text-[12px] text-[#141413] dark:text-[#f4f4f6] mt-1 leading-tight line-clamp-2">
+                                        {sidebarDrag.subject.name}
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })(),
+                document.body
             )}
         </div>
     );

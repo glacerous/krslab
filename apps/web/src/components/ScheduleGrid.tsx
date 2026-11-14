@@ -15,15 +15,17 @@ import { checkClassConflict } from "@krs/engine";
 import { formatDay } from "@/lib/i18n";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-const START_HOUR = 7;
-const GRID_START_MINUTES = START_HOUR * 60;
+const DEFAULT_START_HOUR = 7;
+const DEFAULT_END_HOUR = 20;
 const TOP_OFFSET = 12;
 
-const SLOTS = Array.from({ length: 13 * 2 }, (_, i) => {
-    const h = Math.floor(i / 2) + START_HOUR;
-    const m = (i % 2) * 30;
-    return { h, m, isMajor: m === 0 };
-});
+type TimeSlot = { h: number; m: number; isMajor: boolean };
+
+function parseTimeToMinutes(timeStr: string): number | null {
+    const [h, m] = timeStr.split(":").map(Number);
+    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+    return h * 60 + m;
+}
 
 const DayHeaders = memo(function DayHeaders({ compact, language }: { compact: boolean; language: string }) {
     return (
@@ -55,13 +57,13 @@ const DayHeaders = memo(function DayHeaders({ compact, language }: { compact: bo
     );
 });
 
-const GridBackground = memo(function GridBackground({ rowHeight }: { rowHeight: number }) {
+const GridBackground = memo(function GridBackground({ rowHeight, slots }: { rowHeight: number; slots: TimeSlot[] }) {
     return (
         <div
             className="absolute inset-0 flex flex-col pointer-events-none"
             style={{ top: `${TOP_OFFSET}px` }}
         >
-            {SLOTS.map((slot) => (
+            {slots.map((slot) => (
                 <div
                     key={`${slot.h}-${slot.m}`}
                     style={{ height: `${rowHeight / 2}px` }}
@@ -77,7 +79,7 @@ const GridBackground = memo(function GridBackground({ rowHeight }: { rowHeight: 
     );
 });
 
-const TimeColumn = memo(function TimeColumn({ compact, rowHeight }: { compact: boolean; rowHeight: number }) {
+const TimeColumn = memo(function TimeColumn({ compact, rowHeight, slots }: { compact: boolean; rowHeight: number; slots: TimeSlot[] }) {
     return (
         <div
             className={cn(
@@ -86,7 +88,7 @@ const TimeColumn = memo(function TimeColumn({ compact, rowHeight }: { compact: b
             )}
             style={{ paddingTop: `${TOP_OFFSET}px` }}
         >
-            {SLOTS.map((slot) => (
+            {slots.map((slot) => (
                 <div
                     key={`${slot.h}-${slot.m}`}
                     style={{ height: `${rowHeight / 2}px` }}
@@ -355,7 +357,47 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     const gridRef = useRef<HTMLDivElement>(null);
     const pointerDragRef = useRef<PointerDragState | null>(null);
 
-    const totalHeight = TOP_OFFSET + (SLOTS.length / 2) * rowHeight + 28;
+    const { gridStartMinutes, slots } = useMemo(() => {
+        let minStart = DEFAULT_START_HOUR * 60;
+        let maxEnd = DEFAULT_END_HOUR * 60;
+
+        const scanMeetings = (meetings?: Meeting[]) => {
+            if (!meetings) return;
+            for (const m of meetings) {
+                const s = parseTimeToMinutes(m.start);
+                const e = parseTimeToMinutes(m.end);
+                if (s !== null && s < minStart) minStart = s;
+                if (e !== null && e > maxEnd) maxEnd = e;
+            }
+        };
+
+        for (const sub of allSubjects) {
+            for (const cls of sub.classes) {
+                scanMeetings(cls.meetings);
+            }
+        }
+        for (const cls of selectedClasses) {
+            scanMeetings(cls?.meetings);
+        }
+
+        const startH = Math.max(0, Math.min(DEFAULT_START_HOUR, Math.floor(minStart / 60)));
+        const endH = Math.min(24, Math.max(DEFAULT_END_HOUR, Math.ceil(maxEnd / 60)));
+        const computedSlots: TimeSlot[] = Array.from(
+            { length: (endH - startH) * 2 },
+            (_, i) => ({
+                h: Math.floor(i / 2) + startH,
+                m: (i % 2) * 30,
+                isMajor: i % 2 === 0
+            })
+        );
+
+        return {
+            gridStartMinutes: startH * 60,
+            slots: computedSlots
+        };
+    }, [allSubjects, selectedClasses]);
+
+    const totalHeight = TOP_OFFSET + (slots.length / 2) * rowHeight + 28;
 
     // Trigger grid pulse and clear optimistic picks when selectedClasses change (e.g. Shuffle)
     const signature = selectedClasses.map((c) => c?.classId || "").join(",");
@@ -413,11 +455,11 @@ export const ScheduleGrid = memo(function ScheduleGrid({
         const startInMinutes = startH * 60 + startM;
         const endInMinutes = endH * 60 + endM;
 
-        const top = TOP_OFFSET + ((startInMinutes - GRID_START_MINUTES) / 60) * rowHeight;
+        const top = TOP_OFFSET + ((startInMinutes - gridStartMinutes) / 60) * rowHeight;
         const height = ((endInMinutes - startInMinutes) / 60) * rowHeight;
 
         return { dayIndex, top, height };
-    }, [rowHeight]);
+    }, [rowHeight, gridStartMinutes]);
 
     // Effective focused subject: either explicitly clicked/dragged on grid, or hovered in sidebar
     const activeGhostSubjectId = focusedSubjectId || hoveredSubjectId;
@@ -1024,10 +1066,10 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                             style={{ height: `${totalHeight}px` }}
                         >
                             {/* Grid Background Horizontal Lines */}
-                            <GridBackground rowHeight={rowHeight} />
+                            <GridBackground rowHeight={rowHeight} slots={slots} />
 
                             {/* Time Column - Space Mono Hourly Labels */}
-                            <TimeColumn compact={compact} rowHeight={rowHeight} />
+                            <TimeColumn compact={compact} rowHeight={rowHeight} slots={slots} />
 
                             {/* Day Column Verticals */}
                             <DayColumns />

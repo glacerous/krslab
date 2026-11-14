@@ -891,6 +891,9 @@ function WorkspaceContent() {
 
     const handleSelectClassOnGrid = useCallback((subId: string, classId: string) => {
         if (previewMapping) {
+            if (activePlan && !(activePlan.selectedSubjectIds ?? []).includes(subId)) {
+                setSelectedClassForSubject(activePlan.id, subId, classId);
+            }
             setPreviewMapping(prev => ({ ...(prev ?? {}), [subId]: classId }));
         } else if (activePlan) {
             setSelectedClassForSubject(activePlan.id, subId, classId);
@@ -898,7 +901,7 @@ function WorkspaceContent() {
         const sub = activeDatasource?.subjects.find(s => s.subjectId === subId);
         const cls = sub?.classes.find(c => c.classId === classId);
         toast.success(`Switched to Kelas ${cls?.className || classId}`, { id: "switch-section" });
-    }, [previewMapping, activePlan?.id, setSelectedClassForSubject, activeDatasource?.subjects]);
+    }, [previewMapping, activePlan, setSelectedClassForSubject, activeDatasource?.subjects]);
 
     const handleOpenCustomCourse = useCallback(() => {
         setIsCustomCourseModalOpen(true);
@@ -968,6 +971,49 @@ function WorkspaceContent() {
         setPreviewMapping(null);
         toast.info("Preview discarded", { id: "preview-action" });
     }, []);
+
+    // Keep shuffle/preview mapping synchronized when courses are added or removed from sidebar/grid
+    useEffect(() => {
+        if (!previewMapping || !activePlan || !activeDatasource) return;
+
+        const selectedIds = activePlan.selectedSubjectIds ?? [];
+        const selectedSet = new Set(selectedIds);
+        let changed = false;
+        const nextMapping: Record<string, string> = { ...previewMapping };
+
+        for (const existingSubId of Object.keys(nextMapping)) {
+            if (!selectedSet.has(existingSubId)) {
+                delete nextMapping[existingSubId];
+                changed = true;
+            }
+        }
+
+        const currentPreviewClasses = Object.entries(nextMapping)
+            .map(([sId, cId]) => {
+                const s = activeDatasource.subjects.find((sub) => sub.subjectId === sId);
+                return s?.classes.find((c) => c.classId === cId);
+            })
+            .filter((c): c is NonNullable<typeof c> => Boolean(c));
+
+        for (const subId of selectedIds) {
+            if (nextMapping[subId]) continue;
+            const sub = activeDatasource.subjects.find((s) => s.subjectId === subId);
+            if (!sub || sub.classes.length === 0) continue;
+
+            const nonConflicting = sub.classes.find((candidate) =>
+                !currentPreviewClasses.some((existing) => checkClassConflict(candidate, existing))
+            );
+            const fallbackId = activePlan.selectedClassBySubjectId[subId] ?? sub.classes[0]!.classId;
+            const chosen = nonConflicting ?? sub.classes.find((c) => c.classId === fallbackId) ?? sub.classes[0]!;
+            nextMapping[subId] = chosen.classId;
+            currentPreviewClasses.push(chosen);
+            changed = true;
+        }
+
+        if (changed) {
+            setPreviewMapping(nextMapping);
+        }
+    }, [previewMapping, activePlan, activeDatasource]);
 
     // Clear stuck sidebar hover highlights on Alt+Tab / window blur
     useEffect(() => {
@@ -1581,6 +1627,7 @@ function WorkspaceContent() {
                             onTabChange={setActiveTab}
                             conflicts={conflicts}
                             effectiveMapping={effectiveMapping}
+                            onSelectClass={handleSelectClassOnGrid}
                             onHoverSubject={setHoveredSubjectId}
                             onHoverClass={setHoveredClassId}
                             onOpenImportModal={handleOpenImportData}
@@ -1720,6 +1767,7 @@ function WorkspaceContent() {
                                     onTabChange={setActiveTab}
                                     conflicts={conflicts}
                                     effectiveMapping={effectiveMapping}
+                                    onSelectClass={handleSelectClassOnGrid}
                                     onHoverSubject={setHoveredSubjectId}
                                     onHoverClass={setHoveredClassId}
                                     onOpenImportModal={() => {
