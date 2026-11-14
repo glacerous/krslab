@@ -1,92 +1,70 @@
 # KRSlab
 
-A straightforward tool to help you plan your **KRS** without the usual headache. KRSlab takes your BIMA CSV file, analyzes it with a scheduling engine, flags clashes, and suggests workable timetable options so you don’t have to brute-force your semester by hand
+[![CI](https://github.com/glacerous/krslab/actions/workflows/ci.yml/badge.svg)](https://github.com/glacerous/krslab/actions/workflows/ci.yml)
+[![Live App](https://img.shields.io/badge/demo-krslab.vercel.app-141413)](https://krslab.vercel.app)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-If you’ve ever stared at overlapping classes wondering “how is this even possible,” this exists for that exact moment
+An interactive university schedule (**KRS**) planner built for Indonesian campus portals. Paste your course table from **BIMA**, **SIAKAD**, **SiakadCloud**, **SIMASTER**, **SIAK-NG**, **SIX**, or **SIAM**, resolve clashes automatically, drag-and-drop sections on a weekly grid, and share your schedule via a link.
+
+![KRSlab Studio](apps/web/public/changelog/v0-2-0-intro-poster.jpg)
 
 ---
 
-## What this project is
+## Features
 
-KRSlab is a monorepo web application built around three main pieces:
-
-* A scheduling engine that reasons about conflicts and valid course combinations
-* A thin wrapper layer that translates BIMA CSV data into something the engine understands
-* A clean interface where you can browse courses, visualize schedules, and export results
-
-The goal is simple: turn messy raw data into a usable plan as quickly as possible
+- **Conflict-Free Auto-Scheduler & Shuffle** — Generate valid timetable candidates instantly, lock preferred sections, and add custom scheduling rules (free days, time windows, max gap).
+- **Interactive Drag & Drop** — Drag courses from the sidebar onto the grid, swap between parallel sections with live clash previews, or drag left to remove.
+- **Universal Campus Parser** — Paste directly from BIMA, SIAKAD, Excel/CSV, or build custom courses manually.
+- **Zero-DB Link Sharing & Transfer** — Share your schedule via a compressed `/view` link (with Open Graph preview cards) so friends can inspect and copy it into their own workspace, or export PNG, `.ics` calendar, and `.json` backups.
+- **Bilingual & Responsive** — Indonesian (`ID`) and English (`EN`), light/dark mode, and mobile-friendly drawer layout.
 
 ---
 
 ## Tech Stack
 
-* **Monorepo:** pnpm workspaces
-* **Frontend:** Next.js (App Router) + TailwindCSS
-* **State:** Zustand
-* **CSV Parsing:** PapaParse
-* **Core Logic:** `krsplan-engine`
-* **Adapter Layer:** `@krs/engine`
+- **Monorepo:** pnpm workspaces
+- **Web:** Next.js 14 (App Router), React 18, Tailwind CSS, Zustand, Sonner
+- **Engine:** `@krs/engine` (TypeScript parser, conflict detector, constraint solver)
+- **Testing:** Vitest (engine) + Playwright (e2e)
 
 ---
 
-## Getting started
-
-You’ll need **Node.js** installed. If `pnpm` isn’t in your PATH, you can safely use `npx pnpm`.
-
-### 1) Install dependencies
+## Getting Started
 
 ```bash
-npx pnpm install
-```
-
-### 2) Build the engine
-
-The web app relies on the engine’s build artifacts, so this step is required
-
-```bash
-npx pnpm build
-```
-
-### 3) Run development server
-
-```bash
-npx pnpm dev
+pnpm install
+pnpm --filter @krs/engine build
+pnpm --filter web dev
 ```
 
 Open **http://localhost:3000** in your browser.
 
+### Useful Scripts
+
+```bash
+pnpm -r exec tsc --noEmit   # Typecheck all packages
+pnpm --filter @krs/engine test
+pnpm --filter web lint
+pnpm --filter web build
+```
+
 ---
 
-## Repository structure
+## Repository Structure
 
-```
-packages/
-  ├── krsplan-engine   # Scheduling logic
-  └── engine           # CSV parser + web adapter
-
+```text
 apps/
-  └── web              # Next.js application
+  └── web              # Next.js studio, share viewer (/view), and UI
+packages/
+  └── engine           # Portal parser, conflict rules, and schedule solver
+tools/                 # Media / asset utilities
 ```
 
 ---
 
-## MVP Features
+## Contributing & Releases
 
-* Upload CSV from BIMA
-* Search courses quickly
-* View schedules in a grid layout
-* Automatic conflict detection with visual badges
-* Plan generator (up to 3 alternative schedules)
-* Export final plan to JSON
+Issues and PRs are welcome! See [`.github/ISSUE_TEMPLATE`](./.github/ISSUE_TEMPLATE) for bug reports or feature requests.
+Releases are automated via [`.github/workflows/release.yml`](./.github/workflows/release.yml) whenever a `v*.*.*` tag is pushed.
 
----
-
-## Why KRSlab?
-
-Because juggling dozens of courses in a spreadsheet isn’t fun, and doing it manually is a waste of time. KRSlab tries to make that part a little easier
-
----
-
-## Contributing
-
-Issues and pull requests are welcome. If you found a bug, have a feature idea, or just want to improve something, feel free to open a discussion or submit a PR
+Licensed under [MIT](./LICENSE).

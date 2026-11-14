@@ -1,0 +1,25 @@
+name: Bug Report
+description: Report a UI, scheduling, or campus-parser bug
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Briefly describe the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Paste/import courses...
+        2. Click Auto-Schedule...
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Device / Browser
+      placeholder: e.g. Chrome on Windows, Safari on iOS
