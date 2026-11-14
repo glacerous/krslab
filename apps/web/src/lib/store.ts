@@ -82,6 +82,16 @@ export interface AppStore {
     duplicateDatasource: (id: string) => string;
     deduplicateDatasources: () => void;
     importDatasourceAndCreatePlan: (name: string, subjects: Subject[]) => { datasourceId: string; planId: string };
+    importSharedPlan: (payload: {
+        name: string;
+        sourceName: string;
+        subjects: Subject[];
+        selectedClassBySubjectId: Record<string, string>;
+    }) => { datasourceId: string; planId: string };
+    importWorkspaceBackup: (payload: {
+        datasources: Datasource[];
+        plans: Plan[];
+    }) => { importedDatasources: number; importedPlans: number };
 
     // Plan Actions
     addPlan: (plan: Omit<Plan, "id" | "createdAt">) => string;
@@ -488,6 +498,137 @@ export const useAppStore = create<AppStore>()(
                     activePlanId: planId,
                 }));
                 return { datasourceId: dsId, planId };
+            },
+
+            importSharedPlan: ({ name, sourceName, subjects, selectedClassBySubjectId }) => {
+                const dsId = crypto.randomUUID();
+                const planId = crypto.randomUUID();
+                const subjectIdMap = new Map<string, string>();
+                const classIdMap = new Map<string, string>();
+
+                const remappedSubjects: Subject[] = subjects.map((sub) => {
+                    const newSubId = crypto.randomUUID();
+                    subjectIdMap.set(sub.subjectId, newSubId);
+                    return {
+                        ...sub,
+                        subjectId: newSubId,
+                        classes: (sub.classes ?? []).map((cls) => {
+                            const newClsId = crypto.randomUUID();
+                            classIdMap.set(cls.classId, newClsId);
+                            return { ...cls, classId: newClsId };
+                        }),
+                    };
+                });
+
+                const remappedSelectedIds = remappedSubjects.map((s) => s.subjectId);
+                const remappedMapping: Record<string, string> = {};
+                for (const [oldSubId, oldClsId] of Object.entries(selectedClassBySubjectId)) {
+                    const newSubId = subjectIdMap.get(oldSubId);
+                    const newClsId = classIdMap.get(oldClsId);
+                    if (newSubId && newClsId) {
+                        remappedMapping[newSubId] = newClsId;
+                    }
+                }
+
+                const newDs: Datasource = {
+                    id: dsId,
+                    name: `${sourceName || "Shared"} (Salinan)`.slice(0, 60),
+                    createdAt: new Date().toISOString(),
+                    subjects: remappedSubjects,
+                };
+                const newPlan: Plan = {
+                    id: planId,
+                    name: `${name || "Jadwal"} (Salinan)`.slice(0, 60),
+                    createdAt: new Date().toISOString(),
+                    datasourceId: dsId,
+                    selectedSubjectIds: remappedSelectedIds,
+                    selectedClassBySubjectId: remappedMapping,
+                    rules: [],
+                    savedVariants: [],
+                    frozenSubjectIds: [],
+                    previewOverrides: {},
+                };
+
+                set((state: AppStore) => ({
+                    datasources: [newDs, ...state.datasources],
+                    plans: [newPlan, ...state.plans],
+                    activeDatasourceId: dsId,
+                    activePlanId: planId,
+                }));
+
+                return { datasourceId: dsId, planId };
+            },
+
+            importWorkspaceBackup: ({ datasources, plans }) => {
+                const dsIdMap = new Map<string, string>();
+                const subIdMap = new Map<string, string>();
+                const clsIdMap = new Map<string, string>();
+
+                const newDatasources: Datasource[] = (datasources ?? []).map((ds) => {
+                    const newDsId = crypto.randomUUID();
+                    dsIdMap.set(ds.id, newDsId);
+                    return {
+                        ...ds,
+                        id: newDsId,
+                        createdAt: ds.createdAt || new Date().toISOString(),
+                        subjects: (ds.subjects ?? []).map((sub) => {
+                            const newSubId = crypto.randomUUID();
+                            subIdMap.set(sub.subjectId, newSubId);
+                            return {
+                                ...sub,
+                                subjectId: newSubId,
+                                classes: (sub.classes ?? []).map((cls) => {
+                                    const newClsId = crypto.randomUUID();
+                                    clsIdMap.set(cls.classId, newClsId);
+                                    return { ...cls, classId: newClsId };
+                                }),
+                            };
+                        }),
+                    };
+                });
+
+                const newPlans: Plan[] = (plans ?? [])
+                    .filter((p) => dsIdMap.has(p.datasourceId))
+                    .map((p) => {
+                        const mappedSelectedIds = (p.selectedSubjectIds ?? [])
+                            .map((sId) => subIdMap.get(sId))
+                            .filter((id): id is string => Boolean(id));
+                        const mappedClassBySub: Record<string, string> = {};
+                        for (const [oldSubId, oldClsId] of Object.entries(p.selectedClassBySubjectId ?? {})) {
+                            const newSubId = subIdMap.get(oldSubId);
+                            const newClsId = clsIdMap.get(oldClsId);
+                            if (newSubId && newClsId) {
+                                mappedClassBySub[newSubId] = newClsId;
+                            }
+                        }
+                        return {
+                            ...p,
+                            id: crypto.randomUUID(),
+                            datasourceId: dsIdMap.get(p.datasourceId)!,
+                            selectedSubjectIds: mappedSelectedIds,
+                            selectedClassBySubjectId: mappedClassBySub,
+                            frozenSubjectIds: (p.frozenSubjectIds ?? [])
+                                .map((sId) => subIdMap.get(sId))
+                                .filter((id): id is string => Boolean(id)),
+                            previewOverrides: {},
+                        };
+                    });
+
+                if (newDatasources.length === 0) {
+                    return { importedDatasources: 0, importedPlans: 0 };
+                }
+
+                set((state: AppStore) => ({
+                    datasources: [...newDatasources, ...state.datasources],
+                    plans: [...newPlans, ...state.plans],
+                    activeDatasourceId: newDatasources[0]!.id,
+                    activePlanId: newPlans[0]?.id ?? state.activePlanId,
+                }));
+
+                return {
+                    importedDatasources: newDatasources.length,
+                    importedPlans: newPlans.length,
+                };
             },
 
             addPlan: (planData) => {

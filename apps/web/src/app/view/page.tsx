@@ -1,23 +1,74 @@
-"use client";
+import type { Metadata } from "next";
+import { ViewClient } from "./ViewClient";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+type ViewPageProps = {
+    searchParams?: {
+        n?: string;
+        sks?: string;
+        c?: string;
+        mode?: string;
+        p?: string;
+        ds?: string;
+    };
+};
 
-export default function ViewPageRedirect() {
-    const router = useRouter();
+export function generateMetadata({ searchParams }: ViewPageProps): Metadata {
+    const mode = searchParams?.mode;
+    const planName = searchParams?.n?.trim();
+    const sks = searchParams?.sks?.trim();
+    const courseCount = searchParams?.c?.trim();
+    const planCount = searchParams?.p?.trim();
+    const dsCount = searchParams?.ds?.trim();
 
-    useEffect(() => {
-        router.replace("/");
-    }, [router]);
+    if (mode === "workspace") {
+        const title = planCount
+            ? `Transfer Ruang Kerja (${planCount} Plan) — KRSlab`
+            : "Transfer Ruang Kerja — KRSlab";
+        const description = dsCount && planCount
+            ? `Buka untuk menyalin ruang kerja KRS (${dsCount} sumber data, ${planCount} rencana jadwal) ke perangkat ini.`
+            : "Buka tautan ini untuk menyalin ruang kerja KRS ke perangkat kamu.";
+        return {
+            title,
+            description,
+            openGraph: {
+                title,
+                description,
+                type: "website",
+                siteName: "KRSlab"
+            },
+            twitter: {
+                card: "summary_large_image",
+                title,
+                description
+            }
+        };
+    }
 
-    return (
-        <div className="h-screen flex items-center justify-center bg-background">
-            <div className="flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-                    Redirecting to Schedule Studio...
-                </span>
-            </div>
-        </div>
-    );
+    const title = planName
+        ? (sks ? `${planName} (${sks} SKS) — KRSlab` : `${planName} — KRSlab`)
+        : "Jadwal KRS — KRSlab";
+
+    const description = courseCount
+        ? `${courseCount} mata kuliah · Lihat jadwal lengkap atau salin ke ruang kerjamu di KRSlab.`
+        : "Lihat jadwal kuliah mingguan atau salin ke ruang kerjamu di KRSlab.";
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: "website",
+            siteName: "KRSlab"
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description
+        }
+    };
+}
+
+export default function ViewPage() {
+    return <ViewClient />;
 }

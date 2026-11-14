@@ -39,7 +39,10 @@ import {
     Copy,
     SlidersHorizontal,
     User,
-    BookOpen
+    BookOpen,
+    Share2,
+    Link2,
+    Upload
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
@@ -47,6 +50,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
 import { switchThemeWithTransition, switchLanguageWithTransition } from "@/lib/theme-transition";
 import { buildKrsChecklistText, buildScheduleIcs, getScheduledItems } from "@/lib/export-schedule";
+import { buildPlanShareUrl, buildWorkspaceShareUrl } from "@/lib/share";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -87,6 +91,7 @@ function WorkspaceContent() {
         removeSubjectFromPlan,
         setSelectedClassForSubject,
         importDatasourceAndCreatePlan,
+        importWorkspaceBackup,
         isDataModalOpen,
         setIsDataModalOpen,
         isGenerating,
@@ -1057,6 +1062,111 @@ function WorkspaceContent() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [previewMapping, handleAcceptPreview, handleGenerateOrShuffle, handleCancelPreview]);
 
+    const backupFileInputRef = useRef<HTMLInputElement | null>(null);
+
+    // Handler: Copy Shareable Schedule Link (/view)
+    const handleCopyShareLink = async () => {
+        setIsExportMenuOpen(false);
+        if (!activePlan || !activeDatasource || (activePlan.selectedSubjectIds ?? []).length === 0) {
+            toast.info(t.exportEmpty);
+            return;
+        }
+        try {
+            const url = await buildPlanShareUrl(
+                window.location.origin,
+                activePlan,
+                activeDatasource,
+                previewMapping ?? undefined
+            );
+            await navigator.clipboard.writeText(url);
+            toast.success(
+                language === "id"
+                    ? "Link jadwal disalin! Siap dibagikan ke WhatsApp atau teman."
+                    : "Schedule link copied! Ready to share."
+            );
+            onboarding.triggerAdvancedTip();
+        } catch (err) {
+            console.error("Share link failed", err);
+            toast.error(language === "id" ? "Gagal membuat link jadwal" : "Failed to create share link");
+        }
+    };
+
+    // Handler: Copy Workspace Transfer Link
+    const handleCopyWorkspaceTransferLink = async () => {
+        try {
+            const { url, tooLarge } = await buildWorkspaceShareUrl(
+                window.location.origin,
+                datasources,
+                plans,
+                activePlanId,
+                activeDatasourceId
+            );
+            await navigator.clipboard.writeText(url);
+            if (tooLarge) {
+                toast.warning(
+                    language === "id"
+                        ? "Link tersalin, tapi datamu cukup besar. Untuk ruang kerja besar, gunakan Unduh (.json)."
+                        : "Link copied, but workspace is large. Use Download (.json) for best reliability."
+                );
+            } else {
+                toast.success(
+                    language === "id"
+                        ? "Link transfer ruang kerja disalin! Buka di perangkat lain."
+                        : "Workspace transfer link copied! Open it on another device."
+                );
+            }
+        } catch (err) {
+            console.error("Workspace link failed", err);
+            toast.error(language === "id" ? "Gagal menyalin link transfer" : "Failed to copy transfer link");
+        }
+    };
+
+    // Handler: Download Workspace Backup (.json)
+    const handleDownloadBackupJson = () => {
+        const payload = {
+            v: 1,
+            t: "workspace",
+            datasources,
+            plans,
+            activePlanId,
+            activeDatasourceId
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `krslab-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        toast.success(language === "id" ? "File backup (.json) diunduh!" : "Backup file (.json) downloaded!");
+    };
+
+    // Handler: Restore Workspace Backup (.json)
+    const handleRestoreBackupJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = "";
+        if (!file) return;
+        try {
+            const text = await file.text();
+            const parsed = JSON.parse(text);
+            if (!parsed || !Array.isArray(parsed.datasources) || !Array.isArray(parsed.plans)) {
+                throw new Error("Invalid backup format");
+            }
+            const res = importWorkspaceBackup({
+                datasources: parsed.datasources,
+                plans: parsed.plans
+            });
+            setIsPrefsOpen(false);
+            toast.success(
+                language === "id"
+                    ? `Berhasil memulihkan ${res.importedPlans} rencana & ${res.importedDatasources} sumber data!`
+                    : `Restored ${res.importedPlans} plans & ${res.importedDatasources} sources!`
+            );
+        } catch {
+            toast.error(language === "id" ? "File backup tidak valid" : "Invalid backup file");
+        }
+    };
+
     // Handler: Copy Schedule Image to Clipboard
     const handleCopyImage = async () => {
         const node = document.getElementById("krs-grid-capture");
@@ -1492,7 +1602,7 @@ function WorkspaceContent() {
                         title={t.export}
                         aria-label={t.export}
                     >
-                        <Download className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
+                        <Share2 className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
                         <span className="hidden sm:inline">{t.export}</span>
                         <ChevronDown className={cn("hidden sm:inline w-3 h-3 text-[#8a8a94] transition-transform", isExportMenuOpen && "rotate-180")} />
                     </button>
@@ -2259,30 +2369,53 @@ function WorkspaceContent() {
                         className="w-[280px] max-w-[calc(100vw-16px)] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-3 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left space-y-3"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Account / Cloud Sync */}
-                        <div className="flex items-start gap-2.5 p-2 rounded-lg bg-neutral-50 dark:bg-[#141416] border border-neutral-200/60 dark:border-[#2e2e34]">
-                            <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-[#27272a] flex items-center justify-center shrink-0 mt-0.5 text-[#6e6e77] dark:text-[#a1a1aa]">
-                                <User className="w-3.5 h-3.5" />
+                        {/* Workspace Transfer & Backup */}
+                        <div className="p-2.5 rounded-lg bg-neutral-50 dark:bg-[#141416] border border-neutral-200/60 dark:border-[#2e2e34] space-y-2">
+                            <div className="flex items-start gap-2.5">
+                                <div className="w-7 h-7 rounded-full bg-neutral-200 dark:bg-[#27272a] flex items-center justify-center shrink-0 mt-0.5 text-[#6e6e77] dark:text-[#a1a1aa]">
+                                    <User className="w-3.5 h-3.5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-[12px] font-semibold text-[#141413] dark:text-[#f4f4f6] truncate">
+                                        {t.localWorkspace}
+                                    </div>
+                                    <div className="text-[10.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
+                                        {t.savedOnDevice}
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="text-[12px] font-semibold text-[#141413] dark:text-[#f4f4f6] truncate">
-                                    {t.localWorkspace}
-                                </div>
-                                <div className="text-[10.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate mb-1">
-                                    {t.savedOnDevice}
-                                </div>
+                            <button
+                                type="button"
+                                onClick={handleCopyWorkspaceTransferLink}
+                                className="w-full px-2 py-1.5 rounded-md bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] text-[11px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center justify-center gap-1.5 transition-colors"
+                            >
+                                <Link2 className="w-3 h-3 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                                <span>{language === "id" ? "Salin Link Transfer" : "Copy Transfer Link"}</span>
+                            </button>
+                            <div className="grid grid-cols-2 gap-1.5">
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        toast.info("Cloud sync coming soon!", {
-                                            description: "All your data is safely saved in your browser's local storage."
-                                        });
-                                    }}
-                                    className="text-[11px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline flex items-center gap-1 select-none"
+                                    onClick={handleDownloadBackupJson}
+                                    className="px-2 py-1 rounded-md border border-[#e2e2de] dark:border-[#2e2e34] text-[10.5px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-white dark:hover:bg-[#1c1c1f] flex items-center justify-center gap-1 transition-colors"
                                 >
-                                    <span>{t.signInToSync}</span>
-                                    <span className="text-[9.5px] opacity-75">({t.comingSoonBadge})</span>
+                                    <Download className="w-3 h-3 shrink-0" />
+                                    <span>Backup .json</span>
                                 </button>
+                                <button
+                                    type="button"
+                                    onClick={() => backupFileInputRef.current?.click()}
+                                    className="px-2 py-1 rounded-md border border-[#e2e2de] dark:border-[#2e2e34] text-[10.5px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-white dark:hover:bg-[#1c1c1f] flex items-center justify-center gap-1 transition-colors"
+                                >
+                                    <Upload className="w-3 h-3 shrink-0" />
+                                    <span>{language === "id" ? "Pulihkan" : "Restore"}</span>
+                                </button>
+                                <input
+                                    ref={backupFileInputRef}
+                                    type="file"
+                                    accept=".json,application/json"
+                                    onChange={handleRestoreBackupJson}
+                                    className="hidden"
+                                />
                             </div>
                         </div>
 
@@ -2489,8 +2622,18 @@ function WorkspaceContent() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="px-2.5 pt-1 pb-1.5 font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
-                            {language === "id" ? "ekspor jadwal" : "export schedule"}
+                            {language === "id" ? "bagikan jadwal" : "share schedule"}
                         </div>
+                        <button
+                            type="button"
+                            role="menuitem"
+                            onClick={handleCopyShareLink}
+                            className="w-full min-h-[44px] sm:min-h-0 text-left px-2.5 py-2 rounded-xl text-[12.5px] font-semibold text-[#141413] dark:text-[#f4f4f6] bg-[#f3f3f0]/70 dark:bg-white/[0.06] hover:bg-[#e8e8e4] dark:hover:bg-white/[0.1] transition-colors flex items-center gap-2.5 mb-1"
+                        >
+                            <Link2 className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc] shrink-0" />
+                            <span>{language === "id" ? "Salin Link Jadwal" : "Copy Schedule Link"}</span>
+                        </button>
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] my-1.5" />
                         <button
                             type="button"
                             role="menuitem"
