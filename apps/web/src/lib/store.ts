@@ -273,7 +273,6 @@ export const useAppStore = create<AppStore>()(
                     plans: [newPlan, ...state.plans],
                     activeDatasourceId: dsId,
                     activePlanId: planId,
-                    isCustomCourseModalOpen: true,
                 }));
                 return { datasourceId: dsId, planId };
             },
