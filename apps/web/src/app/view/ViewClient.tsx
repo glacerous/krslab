@@ -1,27 +1,64 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowRight, Copy, FolderDown } from "lucide-react";
+import { ArrowRight, Copy, FolderDown, Moon, SlidersHorizontal, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
 import { toast } from "sonner";
 import { checkClassConflict } from "@krs/engine";
 import { BrandLogo } from "@/components/BrandLogo";
 import { ScheduleGrid } from "@/components/ScheduleGrid";
 import { decodeSharePayload, SharePayload } from "@/lib/share";
 import { useAppStore } from "@/lib/store";
+import { translations } from "@/lib/i18n";
+import { switchThemeWithTransition, switchLanguageWithTransition } from "@/lib/theme-transition";
+import { cn } from "@/lib/utils";
 
 export function ViewClient({ initialPayload }: { initialPayload?: SharePayload | null } = {}) {
-    const router = useRouter();
     const language = useAppStore((s) => s.language);
+    const setLanguage = useAppStore((s) => s.setLanguage);
+    const maxSks = useAppStore((s) => s.maxSks);
     const importSharedPlan = useAppStore((s) => s.importSharedPlan);
     const importWorkspaceBackup = useAppStore((s) => s.importWorkspaceBackup);
+    const { theme, setTheme } = useTheme();
+    const t = translations[language] || translations.en;
 
     const [status, setStatus] = useState<"loading" | "ready" | "invalid">(
         initialPayload === undefined ? "loading" : initialPayload ? "ready" : "invalid"
     );
     const [payload, setPayload] = useState<SharePayload | null>(initialPayload ?? null);
     const [isImporting, setIsImporting] = useState(false);
+    const [mounted, setMounted] = useState(false);
+    const [isPrefsOpen, setIsPrefsOpen] = useState(false);
+    const [prefsCoords, setPrefsCoords] = useState<{ top: number; left: number } | null>(null);
+    const prefsBtnRef = useRef<HTMLButtonElement>(null);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const updatePrefsCoords = useCallback(() => {
+        if (!prefsBtnRef.current) return;
+        const rect = prefsBtnRef.current.getBoundingClientRect();
+        const width = 260;
+        const left = Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8));
+        setPrefsCoords({ top: rect.bottom + 8, left });
+    }, []);
+
+    useEffect(() => {
+        if (!isPrefsOpen) return;
+        updatePrefsCoords();
+        const onKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setIsPrefsOpen(false);
+        };
+        window.addEventListener("resize", updatePrefsCoords);
+        window.addEventListener("keydown", onKeyDown);
+        return () => {
+            window.removeEventListener("resize", updatePrefsCoords);
+            window.removeEventListener("keydown", onKeyDown);
+        };
+    }, [isPrefsOpen, updatePrefsCoords]);
 
     useEffect(() => {
         if (initialPayload !== undefined) return;
@@ -96,10 +133,7 @@ export function ViewClient({ initialPayload }: { initialPayload?: SharePayload |
                 : `"${payload.name}" copied! Opening workspace in a new tab...`
         );
         const targetUrl = `/?from=shared&action=copied&name=${encodeURIComponent(payload.name)}`;
-        const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
-        if (!opened) {
-            router.push(targetUrl);
-        }
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
         setIsImporting(false);
     };
 
@@ -116,10 +150,7 @@ export function ViewClient({ initialPayload }: { initialPayload?: SharePayload |
                 : `Imported ${res.importedPlans} plans & ${res.importedDatasources} sources!`
         );
         const targetUrl = `/?from=shared&action=workspace`;
-        const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
-        if (!opened) {
-            router.push(targetUrl);
-        }
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
         setIsImporting(false);
     };
 
@@ -228,54 +259,173 @@ export function ViewClient({ initialPayload }: { initialPayload?: SharePayload |
 
     return (
         <div className="h-screen flex flex-col bg-[#fafaf9] dark:bg-[#0c0c0e] overflow-hidden">
-            <header className="shrink-0 border-b border-[#e6e6e3] dark:border-[#1e1e24] bg-[#fafaf9]/95 dark:bg-[#141418]/95 backdrop-blur px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                    <Link href="/" className="shrink-0 hover:opacity-80 transition-opacity" title="KRSlab">
+            <header className="h-auto lg:h-14 border-b border-[#e6e6e3] dark:border-[#26262e] bg-[#fafaf9] dark:bg-[#141418] px-3 sm:px-6 py-2 lg:py-0 flex flex-wrap lg:flex-nowrap items-center justify-between gap-x-2 gap-y-2 z-20 shrink-0">
+                {/* 1. Left Group: Brand / Source / Plan */}
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                    <Link href="/" className="shrink-0 hover:opacity-80 transition-opacity mr-0.5 sm:mr-1" title="KRSlab">
                         <BrandLogo height={30} />
                     </Link>
 
-                    <span className="text-[#d4d4d0] dark:text-[#3f3f46] select-none">/</span>
+                    <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm select-none shrink-0">/</span>
 
-                    <div className="min-w-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                            <span className="font-semibold text-sm sm:text-[15px] text-[#141413] dark:text-[#f4f4f6] border-b-[1.5px] border-dashed border-amber-500/80 pb-[1px] truncate">
-                                {payload.name}
-                            </span>
-                            <span className="font-doodle text-[13px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/20 shrink-0 leading-none">
-                                {language === "id" ? "dibagikan" : "shared"}
-                            </span>
-                            <span className="font-mono text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] shrink-0">
-                                {totalSks} sks
-                            </span>
-                        </div>
-                        <p className="text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
-                            {payload.sourceName} · {payload.subjects.length} {language === "id" ? "matkul · hanya lihat (salin untuk edit)" : "courses · read-only (copy to edit)"}
-                        </p>
-                    </div>
+                    <span
+                        className="text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] truncate max-w-[110px] sm:max-w-[180px]"
+                        title={payload.sourceName}
+                    >
+                        {payload.sourceName}
+                    </span>
+
+                    <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm select-none shrink-0">/</span>
+
+                    <span
+                        className="text-[13px] font-semibold text-[#141413] dark:text-[#f4f4f0] border-b-[1.5px] border-dashed border-amber-500/80 pb-[1px] truncate max-w-[140px] sm:max-w-[240px]"
+                        title={payload.name}
+                    >
+                        {payload.name}
+                    </span>
+
+                    <span className="hidden sm:inline-flex font-doodle text-[13px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-500/20 shrink-0 leading-none ml-1">
+                        {language === "id" ? "dibagikan" : "shared"}
+                    </span>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                {/* 2. Right Group: SKS, Create My Own, Copy to Workspace, Preferences */}
+                <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 ml-auto">
+                    <div
+                        className="flex items-baseline gap-0.5 sm:gap-1 select-none"
+                        title={language === "id" ? "Total SKS terpilih" : "Total selected SKS"}
+                    >
+                        <span className="font-mono text-[11.5px] sm:text-[12.5px] tabular-nums text-[#141413] dark:text-[#f4f4f0]">
+                            {totalSks}/{maxSks === 99 ? "∞" : maxSks}
+                        </span>
+                        <span className="font-doodle text-[15px] sm:text-[17px] font-bold text-[#6e6e77] dark:text-[#a1a1aa]">sks</span>
+                    </div>
+
                     <Link
                         href="/?from=shared&action=new"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn-tactile-light inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6]"
+                        className="btn-tactile-light px-2.5 sm:px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all"
                     >
                         <span className="hidden sm:inline">{language === "id" ? "Buat Jadwalku Sendiri" : "Create My Own"}</span>
                         <span className="sm:hidden">{language === "id" ? "Buat" : "Create"}</span>
                         <ArrowRight className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
                     </Link>
+
                     <button
                         type="button"
                         onClick={handleCopyPlanToWorkspace}
                         disabled={isImporting}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] text-[13px] font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                        className="btn-tactile-dark text-white px-3 sm:px-3.5 py-1.5 rounded-lg text-[13px] font-medium flex items-center gap-1.5 transition-all disabled:opacity-50"
                     >
                         <Copy className="w-3.5 h-3.5" />
                         <span>{language === "id" ? "Salin ke Ruang Kerja" : "Copy to Workspace"}</span>
                     </button>
+
+                    <button
+                        ref={prefsBtnRef}
+                        type="button"
+                        onClick={() => {
+                            if (!isPrefsOpen) updatePrefsCoords();
+                            setIsPrefsOpen((prev) => !prev);
+                        }}
+                        className={cn(
+                            "btn-tactile-light p-1.5 sm:p-2 rounded-lg text-[#141413] dark:text-[#f4f4f0] flex items-center justify-center transition-all",
+                            isPrefsOpen && "bg-neutral-200/80 dark:bg-[#2e2e2b]"
+                        )}
+                        title={t.preferences}
+                        aria-label={t.preferences}
+                        aria-expanded={isPrefsOpen}
+                    >
+                        <SlidersHorizontal className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
+                    </button>
                 </div>
             </header>
+
+            {mounted && isPrefsOpen && prefsCoords && createPortal(
+                <div className="fixed inset-0 z-[9998] pointer-events-auto">
+                    <div
+                        className="fixed inset-0 z-[9998] bg-transparent"
+                        onClick={() => setIsPrefsOpen(false)}
+                    />
+                    <div
+                        style={{
+                            position: "fixed",
+                            top: `${prefsCoords.top}px`,
+                            left: `${prefsCoords.left}px`,
+                        }}
+                        className="w-[260px] max-w-[calc(100vw-16px)] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-3 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left space-y-3"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="space-y-1.5">
+                            <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
+                                {t.languageLabel}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#141416] rounded-lg">
+                                <button
+                                    type="button"
+                                    onClick={() => switchLanguageWithTransition("en", language, setLanguage)}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all text-center",
+                                        language === "en"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                    )}
+                                >
+                                    English (EN)
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => switchLanguageWithTransition("id", language, setLanguage)}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all text-center",
+                                        language === "id"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                    )}
+                                >
+                                    Indonesia (ID)
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <div className="text-[10.5px] font-semibold text-[#6e6e77] dark:text-[#a1a1aa] uppercase tracking-wider">
+                                {t.appearanceLabel}
+                            </div>
+                            <div className="grid grid-cols-2 gap-1 p-0.5 bg-neutral-100 dark:bg-[#141416] rounded-lg">
+                                <button
+                                    type="button"
+                                    onClick={(e) => switchThemeWithTransition("light", theme, setTheme, e)}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
+                                        theme !== "dark"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                    )}
+                                >
+                                    <Sun className="w-3 h-3" />
+                                    <span>{t.themeWarmPaper}</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => switchThemeWithTransition("dark", theme, setTheme, e)}
+                                    className={cn(
+                                        "py-1 text-[12px] font-medium rounded-md transition-all flex items-center justify-center gap-1.5",
+                                        theme === "dark"
+                                            ? "bg-white dark:bg-[#27272a] text-[#141413] dark:text-[#f4f4f6] shadow-xs"
+                                            : "text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6]"
+                                    )}
+                                >
+                                    <Moon className="w-3 h-3" />
+                                    <span>{t.themeDarkInk}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
 
             <main className="flex-1 overflow-hidden">
                 <ScheduleGrid
