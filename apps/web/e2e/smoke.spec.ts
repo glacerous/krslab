@@ -28,7 +28,7 @@ test.describe("KRSlab Smoke Test", () => {
         await expect(sourceBtn).toBeVisible({ timeout: 10000 });
         await sourceBtn.click();
 
-        const loadSampleBtn = page.getByRole("button", { name: /load sample|muat sampel/i });
+        const loadSampleBtn = page.getByRole("button", { name: /load sample|muat data contoh/i });
         await expect(loadSampleBtn).toBeVisible({ timeout: 5000 });
         await loadSampleBtn.click();
 
@@ -50,7 +50,7 @@ test.describe("KRSlab Smoke Test", () => {
         await expect(acceptBtn).not.toBeVisible({ timeout: 5000 });
 
         // 6. Export Timetable as PNG
-        const exportBtn = page.locator('button[title*="Export Timetable as PNG"]');
+        const shareMenuBtn = page.getByRole("button", { name: /^(share|bagikan)$/i }); await expect(shareMenuBtn).toBeVisible(); await shareMenuBtn.click(); const exportBtn = page.getByRole("menuitem", { name: /download png|unduh png/i });
         await expect(exportBtn).toBeVisible();
         await exportBtn.click();
 
