@@ -2659,9 +2659,11 @@ function WorkspaceContent() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="inline-flex items-center gap-1.5 hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
+                                title={language === "id" ? "Open source di GitHub (kasih ★)" : "Open source on GitHub (leave a ★)"}
                             >
                                 <GitHubMark />
-                                <span>Open source (MIT)</span>
+                                <span>Open source</span>
+                                <span className="text-amber-500 leading-none" aria-hidden="true">★</span>
                             </a>
                             <a
                                 href="https://x.com/thefuturehold"
@@ -2850,9 +2852,11 @@ function WorkspaceContent() {
                                 rel="noopener noreferrer"
                                 onClick={() => setIsGuideMenuOpen(false)}
                                 className="inline-flex items-center gap-1.5 hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
+                                title={language === "id" ? "Open source di GitHub (kasih ★)" : "Open source on GitHub (leave a ★)"}
                             >
                                 <GitHubMark />
                                 <span>Open source</span>
+                                <span className="text-amber-500 leading-none" aria-hidden="true">★</span>
                             </a>
                             <a
                                 href="https://x.com/thefuturehold"
