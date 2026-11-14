@@ -350,3 +350,90 @@ export async function buildWorkspaceShareUrl(
     const url = `${origin}/view?${params.toString()}#s=${encoded}`;
     return { url, tooLarge: url.length > 12000 };
 }
+
+export async function createShortPlanShareUrl(
+    origin: string,
+    plan: Plan,
+    datasource: Datasource,
+    mappingOverride?: Record<string, string>
+): Promise<{ url: string; isShort: boolean }> {
+    const effectiveMap = mappingOverride ?? plan.selectedClassBySubjectId ?? {};
+    const selectedIds = new Set(plan.selectedSubjectIds ?? []);
+
+    const fullSelectedSubjects: Subject[] = [];
+    const selectedMapping: Record<string, string> = {};
+
+    for (const sub of datasource.subjects) {
+        if (!selectedIds.has(sub.subjectId)) continue;
+        const chosenClassId = effectiveMap[sub.subjectId];
+        const chosenClass = sub.classes.find((c) => c.classId === chosenClassId) ?? sub.classes[0];
+        if (!chosenClass) continue;
+        // Include ALL parallel classes so recipients can drag, swap, and shuffle after copying
+        fullSelectedSubjects.push(sub);
+        selectedMapping[sub.subjectId] = chosenClass.classId;
+    }
+
+    const payload: SharedPlanPayload = {
+        v: 1,
+        t: "plan",
+        name: plan.name,
+        sourceName: datasource.name,
+        subjects: fullSelectedSubjects,
+        selectedClassBySubjectId: selectedMapping
+    };
+
+    try {
+        const res = await fetch("/api/share", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            const data = (await res.json()) as { id?: string };
+            if (data.id) {
+                return { url: `${origin}/v/${data.id}`, isShort: true };
+            }
+        }
+    } catch {
+        // Fall through to hash-based fallback URL
+    }
+
+    const fallbackUrl = await buildPlanShareUrl(origin, plan, datasource, mappingOverride);
+    return { url: fallbackUrl, isShort: false };
+}
+
+export async function createShortWorkspaceShareUrl(
+    origin: string,
+    datasources: Datasource[],
+    plans: Plan[],
+    activePlanId: string | null,
+    activeDatasourceId: string | null
+): Promise<{ url: string; isShort: boolean; tooLarge: boolean }> {
+    const payload: SharedWorkspacePayload = {
+        v: 1,
+        t: "workspace",
+        datasources,
+        plans,
+        activePlanId,
+        activeDatasourceId
+    };
+
+    try {
+        const res = await fetch("/api/share", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            const data = (await res.json()) as { id?: string };
+            if (data.id) {
+                return { url: `${origin}/v/${data.id}`, isShort: true, tooLarge: false };
+            }
+        }
+    } catch {
+        // Fall through to hash-based fallback URL
+    }
+
+    const fallback = await buildWorkspaceShareUrl(origin, datasources, plans, activePlanId, activeDatasourceId);
+    return { url: fallback.url, isShort: false, tooLarge: fallback.tooLarge };
+}

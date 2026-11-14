@@ -50,7 +50,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
 import { switchThemeWithTransition, switchLanguageWithTransition } from "@/lib/theme-transition";
 import { buildKrsChecklistText, buildScheduleIcs, getScheduledItems } from "@/lib/export-schedule";
-import { buildPlanShareUrl, buildWorkspaceShareUrl, copyTextToClipboard } from "@/lib/share";
+import { createShortPlanShareUrl, createShortWorkspaceShareUrl, copyTextToClipboard } from "@/lib/share";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -1090,8 +1090,9 @@ function WorkspaceContent() {
             toast.info(t.exportEmpty);
             return;
         }
+        toast.loading(language === "id" ? "Membuat link jadwal..." : "Creating schedule link...", { id: "share-link" });
         try {
-            const url = await buildPlanShareUrl(
+            const { url } = await createShortPlanShareUrl(
                 window.location.origin,
                 activePlan,
                 activeDatasource,
@@ -1099,25 +1100,28 @@ function WorkspaceContent() {
             );
             const copied = await copyTextToClipboard(url);
             if (!copied) {
+                toast.dismiss("share-link");
                 window.prompt(language === "id" ? "Salin link jadwal ini:" : "Copy this schedule link:", url);
                 return;
             }
             toast.success(
                 language === "id"
                     ? "Link jadwal disalin! Siap dibagikan ke WhatsApp atau teman."
-                    : "Schedule link copied! Ready to share."
+                    : "Schedule link copied! Ready to share.",
+                { id: "share-link" }
             );
             onboarding.triggerAdvancedTip();
         } catch (err) {
             console.error("Share link failed", err);
-            toast.error(language === "id" ? "Gagal membuat link jadwal" : "Failed to create share link");
+            toast.error(language === "id" ? "Gagal membuat link jadwal" : "Failed to create share link", { id: "share-link" });
         }
     };
 
     // Handler: Copy Workspace Transfer Link
     const handleCopyWorkspaceTransferLink = async () => {
+        toast.loading(language === "id" ? "Membuat link transfer..." : "Creating transfer link...", { id: "transfer-link" });
         try {
-            const { url, tooLarge } = await buildWorkspaceShareUrl(
+            const { url, tooLarge } = await createShortWorkspaceShareUrl(
                 window.location.origin,
                 datasources,
                 plans,
@@ -1126,6 +1130,7 @@ function WorkspaceContent() {
             );
             const copied = await copyTextToClipboard(url);
             if (!copied) {
+                toast.dismiss("transfer-link");
                 window.prompt(language === "id" ? "Salin link transfer ini:" : "Copy this transfer link:", url);
                 return;
             }
@@ -1133,18 +1138,20 @@ function WorkspaceContent() {
                 toast.warning(
                     language === "id"
                         ? "Link tersalin, tapi datamu cukup besar. Untuk ruang kerja besar, gunakan Unduh (.json)."
-                        : "Link copied, but workspace is large. Use Download (.json) for best reliability."
+                        : "Link copied, but workspace is large. Use Download (.json) for best reliability.",
+                    { id: "transfer-link" }
                 );
             } else {
                 toast.success(
                     language === "id"
                         ? "Link transfer ruang kerja disalin! Buka di perangkat lain."
-                        : "Workspace transfer link copied! Open it on another device."
+                        : "Workspace transfer link copied! Open it on another device.",
+                    { id: "transfer-link" }
                 );
             }
         } catch (err) {
             console.error("Workspace link failed", err);
-            toast.error(language === "id" ? "Gagal menyalin link transfer" : "Failed to copy transfer link");
+            toast.error(language === "id" ? "Gagal menyalin link transfer" : "Failed to copy transfer link", { id: "transfer-link" });
         }
     };
 

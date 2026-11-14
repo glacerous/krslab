@@ -11,17 +11,20 @@ import { ScheduleGrid } from "@/components/ScheduleGrid";
 import { decodeSharePayload, SharePayload } from "@/lib/share";
 import { useAppStore } from "@/lib/store";
 
-export function ViewClient() {
+export function ViewClient({ initialPayload }: { initialPayload?: SharePayload | null } = {}) {
     const router = useRouter();
     const language = useAppStore((s) => s.language);
     const importSharedPlan = useAppStore((s) => s.importSharedPlan);
     const importWorkspaceBackup = useAppStore((s) => s.importWorkspaceBackup);
 
-    const [status, setStatus] = useState<"loading" | "ready" | "invalid">("loading");
-    const [payload, setPayload] = useState<SharePayload | null>(null);
+    const [status, setStatus] = useState<"loading" | "ready" | "invalid">(
+        initialPayload === undefined ? "loading" : initialPayload ? "ready" : "invalid"
+    );
+    const [payload, setPayload] = useState<SharePayload | null>(initialPayload ?? null);
     const [isImporting, setIsImporting] = useState(false);
 
     useEffect(() => {
+        if (initialPayload !== undefined) return;
         let cancelled = false;
         const hash = window.location.hash;
         const match = hash.match(/s=([^&]+)/);
@@ -41,7 +44,7 @@ export function ViewClient() {
         return () => {
             cancelled = true;
         };
-    }, []);
+    }, [initialPayload]);
 
     const planClasses = useMemo(() => {
         if (!payload || payload.t !== "plan") return [];
