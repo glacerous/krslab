@@ -21,11 +21,30 @@ export interface SharedWorkspacePayload {
 export type SharePayload = SharedPlanPayload | SharedWorkspacePayload;
 
 const DAY_LIST = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+const SEP_SECTION = "\x1e";
+const SEP_ITEM = "\x1f";
+const SEP_FIELD = "\x1d";
+const SEP_SUB = "\x1c";
 
-// Compact tuple format (v2): [2, planName, sourceName, [[code, name, sks, className, lecturers, [[dayIdx|dayStr, start, end, room]]]]]
 type CompactMeetingTuple = [number | string, string, string, string];
 type CompactCourseTuple = [string, string, number, string, string[], CompactMeetingTuple[]];
 type CompactPlanTuple = [2, string, string, CompactCourseTuple[]];
+
+function cleanField(val: string | undefined): string {
+    return (val ?? "").replace(/[\x1c-\x1f]/g, " ").trim();
+}
+
+function packTime(hhmm: string): string {
+    const clean = hhmm.replace(":", "");
+    return /^\d{4}$/.test(clean) ? clean : hhmm;
+}
+
+function unpackTime(packed: string): string {
+    if (/^\d{4}$/.test(packed)) {
+        return `${packed.slice(0, 2)}:${packed.slice(2, 4)}`;
+    }
+    return packed;
+}
 
 function toBase64Url(bytes: Uint8Array): string {
     let binary = "";
@@ -71,7 +90,7 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
             return true;
         }
     } catch {
-        // Fall through to execCommand fallback (e.g. Safari async gesture expiry or HTTP)
+        // Fall through to execCommand fallback
     }
     try {
         const textarea = document.createElement("textarea");
@@ -90,22 +109,25 @@ export async function copyTextToClipboard(text: string): Promise<boolean> {
     }
 }
 
-async function encodeRawData(data: unknown): Promise<string> {
-    const jsonBytes = new TextEncoder().encode(JSON.stringify(data));
+async function encodeBytes(bytes: Uint8Array): Promise<string> {
     if (typeof CompressionStream !== "undefined") {
         try {
-            const raw = await compressStream("deflate-raw", jsonBytes);
+            const raw = await compressStream("deflate-raw", bytes);
             return `d.${toBase64Url(raw)}`;
         } catch {
             try {
-                const gz = await compressStream("gzip", jsonBytes);
+                const gz = await compressStream("gzip", bytes);
                 return `g.${toBase64Url(gz)}`;
             } catch {
                 // Fall through to uncompressed base64url
             }
         }
     }
-    return `u.${toBase64Url(jsonBytes)}`;
+    return `u.${toBase64Url(bytes)}`;
+}
+
+async function encodeRawData(data: unknown): Promise<string> {
+    return encodeBytes(new TextEncoder().encode(JSON.stringify(data)));
 }
 
 export async function encodeSharePayload(payload: SharePayload): Promise<string> {
@@ -152,25 +174,87 @@ function expandCompactPlan(tuple: CompactPlanTuple): SharedPlanPayload {
     };
 }
 
+function expandV3Plan(text: string): SharedPlanPayload | null {
+    const sections = text.split(SEP_SECTION);
+    if (sections[0] !== "3" || sections.length < 4) return null;
+
+    const name = sections[1] || "Jadwal";
+    const sourceName = sections[2] || "Shared";
+    const courseRows = sections[3] ? sections[3].split(SEP_ITEM).filter(Boolean) : [];
+
+    const subjects: Subject[] = [];
+    const selectedClassBySubjectId: Record<string, string> = {};
+
+    courseRows.forEach((row, idx) => {
+        const [code = "", subName = "", sksStr = "0", className = "", meetingsStr = ""] = row.split(SEP_FIELD);
+        const subjectId = `sh-s-${idx}`;
+        const classId = `sh-c-${idx}`;
+        const meetings = meetingsStr
+            .split(SEP_SUB)
+            .filter(Boolean)
+            .map((mToken) => {
+                const dayChar = mToken[0];
+                const dayIdx = Number(dayChar);
+                const day = Number.isInteger(dayIdx) && dayIdx >= 0 && dayIdx < DAY_LIST.length
+                    ? DAY_LIST[dayIdx]!
+                    : "Senin";
+                const start = unpackTime(mToken.slice(1, 5));
+                const end = unpackTime(mToken.slice(5, 9));
+                const room = mToken.slice(9);
+                return { day, start, end, room };
+            });
+
+        subjects.push({
+            subjectId,
+            code,
+            name: subName,
+            sks: Number(sksStr) || 0,
+            classes: [
+                {
+                    classId,
+                    className,
+                    lecturers: [],
+                    meetings
+                }
+            ]
+        });
+        selectedClassBySubjectId[subjectId] = classId;
+    });
+
+    return {
+        v: 1,
+        t: "plan",
+        name,
+        sourceName,
+        subjects,
+        selectedClassBySubjectId
+    };
+}
+
 export async function decodeSharePayload(encoded: string): Promise<SharePayload | null> {
     try {
         const raw = encoded.trim();
-        let jsonStr = "";
+        let text = "";
         if (raw.startsWith("d.")) {
             const bytes = fromBase64Url(raw.slice(2));
             const decompressed = await decompressStream("deflate-raw", bytes);
-            jsonStr = new TextDecoder().decode(decompressed);
+            text = new TextDecoder().decode(decompressed);
         } else if (raw.startsWith("g.")) {
             const bytes = fromBase64Url(raw.slice(2));
             const decompressed = await decompressStream("gzip", bytes);
-            jsonStr = new TextDecoder().decode(decompressed);
+            text = new TextDecoder().decode(decompressed);
         } else if (raw.startsWith("u.")) {
             const bytes = fromBase64Url(raw.slice(2));
-            jsonStr = new TextDecoder().decode(bytes);
+            text = new TextDecoder().decode(bytes);
         } else {
             return null;
         }
-        const parsed = JSON.parse(jsonStr);
+
+        if (text.startsWith(`3${SEP_SECTION}`)) {
+            return expandV3Plan(text);
+        }
+
+        const parsed = JSON.parse(text);
         if (Array.isArray(parsed) && parsed[0] === 2) {
             return expandCompactPlan(parsed as CompactPlanTuple);
         }
@@ -192,7 +276,7 @@ export async function buildPlanShareUrl(
     const effectiveMap = mappingOverride ?? plan.selectedClassBySubjectId ?? {};
     const selectedIds = new Set(plan.selectedSubjectIds ?? []);
 
-    const compactCourses: CompactCourseTuple[] = [];
+    const rows: string[] = [];
     let totalSks = 0;
 
     for (const sub of datasource.subjects) {
@@ -202,25 +286,37 @@ export async function buildPlanShareUrl(
         if (!chosenClass) continue;
 
         totalSks += sub.sks || 0;
-        compactCourses.push([
-            sub.code,
-            sub.name,
-            sub.sks,
-            chosenClass.className,
-            chosenClass.lecturers ?? [],
-            (chosenClass.meetings ?? []).map((m) => {
+        const meetingsStr = (chosenClass.meetings ?? [])
+            .map((m) => {
                 const dayIdx = DAY_LIST.indexOf(m.day);
-                return [dayIdx >= 0 ? dayIdx : m.day, m.start, m.end, m.room];
+                const d = dayIdx >= 0 ? String(dayIdx) : "0";
+                return `${d}${packTime(m.start)}${packTime(m.end)}${cleanField(m.room)}`;
             })
-        ]);
+            .join(SEP_SUB);
+
+        rows.push(
+            [
+                cleanField(sub.code),
+                cleanField(sub.name),
+                String(sub.sks || 0),
+                cleanField(chosenClass.className),
+                meetingsStr
+            ].join(SEP_FIELD)
+        );
     }
 
-    const tuple: CompactPlanTuple = [2, plan.name, datasource.name, compactCourses];
-    const encoded = await encodeRawData(tuple);
+    const packed = [
+        "3",
+        cleanField(plan.name),
+        cleanField(datasource.name),
+        rows.join(SEP_ITEM)
+    ].join(SEP_SECTION);
+
+    const encoded = await encodeBytes(new TextEncoder().encode(packed));
     const params = new URLSearchParams({
         n: plan.name.slice(0, 60),
         sks: String(totalSks),
-        c: String(compactCourses.length)
+        c: String(rows.length)
     });
 
     return `${origin}/view?${params.toString()}#s=${encoded}`;

@@ -34,14 +34,12 @@ export function generateMetadata({ searchParams }: ViewPageProps): Metadata {
                 title,
                 description,
                 type: "website",
-                siteName: "KRSlab",
-                images: [{ url: "/og-image.png", width: 1200, height: 630, alt: title }]
+                siteName: "KRSlab"
             },
             twitter: {
                 card: "summary_large_image",
                 title,
-                description,
-                images: ["/og-image.png"]
+                description
             }
         };
     }
@@ -61,14 +59,12 @@ export function generateMetadata({ searchParams }: ViewPageProps): Metadata {
             title,
             description,
             type: "website",
-            siteName: "KRSlab",
-            images: [{ url: "/og-image.png", width: 1200, height: 630, alt: title }]
+            siteName: "KRSlab"
         },
         twitter: {
             card: "summary_large_image",
             title,
-            description,
-            images: ["/og-image.png"]
+            description
         }
     };
 }
