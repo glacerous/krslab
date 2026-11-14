@@ -2652,28 +2652,28 @@ function WorkspaceContent() {
                             </div>
                         </div>
 
-                        {/* Open Source & Contact Footer */}
-                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2 px-2 flex items-center justify-between text-[11px] text-[#6e6e77] dark:text-[#a1a1aa]">
+                        {/* Open Source & Contact */}
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2.5 grid grid-cols-2 gap-1.5">
                             <a
                                 href="https://github.com/glacerous/krslab"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
-                                title={language === "id" ? "Open source di GitHub (kasih ★)" : "Open source on GitHub (leave a ★)"}
+                                className="group px-2 py-1.5 rounded-lg border border-[#e2e2de] dark:border-[#2e2e34] bg-[#fafaf9] dark:bg-[#141416] hover:bg-neutral-100 dark:hover:bg-white/[0.06] text-[11px] font-medium text-[#141413] dark:text-[#f4f4f6] flex items-center justify-center gap-1.5 transition-colors"
+                                title={language === "id" ? "Kode sumber terbuka (MIT) di GitHub" : "Open source (MIT) on GitHub"}
                             >
-                                <GitHubMark />
-                                <span>Open source</span>
-                                <span className="text-amber-500 leading-none" aria-hidden="true">★</span>
+                                <GitHubMark className="w-3.5 h-3.5 shrink-0 text-[#141413] dark:text-[#f4f4f6]" />
+                                <span>GitHub</span>
+                                <span className="text-[10px] text-[#a1a1aa] group-hover:text-amber-500 transition-colors leading-none" aria-hidden="true">★</span>
                             </a>
                             <a
                                 href="https://x.com/thefuturehold"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
-                                title={language === "id" ? "Laporkan masalah di X" : "Report an issue on X"}
+                                className="px-2 py-1.5 rounded-lg border border-[#e2e2de] dark:border-[#2e2e34] bg-[#fafaf9] dark:bg-[#141416] hover:bg-neutral-100 dark:hover:bg-white/[0.06] text-[11px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] flex items-center justify-center gap-1.5 transition-colors truncate"
+                                title={language === "id" ? "Laporkan bug atau saran di X" : "Report bugs or feedback on X"}
                             >
-                                <XMark className="w-2.5 h-2.5 shrink-0" />
-                                <span>@thefuturehold</span>
+                                <XMark className="w-3 h-3 shrink-0" />
+                                <span className="truncate">@thefuturehold</span>
                             </a>
                         </div>
                     </div>
