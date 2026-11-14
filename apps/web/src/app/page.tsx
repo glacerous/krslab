@@ -28,6 +28,7 @@ import {
     AlertCircle,
     Info,
     Sun,
+    Star,
     Moon,
     Compass,
     Video,
@@ -2658,12 +2659,16 @@ function WorkspaceContent() {
                                 href="https://github.com/glacerous/krslab"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="group px-2 py-1.5 rounded-lg border border-[#e2e2de] dark:border-[#2e2e34] bg-[#fafaf9] dark:bg-[#141416] hover:bg-neutral-100 dark:hover:bg-white/[0.06] text-[11px] font-medium text-[#141413] dark:text-[#f4f4f6] flex items-center justify-center gap-1.5 transition-colors"
+                                className="group px-2 py-1.5 rounded-lg border border-[#e2e2de] dark:border-[#2e2e34] bg-[#fafaf9] dark:bg-[#141416] hover:border-amber-300/80 dark:hover:border-amber-500/40 hover:bg-amber-50/70 dark:hover:bg-amber-500/10 text-[11px] font-medium text-[#141413] dark:text-[#f4f4f6] flex items-center justify-center gap-1.5 transition-all"
                                 title={language === "id" ? "Kode sumber terbuka (MIT) di GitHub" : "Open source (MIT) on GitHub"}
                             >
                                 <GitHubMark className="w-3.5 h-3.5 shrink-0 text-[#141413] dark:text-[#f4f4f6]" />
                                 <span>GitHub</span>
-                                <span className="text-[10px] text-[#a1a1aa] group-hover:text-amber-500 transition-colors leading-none" aria-hidden="true">★</span>
+                                <span className="relative inline-flex items-center justify-center">
+                                    <Star className="w-3.5 h-3.5 text-[#a1a1aa] group-hover:text-amber-500 group-hover:fill-amber-400 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-200 ease-out" />
+                                    <span className="pointer-events-none absolute -top-1 -right-1 w-1 h-1 rounded-full bg-amber-400 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 delay-75" aria-hidden="true" />
+                                    <span className="pointer-events-none absolute -bottom-0.5 -left-1 w-1 h-1 rounded-full bg-amber-300 opacity-0 scale-0 group-hover:opacity-100 group-hover:scale-100 transition-all duration-200 delay-100" aria-hidden="true" />
+                                </span>
                             </a>
                             <a
                                 href="https://x.com/thefuturehold"

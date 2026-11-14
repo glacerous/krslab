@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Star } from "lucide-react";
 import { useAppStore, AppStore } from "@/lib/store";
 import { CHANGELOG } from "@/lib/changelog";
 import { getTranslation } from "@/lib/i18n";
@@ -138,10 +139,10 @@ export function ChangelogView() {
                             href="https://github.com/glacerous/krslab"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-medium text-[#141413] dark:text-[#f4f4f6] hover:underline underline-offset-4 inline-flex items-center gap-1"
+                            className="group font-medium text-[#141413] dark:text-[#f4f4f6] hover:underline underline-offset-4 inline-flex items-center gap-1.5"
                         >
                             <span>GitHub</span>
-                            <span className="text-amber-500 leading-none" aria-hidden="true">★</span>
+                            <Star className="w-3.5 h-3.5 text-[#a1a1aa] group-hover:text-amber-500 group-hover:fill-amber-400 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-200 ease-out" />
                         </a>
                         <a
                             href="https://x.com/thefuturehold"
