@@ -222,9 +222,9 @@ export function WelcomeScreen({ isOpen, onContinue, onWatchIntro }: WelcomeScree
                         <button
                             type="button"
                             onClick={onWatchIntro}
-                            className="group btn-tactile-light w-full flex items-center gap-4 p-2.5 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 text-left cursor-pointer"
+                            className="group btn-tactile-light w-full flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 p-2.5 rounded-xl transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 text-left cursor-pointer"
                         >
-                            <div className="relative w-40 sm:w-[196px] aspect-video rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] bg-[#f9f9f8] dark:bg-[#141416] shrink-0">
+                            <div className="relative w-full sm:w-[196px] aspect-video rounded-lg overflow-hidden border border-[#e6e6e3] dark:border-[#2e2e34] bg-[#f9f9f8] dark:bg-[#141416] shrink-0">
                                 {disableAutoPreview ? (
                                     <img
                                         src={introVideo.poster}

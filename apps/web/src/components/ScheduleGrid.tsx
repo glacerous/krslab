@@ -1227,7 +1227,8 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                     onPointerCancel={handlePointerCancel}
                                                     className={cn(
                                                         // Clean solid white card, flowing naturally from top
-                                                        "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none touch-none overflow-hidden",
+                                                        "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none overflow-hidden",
+                                                        isFocused ? "touch-none" : "lg:touch-none",
                                                         "bg-white dark:bg-[#202027] dark:hover:bg-[#26262f] border border-[#dcdcd6] dark:border-[#343440] border-b-[2px] border-b-[#c6c6be] dark:border-b-[#464656] shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.07)] hover:border-[#b8b8b0] dark:hover:border-[#464656]",
                                                         layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
                                                         isFocused && "border-[#141413] dark:border-[#f4f4f6] ring-1 ring-[#141413] dark:ring-[#f4f4f6] shadow-md -translate-y-[1px] z-30",

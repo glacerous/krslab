@@ -38,7 +38,8 @@ import {
     Pencil,
     Copy,
     SlidersHorizontal,
-    User
+    User,
+    BookOpen
 } from "lucide-react";
 import { createPortal } from "react-dom";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
@@ -191,6 +192,8 @@ function WorkspaceContent() {
             setIsSourceMenuOpen(true);
             setIsPlanMenuOpen(false);
             setIsPrefsOpen(false);
+            setIsGuideMenuOpen(false);
+            setIsExportMenuOpen(false);
         } else {
             setIsSourceMenuOpen(false);
         }
@@ -202,6 +205,8 @@ function WorkspaceContent() {
             setIsPlanMenuOpen(true);
             setIsSourceMenuOpen(false);
             setIsPrefsOpen(false);
+            setIsGuideMenuOpen(false);
+            setIsExportMenuOpen(false);
             setConfirmDeletePlanId(null);
             setEditingPlanIdInMenu(null);
         } else {
@@ -216,6 +221,7 @@ function WorkspaceContent() {
             setIsSourceMenuOpen(false);
             setIsPlanMenuOpen(false);
             setIsGuideMenuOpen(false);
+            setIsExportMenuOpen(false);
         } else {
             setIsPrefsOpen(false);
         }
@@ -300,6 +306,16 @@ function WorkspaceContent() {
             window.removeEventListener("scroll", updateGuideMenuCoords, true);
         };
     }, [isGuideMenuOpen, updateGuideMenuCoords]);
+
+    useEffect(() => {
+        if (!isExportMenuOpen) return;
+        window.addEventListener("resize", updateExportMenuCoords);
+        window.addEventListener("scroll", updateExportMenuCoords, true);
+        return () => {
+            window.removeEventListener("resize", updateExportMenuCoords);
+            window.removeEventListener("scroll", updateExportMenuCoords, true);
+        };
+    }, [isExportMenuOpen, updateExportMenuCoords]);
 
     const [activeTab, setActiveTab] = useState<"selected" | "catalog">("selected");
     const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
@@ -1213,11 +1229,13 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 1. TOP WORKSPACE HEADER & TOOLBAR                         */}
             {/* ========================================================= */}
-            <header className="h-14 border-b border-[#e6e6e3] dark:border-[#26262e] bg-white/90 dark:bg-[#141418] backdrop-blur-md px-4 sm:px-6 flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
+            <header className="min-h-14 py-2 lg:py-0 border-b border-[#e6e6e3] dark:border-[#26262e] bg-white/90 dark:bg-[#141418] backdrop-blur-md px-3 sm:px-6 flex flex-wrap lg:flex-nowrap items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] gap-x-2 sm:gap-x-4 gap-y-2 shrink-0 relative z-50 sticky top-0">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
-                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 max-w-full lg:justify-self-start">
+                <div className="order-1 flex items-center gap-1 sm:gap-2.5 min-w-0 flex-1 lg:flex-none max-w-full lg:justify-self-start">
                     {/* Custom Brand Logo with Timetable Mark & Doodle lab */}
-                    <BrandLogo height={32} />
+                    <div className="shrink-0">
+                        <BrandLogo height={30} />
+                    </div>
 
                     <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm shrink-0 font-light">/</span>
 
@@ -1229,12 +1247,12 @@ function WorkspaceContent() {
                             type="button"
                             onClick={handleToggleSourceMenu}
                             className={cn(
-                                "px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all duration-200 select-none max-w-full",
+                                "px-1.5 sm:px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[12.5px] sm:text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1 sm:gap-1.5 transition-all duration-200 select-none max-w-full",
                                 isSourcePulsing && "ring-2 ring-amber-400/80 scale-[1.03] bg-amber-50/70 dark:bg-amber-950/40"
                             )}
                             title="Click to switch, edit, copy, or import schedule sources"
                         >
-                            <span className="max-w-[120px] xl:max-w-[180px] truncate">{activeDatasource.name}</span>
+                            <span className="max-w-[78px] sm:max-w-[130px] xl:max-w-[180px] truncate">{activeDatasource.name}</span>
                             <ChevronDown className={cn("w-3 h-3 text-[#a1a1aa] shrink-0 transition-transform duration-150", isSourceMenuOpen && "rotate-180")} />
                         </button>
                     </div>
@@ -1262,7 +1280,7 @@ function WorkspaceContent() {
                                             setIsRenamingTopBar(false);
                                         }
                                     }}
-                                    className="px-2 py-0.5 text-[13.5px] font-semibold text-[#141413] dark:text-[#f4f4f0] bg-white dark:bg-[#20201e] border border-[#141413] dark:border-[#f4f4f0] rounded-md outline-none max-w-[150px] shadow-xs"
+                                    className="px-2 py-0.5 text-[12.5px] sm:text-[13.5px] font-semibold text-[#141413] dark:text-[#f4f4f0] bg-white dark:bg-[#20201e] border border-[#141413] dark:border-[#f4f4f0] rounded-md outline-none max-w-[110px] sm:max-w-[150px] shadow-xs"
                                     autoFocus
                                 />
                             </form>
@@ -1279,12 +1297,12 @@ function WorkspaceContent() {
                                     setIsRenamingTopBar(true);
                                 }}
                                 className={cn(
-                                    "px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all duration-200 select-none group",
+                                    "px-1.5 sm:px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[12.5px] sm:text-[13.5px] text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1 sm:gap-1.5 transition-all duration-200 select-none group max-w-full",
                                     isPlanPulsing && "ring-2 ring-amber-400/80 scale-[1.03] bg-amber-50/70 dark:bg-amber-950/40"
                                 )}
                                 title="Click to switch plans, duplicate, or manage (double click to rename)"
                             >
-                                <span className="nexvyn-dash font-semibold max-w-[110px] xl:max-w-[160px] truncate">
+                                <span className="nexvyn-dash font-semibold max-w-[74px] sm:max-w-[120px] xl:max-w-[160px] truncate">
                                     {activePlan.name}
                                 </span>
                                 <ChevronDown className={cn("w-3 h-3 text-[#a1a1aa] shrink-0 transition-transform duration-150", isPlanMenuOpen && "rotate-180")} />
@@ -1294,7 +1312,7 @@ function WorkspaceContent() {
                 </div>
 
                 {/* 2. Center Group: [Rules 0] | [Auto-Schedule] ↖ psst */}
-                <div id="tour-solver-bar" className="flex items-center gap-2.5 shrink-0 lg:justify-self-center">
+                <div id="tour-solver-bar" className="order-3 lg:order-2 w-full lg:w-auto flex items-center justify-center gap-2 sm:gap-2.5 shrink-0 lg:justify-self-center pt-1.5 lg:pt-0 border-t lg:border-t-0 border-[#e6e6e3]/70 dark:border-[#26262e]/70">
                     {/* Rules Button */}
                     <button
                         id="tour-rules-btn"
@@ -1356,7 +1374,7 @@ function WorkspaceContent() {
                 </div>
 
                 {/* 3. Right Group: Compact Tutorial Pill, SKS Status, Export & Preferences */}
-                <div className="flex items-center gap-2.5 shrink-0 lg:justify-self-end">
+                <div className="order-2 lg:order-3 flex items-center gap-1.5 sm:gap-2.5 shrink-0 lg:justify-self-end">
                     {/* Tutorial / Help Menu Button */}
                     <button
                         ref={guideBtnRef}
@@ -1366,13 +1384,15 @@ function WorkspaceContent() {
                         aria-haspopup="menu"
                         aria-expanded={isGuideMenuOpen}
                         className={cn(
-                            "relative font-doodle text-[17.5px] font-bold text-[#5b82a6] dark:text-[#7da2c4] hover:text-[#141413] dark:hover:text-[#f4f4f0] px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 dark:hover:bg-[#20201e] transition-colors flex items-center gap-1 shrink-0 select-none",
+                            "relative font-doodle text-[16px] sm:text-[17.5px] font-bold text-[#5b82a6] dark:text-[#7da2c4] hover:text-[#141413] dark:hover:text-[#f4f4f0] px-1.5 sm:px-2.5 py-1 rounded-lg hover:bg-neutral-100/80 dark:hover:bg-[#20201e] transition-colors flex items-center gap-1 shrink-0 select-none",
                             isGuideMenuOpen && "bg-neutral-100/90 dark:bg-[#20201e]"
                         )}
                         title={t.helpSection}
+                        aria-label={t.tutorial}
                     >
-                        <span>↻ {t.tutorial}</span>
-                        <ChevronDown className="w-3 h-3 opacity-70" />
+                        <span>↻</span>
+                        <span className="hidden sm:inline">{t.tutorial}</span>
+                        <ChevronDown className="hidden sm:inline w-3 h-3 opacity-70" />
                         {hasUnseenChangelog && (
                             <span
                                 aria-hidden="true"
@@ -1381,7 +1401,7 @@ function WorkspaceContent() {
                         )}
                     </button>
 
-                    <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-xs select-none">·</span>
+                    <span className="hidden sm:inline text-[#d8d8d4] dark:text-[#3e3e3a] text-xs select-none">·</span>
 
                     {/* Status Dot + SKS Count with lowercase sks */}
                     <div
@@ -1392,7 +1412,7 @@ function WorkspaceContent() {
                             }
                         }}
                         className={cn(
-                            "flex items-center gap-1.5 text-[12.5px] font-mono select-none cursor-pointer",
+                            "flex items-center gap-1 sm:gap-1.5 text-[11.5px] sm:text-[12.5px] font-mono select-none cursor-pointer",
                             conflictCount > 0 || (maxSks !== 99 && totalSks > maxSks && !allowOverload)
                                 ? "text-rose-500 font-semibold"
                                 : "text-[#6e6e77] dark:text-[#a1a1aa]"
@@ -1402,14 +1422,14 @@ function WorkspaceContent() {
                         {(conflictCount > 0 || (maxSks !== 99 && totalSks > maxSks && !allowOverload)) && (
                             <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-rose-500 animate-pulse" />
                         )}
-                        <div className="flex items-baseline gap-1">
-                            <span className="font-mono text-[12.5px] tabular-nums text-[#141413] dark:text-[#f4f4f0]">
-                                {totalSks} / {maxSks === 99 ? "∞" : maxSks}
+                        <div className="flex items-baseline gap-0.5 sm:gap-1">
+                            <span className="font-mono text-[11.5px] sm:text-[12.5px] tabular-nums text-[#141413] dark:text-[#f4f4f0]">
+                                {totalSks}/{maxSks === 99 ? "∞" : maxSks}
                             </span>
-                            <span className="font-doodle text-[17px] font-bold text-[#6e6e77] dark:text-[#a1a1aa]">sks</span>
+                            <span className="font-doodle text-[15px] sm:text-[17px] font-bold text-[#6e6e77] dark:text-[#a1a1aa]">sks</span>
                         </div>
                         {maxSks !== 99 && totalSks > maxSks && (
-                            <span className="text-[10px] text-amber-500 font-sans">
+                            <span className="hidden sm:inline text-[10px] text-amber-500 font-sans">
                                 {allowOverload ? `(${t.overload})` : `(${t.exceeded})`}
                             </span>
                         )}
@@ -1423,14 +1443,15 @@ function WorkspaceContent() {
                         aria-haspopup="menu"
                         aria-expanded={isExportMenuOpen}
                         className={cn(
-                            "btn-tactile-light px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all",
+                            "btn-tactile-light px-2 sm:px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1 sm:gap-1.5 transition-all",
                             isExportMenuOpen && "bg-neutral-200/80 dark:bg-[#2e2e2b]"
                         )}
                         title={t.export}
+                        aria-label={t.export}
                     >
                         <Download className="w-3.5 h-3.5 text-[#6e6e77] dark:text-[#a1a1aa]" />
                         <span className="hidden sm:inline">{t.export}</span>
-                        <ChevronDown className={cn("w-3 h-3 text-[#8a8a94] transition-transform", isExportMenuOpen && "rotate-180")} />
+                        <ChevronDown className={cn("hidden sm:inline w-3 h-3 text-[#8a8a94] transition-transform", isExportMenuOpen && "rotate-180")} />
                     </button>
 
                     {/* Preferences Button */}
@@ -1439,7 +1460,7 @@ function WorkspaceContent() {
                         type="button"
                         onClick={handleTogglePrefs}
                         className={cn(
-                            "btn-tactile-light p-2 rounded-lg text-[#141413] dark:text-[#f4f4f0] flex items-center justify-center transition-all",
+                            "btn-tactile-light p-1.5 sm:p-2 rounded-lg text-[#141413] dark:text-[#f4f4f0] flex items-center justify-center transition-all",
                             isPrefsOpen && "bg-neutral-200/80 dark:bg-[#2e2e2b]"
                         )}
                         title={t.preferences}
@@ -1456,7 +1477,7 @@ function WorkspaceContent() {
             {/* 3. SOLVER DIAGNOSTIC BANNER (If 0 solutions found)         */}
             {/* ========================================================= */}
             {solverDiagnostics && (
-                <div className="p-3 bg-rose-50 border-b border-rose-200 flex items-center justify-between px-6 text-xs text-rose-800 animate-in slide-in-from-top duration-200">
+                <div className="px-3 sm:px-6 py-2.5 bg-rose-50 border-b border-rose-200 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 text-xs text-rose-800 animate-in slide-in-from-top duration-200">
                     <div className="flex items-center gap-2 flex-1 min-w-0">
                         <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
                         <span className="font-semibold">
@@ -1606,62 +1627,64 @@ function WorkspaceContent() {
 
                 {/* Floating Preview Confirmation Bar */}
                 {previewMapping !== null && (
-                    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-white/95 dark:bg-[#1c1c1f]/95 backdrop-blur-md border border-[#d8d8d4] dark:border-[#2e2e34] shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl px-4 py-2.5 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
-                        <span className="font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] pr-1 select-none">
+                    <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 max-w-[calc(100vw-24px)] w-max bg-white/95 dark:bg-[#1c1c1f]/95 backdrop-blur-md border border-[#d8d8d4] dark:border-[#2e2e34] shadow-[0_12px_32px_rgba(0,0,0,0.12)] rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 flex flex-wrap items-center justify-center gap-2 sm:gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-auto">
+                        <span className="hidden sm:inline font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] pr-1 select-none">
                             {t.previewingSchedule}
                         </span>
 
                         {/* [ ✓ Accept ↵ ] */}
                         <button
                             onClick={handleAcceptPreview}
-                            className="btn-tactile-dark px-3.5 py-1.5 rounded-xl text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 border border-emerald-700 shadow-sm flex items-center gap-1.5 transition-all select-none cursor-pointer"
+                            className="btn-tactile-dark px-3 sm:px-3.5 py-1.5 rounded-xl text-[12.5px] sm:text-[13px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 border border-emerald-700 shadow-sm flex items-center gap-1.5 transition-all select-none cursor-pointer"
                             title="Accept schedule candidate (Enter)"
                         >
                             <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                             <span>{t.accept}</span>
-                            <span className="text-[10px] font-mono opacity-80 bg-emerald-700/60 px-1 py-0.2 rounded ml-0.5">↵</span>
+                            <span className="hidden sm:inline text-[10px] font-mono opacity-80 bg-emerald-700/60 px-1 py-0.2 rounded ml-0.5">↵</span>
                         </button>
 
                         {/* [ ↻ Shuffle Space ] */}
                         <button
                             onClick={handleGenerateOrShuffle}
                             disabled={isGenerating}
-                            className="btn-tactile-light px-3.5 py-1.5 rounded-xl text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] dark:bg-[#27272a] dark:border-[#383840] flex items-center gap-1.5 transition-all select-none shadow-2xs cursor-pointer"
+                            className="btn-tactile-light px-3 sm:px-3.5 py-1.5 rounded-xl text-[12.5px] sm:text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] dark:bg-[#27272a] dark:border-[#383840] flex items-center gap-1.5 transition-all select-none shadow-2xs cursor-pointer"
                             title="Shuffle candidate (Space)"
                         >
                             <RotateCw className={cn("w-3.5 h-3.5 text-[#5b82a6] dark:text-[#7dd3fc]", isGenerating && "animate-spin")} />
                             <span>{t.shuffle}</span>
-                            <span className="text-[10px] font-mono text-[#6e6e77] dark:text-[#a1a1aa] bg-neutral-200/60 dark:bg-[#383840] px-1.5 py-0.2 rounded ml-0.5">Space</span>
+                            <span className="hidden sm:inline text-[10px] font-mono text-[#6e6e77] dark:text-[#a1a1aa] bg-neutral-200/60 dark:bg-[#383840] px-1.5 py-0.2 rounded ml-0.5">Space</span>
                         </button>
 
                         {/* [ ✕ Cancel Esc ] */}
                         <button
                             onClick={handleCancelPreview}
-                            className="px-3 py-1.5 rounded-xl text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-1 select-none cursor-pointer"
+                            className="px-2.5 sm:px-3 py-1.5 rounded-xl text-[12.5px] sm:text-[13px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors flex items-center gap-1 select-none cursor-pointer"
                             title="Discard preview (Esc)"
                             aria-label="Discard preview (Esc)"
                         >
                             <X className="w-3.5 h-3.5" />
                             <span>{t.cancel}</span>
-                            <span className="text-[10px] font-mono text-[#a1a1aa] ml-0.5">Esc</span>
+                            <span className="hidden sm:inline text-[10px] font-mono text-[#a1a1aa] ml-0.5">Esc</span>
                         </button>
                     </div>
                 )}
 
                 {/* Mobile/Tablet (< lg) Floating Pill Button to toggle Courses Drawer */}
-                <div className="lg:hidden fixed bottom-5 left-5 z-40">
-                    <button
-                        onClick={() => setIsMobileCoursesOpen(true)}
-                        className="tactile-btn px-4 py-2.5 rounded-full bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] text-[13px] font-medium shadow-xl flex items-center gap-2 hover:bg-[#282826] active:scale-95 transition-all border border-neutral-700 dark:border-neutral-300 select-none"
-                        title="Open Course Catalog & Selected Sections"
-                        aria-label="Open Course Catalog and Selected Sections"
-                    >
-                        <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                        <span>Courses ({activePlan.selectedSubjectIds.length})</span>
-                        <span className="text-[#a1a1aa]">·</span>
-                        <span className="text-amber-300 dark:text-amber-600 font-semibold">+ Add</span>
-                    </button>
-                </div>
+                {previewMapping === null && (
+                    <div className="lg:hidden fixed bottom-5 left-4 sm:left-5 z-40">
+                        <button
+                            onClick={() => setIsMobileCoursesOpen(true)}
+                            className="tactile-btn px-4 py-2.5 rounded-full bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] text-[13px] font-medium shadow-xl flex items-center gap-2 hover:bg-[#282826] active:scale-95 transition-all border border-neutral-700 dark:border-neutral-300 select-none"
+                            title="Open Course Catalog & Selected Sections"
+                            aria-label="Open Course Catalog and Selected Sections"
+                        >
+                            <BookOpen className="w-3.5 h-3.5 text-amber-300 dark:text-amber-600 shrink-0" />
+                            <span>{language === "id" ? `Matkul (${activePlan.selectedSubjectIds.length})` : `Courses (${activePlan.selectedSubjectIds.length})`}</span>
+                            <span className="text-[#a1a1aa]">·</span>
+                            <span className="text-amber-300 dark:text-amber-600 font-semibold">{language === "id" ? "+ Tambah" : "+ Add"}</span>
+                        </button>
+                    </div>
+                )}
 
                 {/* Mobile/Tablet (< lg) Slide-Over Course Drawer */}
                 {isMobileCoursesOpen && (
@@ -1789,7 +1812,7 @@ function WorkspaceContent() {
                             top: `${sourceMenuCoords.top}px`,
                             left: `${sourceMenuCoords.left}px`,
                         }}
-                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        className="w-[300px] sm:w-[340px] max-w-[calc(100vw-16px)] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
@@ -1959,7 +1982,7 @@ function WorkspaceContent() {
                             top: `${planMenuCoords.top}px`,
                             left: `${planMenuCoords.left}px`,
                         }}
-                        className="w-[300px] sm:w-[340px] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
+                        className="w-[300px] sm:w-[340px] max-w-[calc(100vw-16px)] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-1.5 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="px-2.5 py-1 font-doodle text-[18px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none flex items-center justify-between">
@@ -2188,7 +2211,7 @@ function WorkspaceContent() {
                             top: `${prefsCoords.top}px`,
                             left: `${prefsCoords.left}px`,
                         }}
-                        className="w-[280px] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-3 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left space-y-3"
+                        className="w-[280px] max-w-[calc(100vw-16px)] bg-white dark:bg-[#1c1c1f] border border-[#e2e2de] dark:border-[#2e2e34] rounded-xl shadow-2xl p-3 z-[9999] animate-in fade-in zoom-in-95 duration-100 flex flex-col text-left space-y-3"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Account / Cloud Sync */}
@@ -2417,7 +2440,7 @@ function WorkspaceContent() {
                             top: `${exportMenuCoords.top}px`,
                             right: `${exportMenuCoords.right}px`,
                         }}
-                        className="fixed w-[240px] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150 z-[110]"
+                        className="fixed w-[240px] max-w-[calc(100vw-16px)] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150 z-[110]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="px-2.5 pt-1 pb-1.5 font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">
@@ -2478,7 +2501,7 @@ function WorkspaceContent() {
                         role="menu"
                         aria-label={t.helpSection}
                         style={{ top: guideMenuCoords.top, left: guideMenuCoords.left }}
-                        className="fixed w-[264px] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150 z-[110]"
+                        className="fixed w-[264px] max-w-[calc(100vw-16px)] bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-xl p-2 animate-in fade-in zoom-in-95 duration-150 z-[110]"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="px-2.5 pt-1 pb-1.5 font-doodle text-[16px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] select-none">

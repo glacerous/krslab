@@ -720,7 +720,7 @@ export function InteractiveTour({
                     left: `${popoverCoords.left}px`,
                     zIndex: 10002
                 }}
-                className="w-[315px] max-w-[315px] bg-[#fcfcfa] dark:bg-[#222228] rounded-2xl border border-[#d8d8d4] dark:border-[#3f3f4a] border-b-[3px] border-b-[#c2c2bc] dark:border-b-[#3f3f4a] shadow-[0_16px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08)] p-5 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
+                className="w-[315px] max-w-[calc(100vw-24px)] bg-[#fcfcfa] dark:bg-[#222228] rounded-2xl border border-[#d8d8d4] dark:border-[#3f3f4a] border-b-[3px] border-b-[#c2c2bc] dark:border-b-[#3f3f4a] shadow-[0_16px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_24px_60px_rgba(0,0,0,0.85),0_0_0_1px_rgba(255,255,255,0.08)] p-5 pointer-events-auto animate-in fade-in zoom-in-95 duration-150 text-left select-none"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header row: doodle label + close */}
