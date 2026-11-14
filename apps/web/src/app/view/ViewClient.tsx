@@ -236,7 +236,7 @@ export function ViewClient() {
                             </span>
                         </div>
                         <p className="text-[11.5px] text-[#6e6e77] dark:text-[#a1a1aa] truncate">
-                            {payload.sourceName} · {payload.subjects.length} {language === "id" ? "matkul · hanya lihat — salin untuk edit" : "courses · read-only — copy to edit"}
+                            {payload.sourceName} · {payload.subjects.length} {language === "id" ? "matkul · hanya lihat (salin untuk edit)" : "courses · read-only (copy to edit)"}
                         </p>
                     </div>
                 </div>

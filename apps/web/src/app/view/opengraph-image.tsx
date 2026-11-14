@@ -25,43 +25,40 @@ export default function OpenGraphImage() {
                     style={{
                         position: "relative",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
                         width: "560px",
                         height: "200px"
                     }}
                 >
-                    {/* Exact KRSlab wordmark */}
-                    <div
+                    {/* Exact 4x coordinates matching BrandLogo.tsx (viewBox 10 4 140 50) */}
+                    <span
                         style={{
-                            display: "flex",
-                            alignItems: "baseline",
+                            position: "absolute",
+                            left: "16px",
+                            top: "40px",
+                            fontSize: "108px",
+                            fontWeight: 700,
+                            letterSpacing: "-5px",
                             color: "#141413",
                             lineHeight: 1
                         }}
                     >
-                        <span
-                            style={{
-                                fontSize: "112px",
-                                fontWeight: 800,
-                                letterSpacing: "-5px"
-                            }}
-                        >
-                            KRS
-                        </span>
-                        <span
-                            style={{
-                                fontSize: "108px",
-                                fontWeight: 500,
-                                letterSpacing: "-3px",
-                                marginLeft: "4px"
-                            }}
-                        >
-                            lab
-                        </span>
-                    </div>
+                        KRS
+                    </span>
+                    <span
+                        style={{
+                            position: "absolute",
+                            left: "264px",
+                            top: "44px",
+                            fontSize: "104px",
+                            fontWeight: 400,
+                            letterSpacing: "-3px",
+                            color: "#141413",
+                            lineHeight: 1
+                        }}
+                    >
+                        lab
+                    </span>
 
-                    {/* Exact hand-drawn paths from BrandLogo */}
                     <svg
                         width="560"
                         height="200"

@@ -22,8 +22,8 @@ export function generateMetadata({ searchParams }: ViewPageProps): Metadata {
 
     if (mode === "workspace") {
         const title = planCount
-            ? `Transfer Ruang Kerja (${planCount} Plan) — KRSlab`
-            : "Transfer Ruang Kerja — KRSlab";
+            ? `Transfer Ruang Kerja (${planCount} Plan) | KRSlab`
+            : "Transfer Ruang Kerja | KRSlab";
         const description = dsCount && planCount
             ? `Buka untuk menyalin ruang kerja KRS (${dsCount} sumber data, ${planCount} rencana jadwal) ke perangkat ini.`
             : "Buka tautan ini untuk menyalin ruang kerja KRS ke perangkat kamu.";
@@ -45,8 +45,8 @@ export function generateMetadata({ searchParams }: ViewPageProps): Metadata {
     }
 
     const title = planName
-        ? (sks ? `${planName} (${sks} SKS) — KRSlab` : `${planName} — KRSlab`)
-        : "Jadwal KRS — KRSlab";
+        ? (sks ? `${planName} (${sks} SKS) | KRSlab` : `${planName} | KRSlab`)
+        : "Jadwal KRS | KRSlab";
 
     const description = courseCount
         ? `${courseCount} mata kuliah · Lihat jadwal lengkap atau salin ke ruang kerjamu di KRSlab.`

@@ -186,9 +186,10 @@ function expandV3Plan(text: string): SharedPlanPayload | null {
     const selectedClassBySubjectId: Record<string, string> = {};
 
     courseRows.forEach((row, idx) => {
-        const [code = "", subName = "", sksStr = "0", className = "", meetingsStr = ""] = row.split(SEP_FIELD);
+        const [code = "", subName = "", sksStr = "0", className = "", meetingsStr = "", lecturersStr = ""] = row.split(SEP_FIELD);
         const subjectId = `sh-s-${idx}`;
         const classId = `sh-c-${idx}`;
+        const lecturers = lecturersStr ? lecturersStr.split(SEP_SUB).filter(Boolean) : [];
         const meetings = meetingsStr
             .split(SEP_SUB)
             .filter(Boolean)
@@ -213,7 +214,7 @@ function expandV3Plan(text: string): SharedPlanPayload | null {
                 {
                     classId,
                     className,
-                    lecturers: [],
+                    lecturers,
                     meetings
                 }
             ]
@@ -294,13 +295,16 @@ export async function buildPlanShareUrl(
             })
             .join(SEP_SUB);
 
+        const lecturersStr = (chosenClass.lecturers ?? []).map(cleanField).filter(Boolean).join(SEP_SUB);
+
         rows.push(
             [
                 cleanField(sub.code),
                 cleanField(sub.name),
                 String(sub.sks || 0),
                 cleanField(chosenClass.className),
-                meetingsStr
+                meetingsStr,
+                lecturersStr
             ].join(SEP_FIELD)
         );
     }
