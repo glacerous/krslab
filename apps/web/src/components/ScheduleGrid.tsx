@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { Meeting, Subject, useAppStore } from "@/lib/store";
 import { getSubjectColor } from "@/lib/colors";
 import { checkClassConflict } from "@krs/engine";
-import { formatDay } from "@/lib/i18n";
+import { formatDay, Language } from "@/lib/i18n";
 
 const DAYS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 const DEFAULT_START_HOUR = 7;
@@ -27,7 +27,7 @@ function parseTimeToMinutes(timeStr: string): number | null {
     return h * 60 + m;
 }
 
-const DayHeaders = memo(function DayHeaders({ compact, language }: { compact: boolean; language: string }) {
+const DayHeaders = memo(function DayHeaders({ compact, language }: { compact: boolean; language: Language }) {
     return (
         <div className="flex bg-[#fafaf9] dark:bg-[#141418] shrink-0 z-20 border-b border-[#e6e6e3] dark:border-[#1e1e24] sticky top-0">
             <div
