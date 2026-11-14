@@ -139,6 +139,7 @@ interface ScheduleGridProps {
     onRemoveSubject?: (subjectId: string) => void;
     onDragRemoveHoverChange?: (hovering: boolean) => void;
     onDragRemoveDrop?: () => void;
+    readOnly?: boolean;
 }
 
 interface PointerDragState {
@@ -195,7 +196,8 @@ export const ScheduleGrid = memo(function ScheduleGrid({
     onBrowseCatalog,
     onRemoveSubject,
     onDragRemoveHoverChange,
-    onDragRemoveDrop
+    onDragRemoveDrop,
+    readOnly = false
 }: ScheduleGridProps) {
     const language = useAppStore((state: any) => state.language);
     const [rowHeight, setRowHeight] = useState(compact ? 56 : 74);
@@ -1263,22 +1265,24 @@ export const ScheduleGrid = memo(function ScheduleGrid({
                                                             }
                                                         }
                                                     }}
-                                                    onPointerDown={(e) => handlePointerDown(e, cls, mIdx)}
-                                                    onPointerMove={handlePointerMove}
-                                                    onPointerUp={handlePointerUp}
-                                                    onPointerCancel={handlePointerCancel}
+                                                    onPointerDown={readOnly ? undefined : (e) => handlePointerDown(e, cls, mIdx)}
+                                                    onPointerMove={readOnly ? undefined : handlePointerMove}
+                                                    onPointerUp={readOnly ? undefined : handlePointerUp}
+                                                    onPointerCancel={readOnly ? undefined : handlePointerCancel}
                                                     className={cn(
                                                         // Clean solid white card, flowing naturally from top
                                                         "group absolute rounded-xl flex flex-col justify-start pointer-events-auto select-none overflow-hidden",
-                                                        isFocused ? "touch-none" : "lg:touch-none",
+                                                        !readOnly && (isFocused ? "touch-none" : "lg:touch-none"),
                                                         "bg-white dark:bg-[#202027] dark:hover:bg-[#26262f] border border-[#dcdcd6] dark:border-[#343440] border-b-[2px] border-b-[#c6c6be] dark:border-b-[#464656] shadow-[0_1px_3px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_14px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.07)] hover:border-[#b8b8b0] dark:hover:border-[#464656]",
                                                         layout.isCompact ? "px-2.5 py-1.5" : layout.isMedium ? "p-2" : "p-3",
                                                         isFocused && "border-[#141413] dark:border-[#f4f4f6] ring-1 ring-[#141413] dark:ring-[#f4f4f6] shadow-md -translate-y-[1px] z-30",
-                                                        isThisCardDragging
-                                                            ? isOverRemoveZone
-                                                                ? "!z-50 shadow-2xl ring-2 ring-rose-500 border-rose-400 opacity-75 cursor-grabbing"
-                                                                : "!z-50 shadow-2xl ring-2 ring-[#141413] dark:ring-[#f4f4f6] cursor-grabbing"
-                                                            : "cursor-grab active:cursor-grabbing hover:shadow-md",
+                                                        readOnly
+                                                            ? "cursor-default hover:shadow-md"
+                                                            : isThisCardDragging
+                                                                ? isOverRemoveZone
+                                                                    ? "!z-50 shadow-2xl ring-2 ring-rose-500 border-rose-400 opacity-75 cursor-grabbing"
+                                                                    : "!z-50 shadow-2xl ring-2 ring-[#141413] dark:ring-[#f4f4f6] cursor-grabbing"
+                                                                : "cursor-grab active:cursor-grabbing hover:shadow-md",
                                                         isConflicting && "border-rose-400 border-b-[2px] border-b-rose-400 bg-rose-50/70 dark:bg-rose-950/40",
                                                         // Cascading overlap expansion on hover
                                                         layout.isOverlapping && !isThisCardDragging && "krs-cascading-node hover:!z-50 hover:shadow-xl hover:border-[#141413]/40 dark:hover:border-[#f4f4f6]/40",
