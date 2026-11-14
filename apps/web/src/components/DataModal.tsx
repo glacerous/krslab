@@ -6,7 +6,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { parseBimaMasterWithDebug } from "@krs/engine";
 import { SAMPLE_BIMA_TEXT } from "@/lib/sample-data";
 import { toast } from "sonner";
-import { X, Calendar, Clipboard, ArrowRight, Trash2, Check, Copy, AlertCircle, FileText } from "lucide-react";
+import { X, Trash2, Check, Copy, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface DataModalProps {
@@ -296,18 +296,15 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                 className="relative w-full max-w-2xl bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] z-10 animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header (No Database Icon, Clean Editorial) */}
-                <div className="p-5 px-6 border-b border-[#e6e6e3] dark:border-[#2e2e34] flex items-center justify-between bg-[#fbfbfa] dark:bg-[#18181b]">
-                    <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-neutral-100 dark:bg-[#27272a] border border-[#e6e6e3] dark:border-[#3f3f46] flex items-center justify-center text-[#141413] dark:text-[#f4f4f6]">
-                            {isEditMode ? (
-                                <FileText className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc]" />
-                            ) : (
-                                <Calendar className="w-4 h-4 text-[#5b82a6] dark:text-[#7dd3fc]" />
-                            )}
-                        </div>
-                        <div>
-                            <h2 className="text-[17px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight">
+                {/* Header */}
+                <div className="px-6 pt-5 pb-2 flex items-start justify-between gap-4">
+                    <div>
+                        <span className="font-doodle text-[15px] font-bold text-[#5b82a6] dark:text-[#7dd3fc] block leading-none mb-1">
+                            {isEditMode
+                                ? (isId ? "kelola sumber jadwal" : "manage schedule source")
+                                : (isId ? "impor tabel jadwal" : "import schedule table")}
+                        </span>
+                        <h2 className="text-[17px] font-semibold text-[#141413] dark:text-[#f4f4f6] tracking-tight">
                                 {isEditMode
                                     ? (isId ? "Edit sumber jadwal" : "Edit schedule source")
                                     : (isId ? "Impor jadwal kuliah" : "Import course schedule")}
@@ -321,12 +318,11 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                         ? "Salin & tempel tabel jadwal dari SIAKAD, SiakadCloud, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, atau Excel/CSV."
                                         : "Copy & paste your schedule table from SIAKAD, SiakadCloud, BIMA, SIMASTER, SIAK-NG, SIX, SIAM, or Excel/CSV.")}
                             </p>
-                        </div>
                     </div>
 
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors"
+                        className="p-1.5 rounded-lg text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.08] transition-colors shrink-0"
                         title="Close modal"
                         aria-label="Close modal"
                     >
@@ -335,7 +331,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                 </div>
 
                 {/* Body */}
-                <div className="p-6 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
+                <div className="px-6 py-3 overflow-y-auto space-y-4 flex-1 custom-scrollbar">
                     {/* 1. Source Name Input */}
                     <div className="space-y-1.5">
                         <label className="text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6]">
@@ -429,9 +425,8 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 <button
                                     type="button"
                                     onClick={handlePaste}
-                                    className="text-[12px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] flex items-center gap-1 hover:underline"
+                                    className="text-[12px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline"
                                 >
-                                    <Clipboard className="w-3.5 h-3.5" />
                                     <span>{isId ? "Tempel dari clipboard" : "Paste from clipboard"}</span>
                                 </button>
                             </div>
@@ -490,7 +485,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 px-6 border-t border-[#e6e6e3] dark:border-[#2e2e34] bg-[#fbfbfa] dark:bg-[#18181b] flex items-center justify-between gap-4">
+                <div className="px-6 pt-2 pb-5 flex flex-wrap items-center justify-between gap-3">
                     <div>
                         {isEditMode ? (
                             <button
@@ -548,7 +543,6 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                         ? (isId ? "Simpan perubahan" : "Save changes")
                                         : (isId ? "Impor jadwal" : "Import schedule")}
                             </span>
-                            <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                     </div>
                 </div>
