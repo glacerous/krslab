@@ -1213,28 +1213,28 @@ function WorkspaceContent() {
             {/* ========================================================= */}
             {/* 1. TOP WORKSPACE HEADER & TOOLBAR                         */}
             {/* ========================================================= */}
-            <header className="h-14 border-b border-[#e6e6e3] dark:border-[#26262e] bg-white/90 dark:bg-[#141418] backdrop-blur-md px-4 sm:px-6 flex items-center justify-between gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
+            <header className="h-14 border-b border-[#e6e6e3] dark:border-[#26262e] bg-white/90 dark:bg-[#141418] backdrop-blur-md px-4 sm:px-6 flex items-center justify-between lg:grid lg:grid-cols-[1fr_auto_1fr] gap-3 sm:gap-4 shrink-0 relative z-50 sticky top-0">
                 {/* 1. Left Group: Brand & Context & Inline Plan Tabs */}
-                <div className="flex items-center gap-2.5 shrink-0 min-w-0">
+                <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 max-w-full lg:justify-self-start">
                     {/* Custom Brand Logo with Timetable Mark & Doodle lab */}
                     <BrandLogo height={32} />
 
                     <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm shrink-0 font-light">/</span>
 
                     {/* Source Switcher Dropdown Trigger */}
-                    <div className="relative shrink-0">
+                    <div className="relative min-w-0">
                         <button
                             id="tour-datasource-btn"
                             ref={sourceTriggerRef}
                             type="button"
                             onClick={handleToggleSourceMenu}
                             className={cn(
-                                "px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all duration-200 select-none",
+                                "px-2.5 py-1 rounded-lg hover:bg-neutral-100 dark:hover:bg-[#20201e] text-[13.5px] font-medium text-[#141413] dark:text-[#f4f4f0] flex items-center gap-1.5 transition-all duration-200 select-none max-w-full",
                                 isSourcePulsing && "ring-2 ring-amber-400/80 scale-[1.03] bg-amber-50/70 dark:bg-amber-950/40"
                             )}
                             title="Click to switch, edit, copy, or import schedule sources"
                         >
-                            <span className="max-w-[150px] sm:max-w-[220px] truncate">{activeDatasource.name}</span>
+                            <span className="max-w-[120px] xl:max-w-[180px] truncate">{activeDatasource.name}</span>
                             <ChevronDown className={cn("w-3 h-3 text-[#a1a1aa] shrink-0 transition-transform duration-150", isSourceMenuOpen && "rotate-180")} />
                         </button>
                     </div>
@@ -1242,7 +1242,7 @@ function WorkspaceContent() {
                     <span className="text-[#d8d8d4] dark:text-[#3e3e3a] text-sm shrink-0 font-light">/</span>
 
                     {/* Plan Switcher Dropdown Trigger */}
-                    <div className="relative shrink-0">
+                    <div className="relative min-w-0">
                         {isRenamingTopBar ? (
                             <form
                                 onSubmit={(e) => {
@@ -1284,7 +1284,7 @@ function WorkspaceContent() {
                                 )}
                                 title="Click to switch plans, duplicate, or manage (double click to rename)"
                             >
-                                <span className="nexvyn-dash font-semibold max-w-[130px] sm:max-w-[180px] truncate">
+                                <span className="nexvyn-dash font-semibold max-w-[110px] xl:max-w-[160px] truncate">
                                     {activePlan.name}
                                 </span>
                                 <ChevronDown className={cn("w-3 h-3 text-[#a1a1aa] shrink-0 transition-transform duration-150", isPlanMenuOpen && "rotate-180")} />
@@ -1294,7 +1294,7 @@ function WorkspaceContent() {
                 </div>
 
                 {/* 2. Center Group: [Rules 0] | [Auto-Schedule] ↖ psst */}
-                <div id="tour-solver-bar" className="flex items-center gap-2.5 shrink-0">
+                <div id="tour-solver-bar" className="flex items-center gap-2.5 shrink-0 lg:justify-self-center">
                     {/* Rules Button */}
                     <button
                         id="tour-rules-btn"
@@ -1356,7 +1356,7 @@ function WorkspaceContent() {
                 </div>
 
                 {/* 3. Right Group: Compact Tutorial Pill, SKS Status, Export & Preferences */}
-                <div className="flex items-center gap-2.5 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0 lg:justify-self-end">
                     {/* Tutorial / Help Menu Button */}
                     <button
                         ref={guideBtnRef}
