@@ -89,10 +89,15 @@ export function ViewClient() {
         });
         toast.success(
             language === "id"
-                ? `"${payload.name}" disalin ke ruang kerjamu!`
-                : `"${payload.name}" copied to your workspace!`
+                ? `"${payload.name}" disalin! Membuka ruang kerja di tab baru...`
+                : `"${payload.name}" copied! Opening workspace in a new tab...`
         );
-        router.push("/");
+        const targetUrl = `/?from=shared&action=copied&name=${encodeURIComponent(payload.name)}`;
+        const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
+        if (!opened) {
+            router.push(targetUrl);
+        }
+        setIsImporting(false);
     };
 
     const handleImportWorkspace = () => {
@@ -107,7 +112,12 @@ export function ViewClient() {
                 ? `Berhasil mengimpor ${res.importedPlans} rencana & ${res.importedDatasources} sumber data!`
                 : `Imported ${res.importedPlans} plans & ${res.importedDatasources} sources!`
         );
-        router.push("/");
+        const targetUrl = `/?from=shared&action=workspace`;
+        const opened = window.open(targetUrl, "_blank", "noopener,noreferrer");
+        if (!opened) {
+            router.push(targetUrl);
+        }
+        setIsImporting(false);
     };
 
     if (status === "loading") {
@@ -243,7 +253,9 @@ export function ViewClient() {
 
                 <div className="flex items-center gap-2 shrink-0">
                     <Link
-                        href="/"
+                        href="/?from=shared&action=new"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="btn-tactile-light inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6]"
                     >
                         <span className="hidden sm:inline">{language === "id" ? "Buat Jadwalku Sendiri" : "Create My Own"}</span>

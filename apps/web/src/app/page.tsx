@@ -142,6 +142,25 @@ function WorkspaceContent() {
     const [prefsCoords, setPrefsCoords] = useState<{ top: number; left: number } | null>(null);
     const [guideMenuCoords, setGuideMenuCoords] = useState<{ top: number; left: number } | null>(null);
     const shouldLaunchTourAfterImportRef = useRef(false);
+    const [sharedArrival, setSharedArrival] = useState<{
+        action: "new" | "copied" | "workspace";
+        name?: string;
+    } | null>(null);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("from") !== "shared") return;
+
+        const rawAction = params.get("action");
+        const action: "new" | "copied" | "workspace" =
+            rawAction === "copied" ? "copied" : rawAction === "workspace" ? "workspace" : "new";
+        const name = params.get("name") || undefined;
+
+        setHasCompletedWelcome(true);
+        setSharedArrival({ action, name });
+        window.history.replaceState({}, "", window.location.pathname);
+    }, [setHasCompletedWelcome]);
 
     const updateSourceMenuCoords = useCallback(() => {
         if (sourceTriggerRef.current) {
@@ -2846,6 +2865,118 @@ function WorkspaceContent() {
                         onConfirm={confirmDeleteDatasource}
                         onCancel={() => setPendingDeleteDs(null)}
                     />
+                    {sharedArrival && mounted && createPortal(
+                        <div
+                            className="fixed inset-0 z-[120] bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4 animate-in fade-in duration-150"
+                            onClick={() => setSharedArrival(null)}
+                        >
+                            <div
+                                className="w-full max-w-md rounded-2xl bg-white dark:bg-[#1c1c1f] border border-[#e6e6e3] dark:border-[#2e2e34] shadow-2xl p-5 space-y-4 animate-in zoom-in-95 duration-150"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <BrandLogo height={26} />
+                                    <button
+                                        type="button"
+                                        onClick={() => setSharedArrival(null)}
+                                        className="p-1.5 rounded-lg text-[#6e6e77] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] transition-colors"
+                                        aria-label="Close"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <div className="font-doodle text-[14px] font-bold text-[#5b82a6] dark:text-[#7dd3fc]">
+                                        {sharedArrival.action === "copied"
+                                            ? (language === "id" ? "berhasil disalin" : "copied safely")
+                                            : sharedArrival.action === "workspace"
+                                                ? (language === "id" ? "ruang kerja diimpor" : "workspace imported")
+                                                : (language === "id" ? "buat jadwalmu sendiri" : "create your own schedule")}
+                                    </div>
+                                    <h3 className="text-base font-semibold text-[#141413] dark:text-[#f4f4f6]">
+                                        {sharedArrival.action === "copied"
+                                            ? (language === "id"
+                                                ? `"${sharedArrival.name || "Jadwal"}" ditambahkan sebagai rencana baru`
+                                                : `"${sharedArrival.name || "Schedule"}" added as a new plan`)
+                                            : sharedArrival.action === "workspace"
+                                                ? (language === "id"
+                                                    ? "Data & rencana jadwal siap digunakan"
+                                                    : "Sources & schedule plans are ready")
+                                                : (language === "id"
+                                                    ? "Mau mulai dari mana?"
+                                                    : "How would you like to start?")}
+                                    </h3>
+                                    <p className="text-[13px] text-[#6e6e77] dark:text-[#a1a1aa] leading-relaxed">
+                                        {sharedArrival.action === "copied" || sharedArrival.action === "workspace"
+                                            ? (language === "id"
+                                                ? "Tenang, jadwal atau rencana lamamu tidak terhapus. Kamu bisa ganti antar rencana kapan saja lewat menu Plan di kiri atas."
+                                                : "Your previous plans were not deleted. You can switch between plans anytime from the top-left Plan menu.")
+                                            : (language === "id"
+                                                ? "Jadwal lamamu tetap aman tersimpan dan tidak terhapus. Kamu bisa tempel tabel BIMA/SIAKAD atau buat lembar jadwal kosong baru."
+                                                : "Your existing schedules stay safe and untouched. Paste your BIMA/SIAKAD course table or start a new blank sheet.")}
+                                    </p>
+                                </div>
+
+                                {sharedArrival.action === "new" ? (
+                                    <div className="flex flex-col gap-2 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSharedArrival(null);
+                                                setDataModalEditSourceId(null);
+                                                openOverlay("bima-import");
+                                            }}
+                                            className="w-full px-3.5 py-2.5 rounded-xl bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] text-[13px] font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span>{language === "id" ? "Tempel Data Matkul (BIMA / SIAKAD)" : "Paste Course Data (BIMA / SIAKAD)"}</span>
+                                        </button>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSharedArrival(null);
+                                                    createEmptyDatasource(language === "id" ? "Jadwal Baru" : "New Schedule");
+                                                }}
+                                                className="btn-tactile-light px-3 py-2 rounded-xl text-[12.5px] font-medium text-[#141413] dark:text-[#f4f4f6]"
+                                            >
+                                                {language === "id" ? "Buat Lembar Kosong" : "New Blank Sheet"}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setSharedArrival(null)}
+                                                className="px-3 py-2 rounded-xl border border-[#e6e6e3] dark:border-[#2e2e34] text-[12.5px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] transition-colors"
+                                            >
+                                                {language === "id" ? "Lihat Jadwal Saat Ini" : "Keep Current View"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="flex flex-wrap gap-2 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setSharedArrival(null)}
+                                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-[#141413] dark:bg-[#f4f4f6] text-white dark:text-[#141413] text-[13px] font-semibold hover:opacity-90 transition-opacity"
+                                        >
+                                            {language === "id" ? "Mengerti, Mulai Edit" : "Got it, Start Editing"}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setSharedArrival(null);
+                                                handleTogglePlanMenu();
+                                            }}
+                                            className="btn-tactile-light px-3.5 py-2.5 rounded-xl text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6]"
+                                        >
+                                            {language === "id" ? "Lihat Daftar Plan" : "View Plans"}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>,
+                        document.body
+                    )}
                 </>
             )}
 
