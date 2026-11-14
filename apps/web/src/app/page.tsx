@@ -939,10 +939,7 @@ function WorkspaceContent() {
 
         if (result.success && result.candidate) {
             setPreviewMapping(result.candidate);
-            toast.success(previewMapping ? "Schedule Candidate Shuffled" : "Schedule Candidate Ready", {
-                id: "solver-toast",
-                description: "Accept to apply or Shuffle to try another."
-            });
+            toast.dismiss("solver-toast");
         } else {
             setSolverDiagnostics({
                 failureSummary: result.failureSummary,

@@ -101,7 +101,7 @@ export default function RootLayout({
                     <AppLayout>
                         {children}
                     </AppLayout>
-                    <Toaster position="bottom-right" richColors closeButton visibleToasts={2} />
+                    <Toaster position="bottom-right" mobileOffset={{ bottom: 84 }} richColors closeButton visibleToasts={2} />
                 </ThemeProvider>
                 <Analytics />
                 {process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID && (
