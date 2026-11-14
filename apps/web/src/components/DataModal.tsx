@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { useAppStore, Subject } from "@/lib/store";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { parseBimaMasterWithDebug } from "@krs/engine";
-import { SAMPLE_BIMA_TEXT } from "@/lib/sample-data";
 import { toast } from "sonner";
 import { X, Trash2, Check, Copy, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -18,15 +17,9 @@ interface DataModalProps {
 export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
     const {
         datasources,
-        activeDatasourceId,
-        setActiveDatasourceId,
         deleteDatasource,
         updateDatasource,
         importDatasourceAndCreatePlan,
-        plans,
-        setActivePlanId,
-        createEmptyDatasource,
-        setIsCustomCourseModalOpen,
         language
     } = useAppStore();
 
@@ -122,47 +115,6 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
         } catch {
             toast.error(isId ? "Gagal menyalin ke clipboard" : "Could not copy to clipboard");
         }
-    };
-
-    const handleLoadSample = () => {
-        const existingSample = datasources.find(d =>
-            d.id.startsWith("sample") || d.name.toLowerCase().includes("sample")
-        );
-        if (existingSample) {
-            setActiveDatasourceId(existingSample.id);
-            const existingPlan = plans.find(p => p.datasourceId === existingSample.id);
-            if (existingPlan) {
-                setActivePlanId(existingPlan.id);
-            }
-            toast.info(isId ? "Beralih ke Jadwal Sampel" : "Switched to existing Sample Schedule");
-            onClose();
-            return;
-        }
-        const parsed = parseBimaMasterWithDebug(SAMPLE_BIMA_TEXT);
-        const sampleName = isId ? "Sampel Informatika" : "Sample Informatics";
-        const { planId } = importDatasourceAndCreatePlan(sampleName, parsed.subjects);
-        const sampleSubIds = parsed.subjects.slice(0, 5).map((s: Subject) => s.subjectId);
-        useAppStore.getState().updatePlan(planId, {
-            name: "Plan 1",
-            selectedSubjectIds: sampleSubIds
-        });
-        toast.success(isId ? "Data sampel dimuat!" : "Sample Data Loaded!");
-        onClose();
-    };
-
-    const handleStartEmpty = () => {
-        const activeDs = datasources.find(d => d.id === activeDatasourceId);
-        if (!sourceName.trim() && activeDs && activeDs.subjects.length === 0) {
-            setIsCustomCourseModalOpen(true);
-            toast.info(isId ? "Sudah berada di lembar jadwal kosong." : "Already on an empty schedule sheet.");
-            onClose();
-            return;
-        }
-        const { datasourceId } = createEmptyDatasource(sourceName.trim() || undefined);
-        setActiveDatasourceId(datasourceId);
-        setIsCustomCourseModalOpen(true);
-        toast.success(isId ? "Sumber jadwal kosong berhasil dibuat!" : "Created empty schedule source!");
-        onClose();
     };
 
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -383,11 +335,9 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 03
                             </span>
                             <span className="text-[12px] text-[#6e6e77] dark:text-[#a1a1aa] leading-tight">
-                                {isId ? (
-                                    <>Tempel di bawah ini (atau klik <strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Mulai sumber kosong</strong>)</>
-                                ) : (
-                                    <>Paste below (or click <strong className="text-[#141413] dark:text-[#f4f4f6] font-medium">Start empty source</strong>)</>
-                                )}
+                                {isId
+                                    ? "Tempel di bawah ini lalu klik Impor jadwal"
+                                    : "Paste below and click Import schedule"}
                             </span>
                         </div>
                     </div>
@@ -496,25 +446,7 @@ export function DataModal({ isOpen, onClose, editSourceId }: DataModalProps) {
                                 <Trash2 className="w-3.5 h-3.5" />
                                 <span>{isId ? "Hapus sumber" : "Delete source"}</span>
                             </button>
-                        ) : (
-                            <div className="flex items-center gap-2.5">
-                                <button
-                                    type="button"
-                                    onClick={handleStartEmpty}
-                                    className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:text-[#416282] dark:hover:text-[#bae6fd] hover:underline transition-colors"
-                                >
-                                    {isId ? "Mulai sumber kosong (input manual)" : "Start empty source (manual input)"}
-                                </button>
-                                <span className="text-[#a1a1aa] dark:text-[#71717a]">·</span>
-                                <button
-                                    type="button"
-                                    onClick={handleLoadSample}
-                                    className="text-[12.5px] font-medium text-[#6e6e77] dark:text-[#a1a1aa] hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
-                                >
-                                    {isId ? "Gunakan sampel Informatika" : "Use sample Informatics data"}
-                                </button>
-                            </div>
-                        )}
+                        ) : null}
                     </div>
 
                     <div className="flex items-center gap-2">

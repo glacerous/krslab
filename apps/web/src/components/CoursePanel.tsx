@@ -633,19 +633,15 @@ export const CoursePanel = memo(function CoursePanel({
                             </div>
 
                             {/* Quick Custom Course Trigger Row */}
-                            <div
+                            <button
+                                type="button"
                                 onClick={() => setIsCustomCourseModalOpen(true)}
-                                className="text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline pt-1 pb-2 mb-1 px-0.5 border-b border-[#e6e6e3]/70 dark:border-[#26262e]/70 flex items-center justify-between cursor-pointer select-none shrink-0"
+                                className="w-full text-left text-[12.5px] font-medium text-[#5b82a6] dark:text-[#7dd3fc] hover:underline pt-1 pb-2 mb-1 px-0.5 border-b border-[#e6e6e3]/70 dark:border-[#26262e]/70 cursor-pointer select-none shrink-0"
                             >
-                                <span>
-                                    {language === "id"
-                                        ? "+ Buat matkul manual"
-                                        : "+ Create custom course manually"}
-                                </span>
-                                <span className="font-doodle text-[12.5px] text-[#5b82a6]/80 dark:text-[#7dd3fc]/80 font-bold">
-                                    custom
-                                </span>
-                            </div>
+                                {language === "id"
+                                    ? "+ Tambah matkul manual"
+                                    : "+ Add manual course"}
+                            </button>
 
 
                             <div className="flex-1 overflow-y-auto -mr-2 pr-2 pt-1 pb-4 space-y-1 custom-scrollbar">

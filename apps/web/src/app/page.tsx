@@ -2126,7 +2126,7 @@ function WorkspaceContent() {
                                 className="w-full text-left px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-[#141413] dark:text-[#f4f4f6] hover:bg-neutral-100 dark:hover:bg-white/[0.06] flex items-center gap-2 transition-colors select-none"
                             >
                                 <Plus className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                                <span>{language === "id" ? "Mulai sumber kosong (input manual)" : "Start empty source (manual input)"}</span>
+                                <span>{language === "id" ? "Lembar kosong" : "New blank sheet"}</span>
                             </button>
 
                             <button
