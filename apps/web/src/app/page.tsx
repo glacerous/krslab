@@ -50,7 +50,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { getTranslation } from "@/lib/i18n";
 import { switchThemeWithTransition, switchLanguageWithTransition } from "@/lib/theme-transition";
 import { buildKrsChecklistText, buildScheduleIcs, getScheduledItems } from "@/lib/export-schedule";
-import { buildPlanShareUrl, buildWorkspaceShareUrl } from "@/lib/share";
+import { buildPlanShareUrl, buildWorkspaceShareUrl, copyTextToClipboard } from "@/lib/share";
 import { useOnboarding } from "@/lib/onboarding/useOnboarding";
 import { IntroCard } from "@/components/onboarding/IntroCard";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -1078,7 +1078,11 @@ function WorkspaceContent() {
                 activeDatasource,
                 previewMapping ?? undefined
             );
-            await navigator.clipboard.writeText(url);
+            const copied = await copyTextToClipboard(url);
+            if (!copied) {
+                window.prompt(language === "id" ? "Salin link jadwal ini:" : "Copy this schedule link:", url);
+                return;
+            }
             toast.success(
                 language === "id"
                     ? "Link jadwal disalin! Siap dibagikan ke WhatsApp atau teman."
@@ -1101,7 +1105,11 @@ function WorkspaceContent() {
                 activePlanId,
                 activeDatasourceId
             );
-            await navigator.clipboard.writeText(url);
+            const copied = await copyTextToClipboard(url);
+            if (!copied) {
+                window.prompt(language === "id" ? "Salin link transfer ini:" : "Copy this transfer link:", url);
+                return;
+            }
             if (tooLarge) {
                 toast.warning(
                     language === "id"
