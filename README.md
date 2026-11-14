@@ -1,35 +1,26 @@
 # KRSlab
 
 [![CI](https://github.com/glacerous/krslab/actions/workflows/ci.yml/badge.svg)](https://github.com/glacerous/krslab/actions/workflows/ci.yml)
-[![Live App](https://img.shields.io/badge/demo-krslab.vercel.app-141413)](https://krslab.vercel.app)
+[![Live App](https://img.shields.io/badge/app-krslab.vercel.app-141413)](https://krslab.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-An open-source (MIT) university schedule (**KRS**) planner built for Indonesian campus portals. Paste your course table from **BIMA**, **SIAKAD**, **SiakadCloud**, **SIMASTER**, **SIAK-NG**, **SIX**, or **SIAM**, resolve clashes automatically, drag-and-drop sections on a weekly grid, and share your schedule via a short link.
+Open-source university course (KRS) schedule planner built for Indonesian campus portals. Paste a course table from your campus portal, inspect clashes on a weekly grid, generate conflict-free schedules with custom rules, and share plans via a short link.
 
-![KRSlab Studio](apps/web/public/changelog/v0-2-0-intro-poster.jpg)
+## How it works
 
----
+1. **Local-first workspace:** Course sources, plans, locked sections, and solver rules live in browser `localStorage` via Zustand (`apps/web/src/lib/store.ts`). No account is required.
+2. **Client-side parser & solver (`@krs/engine`):** Table parsing, clash detection, and schedule generation run directly in the browser (`packages/engine/src`).
+3. **Link sharing (`/v/[id]` & `/view`):** Clicking **Bagikan -> Salin Link Jadwal** compresses the plan with `deflate-raw` and stores it in Upstash Redis (`POST /api/share`) to return a short `/v/<id>` URL. If Redis is not configured, it falls back to a self-contained `/view#s=...` URL.
 
-## Features
+## Supported inputs
 
-- **Conflict-Free Auto-Scheduler & Shuffle** — Generate valid timetable candidates instantly, lock preferred sections, and add custom scheduling rules (free days, time windows, max gap).
-- **Interactive Drag & Drop** — Drag courses from the sidebar onto the grid, swap between parallel sections with live clash previews, or drag left to remove.
-- **Universal Campus Parser** — Paste directly from BIMA, SIAKAD, Excel/CSV, or build custom courses manually.
-- **Zero-DB Link Sharing & Transfer** — Share your schedule via a compressed `/view` link (with Open Graph preview cards) so friends can inspect and copy it into their own workspace, or export PNG, `.ics` calendar, and `.json` backups.
-- **Bilingual & Responsive** — Indonesian (`ID`) and English (`EN`), light/dark mode, and mobile-friendly drawer layout.
+- Campus portal tables copied from **BIMA**, **SIAKAD**, **SiakadCloud**, **SIMASTER**, **SIAK-NG**, **SIX**, and **SIAM**
+- Spreadsheet / delimited text (**Excel**, **CSV**, **TSV**)
+- Manual course & class builder inside the app
 
----
+## Local development
 
-## Tech Stack
-
-- **Monorepo:** pnpm workspaces
-- **Web:** Next.js 14 (App Router), React 18, Tailwind CSS, Zustand, Sonner
-- **Engine:** `@krs/engine` (TypeScript parser, conflict detector, constraint solver)
-- **Testing:** Vitest (engine) + Playwright (e2e)
-
----
-
-## Getting Started
+Requirements: Node.js 20+ and `pnpm`.
 
 ```bash
 pnpm install
@@ -37,36 +28,45 @@ pnpm --filter @krs/engine build
 pnpm --filter web dev
 ```
 
-Open **http://localhost:3000** in your browser.
+Open `http://localhost:3000`.
 
-### Useful Scripts
+### Optional: short share links (`/v/[id]`)
 
-```bash
-pnpm -r exec tsc --noEmit   # Typecheck all packages
-pnpm --filter @krs/engine test
-pnpm --filter web lint
-pnpm --filter web build
+Copy `apps/web/.env.example` to `apps/web/.env.local` and add your Upstash Redis REST credentials if you want to test `/api/share` and `/v/[id]` locally:
+
+```env
+UPSTASH_REDIS_REST_URL=
+UPSTASH_REDIS_REST_TOKEN=
 ```
 
----
+Without these variables, sharing automatically falls back to `/view#s=...`.
 
-## Repository Structure
+## Scripts
+
+```bash
+pnpm -r exec tsc --noEmit     # Typecheck all workspaces
+pnpm --filter @krs/engine test # Run parser and solver tests (Vitest)
+pnpm --filter web lint         # Lint Next.js app
+pnpm --filter web build        # Production build + changelog media check
+```
+
+## Project structure
 
 ```text
 apps/
-  └── web              # Next.js studio, share viewer (/view), and UI
+  web/
+    src/app/          # Studio (/), share viewer (/view, /v/[id]), /api/share, /changelog
+    src/components/   # ScheduleGrid, CoursePanel, DataModal, RulesModal, CustomCourseModal
+    src/lib/          # Zustand store, share encoding, Upstash Redis client, PNG/ICS export, i18n
 packages/
-  └── engine           # Portal parser, conflict rules, and schedule solver
-tools/                 # Media / asset utilities
+  engine/
+    src/              # Portal table parser, time/day conflict checker, constraint solver
+tools/                # Asset and media utilities
 ```
 
----
+## Contributing & contact
 
-## Contributing, Contact & Releases
+Contributions, parser fixes for campus portals, and bug reports are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) before opening a PR.
 
-KRSlab is open source! Issues and pull requests are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for local setup (including optional Upstash Redis for `/v/[id]` short links) and [`.github/ISSUE_TEMPLATE`](./.github/ISSUE_TEMPLATE) for bug reports.
-
-- **Report a bug or reach out:** [@thefuturehold on X (Twitter)](https://x.com/thefuturehold) or [GitHub Issues](https://github.com/glacerous/krslab/issues)
-- **Releases:** Automated via [`.github/workflows/release.yml`](./.github/workflows/release.yml) whenever a `v*.*.*` tag is pushed.
-
-Licensed under [MIT](./LICENSE).
+- **Bug reports & questions:** [@thefuturehold on X (Twitter)](https://x.com/thefuturehold) or [GitHub Issues](https://github.com/glacerous/krslab/issues)
+- **License:** [MIT](./LICENSE)
