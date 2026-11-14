@@ -4,7 +4,7 @@
 [![Live App](https://img.shields.io/badge/demo-krslab.vercel.app-141413)](https://krslab.vercel.app)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-An interactive university schedule (**KRS**) planner built for Indonesian campus portals. Paste your course table from **BIMA**, **SIAKAD**, **SiakadCloud**, **SIMASTER**, **SIAK-NG**, **SIX**, or **SIAM**, resolve clashes automatically, drag-and-drop sections on a weekly grid, and share your schedule via a link.
+An open-source (MIT) university schedule (**KRS**) planner built for Indonesian campus portals. Paste your course table from **BIMA**, **SIAKAD**, **SiakadCloud**, **SIMASTER**, **SIAK-NG**, **SIX**, or **SIAM**, resolve clashes automatically, drag-and-drop sections on a weekly grid, and share your schedule via a short link.
 
 ![KRSlab Studio](apps/web/public/changelog/v0-2-0-intro-poster.jpg)
 
@@ -62,9 +62,11 @@ tools/                 # Media / asset utilities
 
 ---
 
-## Contributing & Releases
+## Contributing, Contact & Releases
 
-Issues and PRs are welcome! See [`.github/ISSUE_TEMPLATE`](./.github/ISSUE_TEMPLATE) for bug reports or feature requests.
-Releases are automated via [`.github/workflows/release.yml`](./.github/workflows/release.yml) whenever a `v*.*.*` tag is pushed.
+KRSlab is open source! Issues and pull requests are welcome. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for local setup (including optional Upstash Redis for `/v/[id]` short links) and [`.github/ISSUE_TEMPLATE`](./.github/ISSUE_TEMPLATE) for bug reports.
+
+- **Report a bug or reach out:** [@thefuturehold on X (Twitter)](https://x.com/thefuturehold) or [GitHub Issues](https://github.com/glacerous/krslab/issues)
+- **Releases:** Automated via [`.github/workflows/release.yml`](./.github/workflows/release.yml) whenever a `v*.*.*` tag is pushed.
 
 Licensed under [MIT](./LICENSE).

@@ -2635,6 +2635,27 @@ function WorkspaceContent() {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Open Source & Contact Footer */}
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] pt-2 px-2 flex items-center justify-between text-[11px] text-[#6e6e77] dark:text-[#a1a1aa]">
+                            <a
+                                href="https://github.com/glacerous/krslab"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
+                            >
+                                {language === "id" ? "Open source (MIT)" : "Open source (MIT)"}
+                            </a>
+                            <a
+                                href="https://x.com/thefuturehold"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
+                                title={language === "id" ? "Laporkan masalah di X" : "Report an issue on X"}
+                            >
+                                @thefuturehold
+                            </a>
+                        </div>
                     </div>
                 </div>,
                 document.body
@@ -2803,6 +2824,28 @@ function WorkspaceContent() {
                                 </span>
                             </span>
                         </button>
+                        <div className="border-t border-[#e6e6e3] dark:border-[#2e2e34] my-1.5" />
+                        <div className="px-2.5 py-1 flex items-center justify-between text-[11px] text-[#6e6e77] dark:text-[#a1a1aa]">
+                            <a
+                                href="https://github.com/glacerous/krslab"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setIsGuideMenuOpen(false)}
+                                className="hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
+                            >
+                                Open source · GitHub
+                            </a>
+                            <a
+                                href="https://x.com/thefuturehold"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setIsGuideMenuOpen(false)}
+                                className="hover:text-[#141413] dark:hover:text-[#f4f4f6] hover:underline transition-colors"
+                                title={language === "id" ? "Laporkan masalah di X" : "Report an issue on X"}
+                            >
+                                {language === "id" ? "Lapor (@thefuturehold)" : "Report (@thefuturehold)"}
+                            </a>
+                        </div>
                     </div>
                 </div>,
                 document.body

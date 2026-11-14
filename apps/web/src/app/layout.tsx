@@ -67,7 +67,7 @@ export const metadata: Metadata = {
         title: "KRSlab - University KRS & Academic Schedule Planner",
         description: "Optimize your university academic schedule (KRS) instantly. Auto-resolve class conflicts, manage schedule plans, and visualize your weekly classes.",
         images: ["/og-image.png"],
-        creator: "@glacerous",
+        creator: "@thefuturehold",
     },
     robots: {
         index: true,
